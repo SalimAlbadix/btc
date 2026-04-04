@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bitcoin Intelligence | ÿ™ÿ≠ŸÑŸäŸÑ ÿ®Ÿäÿ™ŸÉŸàŸäŸÜ</title>
+<title>Bitcoin Intelligence | تحليل بيتكوين</title>
 <style>
   :root {
     --bg: #000000;
@@ -35,12 +35,12 @@
     direction: rtl;
   }
 
-  /* ‚îÄ‚îÄ Scrollbar ‚îÄ‚îÄ */
+  /* ── Scrollbar ── */
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: #111; }
   ::-webkit-scrollbar-thumb { background: rgba(247,147,26,0.4); border-radius: 3px; }
 
-  /* ‚îÄ‚îÄ Background Grid ‚îÄ‚îÄ */
+  /* ── Background Grid ── */
   body::before {
     content:'';
     position: fixed;
@@ -54,7 +54,7 @@
     z-index: 0;
   }
 
-  /* ‚îÄ‚îÄ Animations ‚îÄ‚îÄ */
+  /* ── Animations ── */
   @keyframes fadeInUp {
     from { opacity:0; transform:translateY(30px); }
     to   { opacity:1; transform:translateY(0); }
@@ -98,7 +98,7 @@
     transform: translateY(0);
   }
 
-  /* ‚îÄ‚îÄ Layout ‚îÄ‚îÄ */
+  /* ── Layout ── */
   .container {
     max-width: 1400px;
     margin: 0 auto;
@@ -109,7 +109,7 @@
 
   section { padding: 80px 0; }
 
-  /* ‚îÄ‚îÄ Glass Card ‚îÄ‚îÄ */
+  /* ── Glass Card ── */
   .glass {
     background: var(--card-bg);
     backdrop-filter: var(--card-blur);
@@ -118,7 +118,7 @@
     border-radius: var(--radius);
   }
 
-  /* ‚îÄ‚îÄ FLOATING ACCURACY WIDGET ‚îÄ‚îÄ */
+  /* ── FLOATING ACCURACY WIDGET ── */
   #accuracy-widget {
     position: fixed;
     top: 20px;
@@ -177,7 +177,7 @@
   .acc-correct { color: var(--green); }
   .acc-wrong   { color: var(--red); }
 
-  /* ‚îÄ‚îÄ HERO ‚îÄ‚îÄ */
+  /* ── HERO ── */
   #hero {
     min-height: 100vh;
     display: flex;
@@ -296,7 +296,7 @@
   }
   .hero-meta .sep { color: rgba(255,255,255,0.2); }
 
-  /* ‚îÄ‚îÄ SECTION HEADER ‚îÄ‚îÄ */
+  /* ── SECTION HEADER ── */
   .section-header {
     text-align: center;
     margin-bottom: 60px;
@@ -325,7 +325,7 @@
     margin-bottom: 16px;
   }
 
-  /* ‚îÄ‚îÄ 20 FACTORS TABLE ‚îÄ‚îÄ */
+  /* ── 20 FACTORS TABLE ── */
   .factors-table-wrap {
     overflow-x: auto;
     border-radius: var(--radius);
@@ -440,7 +440,7 @@
     min-width: 24px;
   }
 
-  /* ‚îÄ‚îÄ TA CARDS ‚îÄ‚îÄ */
+  /* ── TA CARDS ── */
   .ta-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -564,7 +564,7 @@
   .vol-bar-fill.lvn { background: rgba(255,255,255,0.2); }
   .vol-marker { font-size: 10px; color: var(--text-muted); width: 30px; }
 
-  /* ‚îÄ‚îÄ SCENARIOS ‚îÄ‚îÄ */
+  /* ── SCENARIOS ── */
   .scenarios-grid {
     display: grid;
     grid-template-columns: 1fr 1.15fr 1fr;
@@ -628,7 +628,7 @@
   .trigger-list { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
   .trigger-item { font-size: 12px; color: var(--text-muted); display: flex; gap: 6px; align-items: flex-start; line-height: 1.5; }
 
-  /* ‚îÄ‚îÄ PERSONAL PLAN ‚îÄ‚îÄ */
+  /* ── PERSONAL PLAN ── */
   #plan { background: linear-gradient(180deg, rgba(247,147,26,0.04) 0%, transparent 100%); }
 
   .plan-header {
@@ -715,7 +715,7 @@
   .date-name { font-size: 13px; font-weight: 600; }
   .date-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 
-  /* ‚îÄ‚îÄ HISTORY TABLE ‚îÄ‚îÄ */
+  /* ── HISTORY TABLE ── */
   .history-table {
     width: 100%;
     border-collapse: collapse;
@@ -741,7 +741,7 @@
   .outcome-correct { color: var(--green); font-weight: 600; }
   .outcome-wrong   { color: var(--red); font-weight: 600; }
 
-  /* ‚îÄ‚îÄ FOOTER ‚îÄ‚îÄ */
+  /* ── FOOTER ── */
   footer {
     text-align: center;
     padding: 48px 24px;
@@ -753,7 +753,7 @@
   }
   footer a { color: var(--accent); text-decoration: none; }
 
-  /* ‚îÄ‚îÄ RESPONSIVE ‚îÄ‚îÄ */
+  /* ── RESPONSIVE ── */
   @media (max-width: 900px) {
     .scenarios-grid { grid-template-columns: 1fr; }
     .scenario-card.featured { order: -1; }
@@ -770,7 +770,7 @@
     table.factors { min-width: 700px; }
   }
 
-  /* ‚îÄ‚îÄ DIVIDER ‚îÄ‚îÄ */
+  /* ── DIVIDER ── */
   .divider {
     height: 1px;
     background: linear-gradient(90deg, transparent, var(--card-border), transparent);
@@ -783,14 +783,14 @@
 </head>
 <body>
 
-<!-- ‚ïê‚ïê ACCURACY WIDGET ‚ïê‚ïê -->
+<!-- ══ ACCURACY WIDGET ══ -->
 <div id="accuracy-widget">
   <div id="accuracy-badge" onclick="toggleAccuracy()">
-    üéØ <span id="acc-text">Accuracy: 0/0</span>
+    🎯 <span id="acc-text">Accuracy: 0/0</span>
   </div>
   <div id="accuracy-panel">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-      <span style="font-weight:700;font-size:15px;">üìä Analysis History</span>
+      <span style="font-weight:700;font-size:15px;">📊 Analysis History</span>
       <span id="acc-ratio" style="color:var(--accent);font-weight:700;"></span>
     </div>
     <table class="accuracy-table">
@@ -805,7 +805,7 @@
   </div>
 </div>
 
-<!-- ‚ïê‚ïê HERO ‚ïê‚ïê -->
+<!-- ══ HERO ══ -->
 <section id="hero">
   <div style="position:relative;display:inline-block;" class="btc-logo-wrap">
     <div class="btc-logo-ring"></div>
@@ -818,42 +818,42 @@
       </defs>
       <circle cx="50" cy="50" r="48" fill="url(#btcGrad)" opacity="0.15"/>
       <circle cx="50" cy="50" r="44" fill="none" stroke="url(#btcGrad)" stroke-width="2" opacity="0.4"/>
-      <text x="50" y="66" text-anchor="middle" font-size="58" font-weight="900" font-family="system-ui" fill="url(#btcGrad)">‚Çø</text>
+      <text x="50" y="66" text-anchor="middle" font-size="58" font-weight="900" font-family="system-ui" fill="url(#btcGrad)">₿</text>
     </svg>
   </div>
 
   <h1 class="hero-title fade-in-up" style="animation-delay:0.1s">Bitcoin Intelligence</h1>
-  <p class="hero-arabic fade-in-up" style="animation-delay:0.2s">ÿ™ÿ≠ŸÑŸäŸÑ ÿ®Ÿäÿ™ŸÉŸàŸäŸÜ ÿßŸÑÿ¥ÿßŸÖŸÑ ÿ®ÿßŸÑÿ∞ŸÉÿßÿ° ÿßŸÑÿßÿµÿ∑ŸÜÿßÿπŸä</p>
+  <p class="hero-arabic fade-in-up" style="animation-delay:0.2s">تحليل بيتكوين الشامل بالذكاء الاصطناعي</p>
 
   <div class="price-card glass fade-in-up" style="animation-delay:0.3s">
     <div class="price-label">Bitcoin Price <span class="live-dot" style="margin-right:6px;"></span></div>
-    <div class="price-value count-up" id="btc-price">$‚Äî,‚Äî‚Äî‚Äî</div>
-    <div class="price-change" id="btc-change">‚Äî%</div>
+    <div class="price-value count-up" id="btc-price">$—,———</div>
+    <div class="price-change" id="btc-change">—%</div>
     <div class="price-refresh" id="refresh-info">
-      <span class="live-dot"></span> Ÿäÿ™ÿ¨ÿØÿØ ŸÉŸÑ 60 ÿ´ÿßŸÜŸäÿ©
+      <span class="live-dot"></span> يتجدد كل 60 ثانية
     </div>
   </div>
 
   <div class="hero-meta fade-in-up" style="animation-delay:0.4s">
-    <span>üìÖ 4 ÿ£ÿ®ÿ±ŸäŸÑ 2026</span>
+    <span>📅 4 أبريل 2026</span>
     <span class="sep">|</span>
-    <span>üìä RSI: <strong style="color:var(--green)">24.3</strong></span>
+    <span>📊 RSI: <strong style="color:var(--green)">24.3</strong></span>
     <span class="sep">|</span>
-    <span>üò® Fear &amp; Greed: <strong style="color:var(--yellow)">29</strong></span>
+    <span>😨 Fear &amp; Greed: <strong style="color:var(--yellow)">29</strong></span>
     <span class="sep">|</span>
-    <span>‚õèÔ∏è Hash Rate: <strong style="color:var(--green)">700+ EH/s</strong></span>
+    <span>⛏️ Hash Rate: <strong style="color:var(--green)">700+ EH/s</strong></span>
   </div>
 </section>
 
 <div class="divider"></div>
 
-<!-- ‚ïê‚ïê 20 FACTORS ‚ïê‚ïê -->
+<!-- ══ 20 FACTORS ══ -->
 <section id="factors">
   <div class="container">
     <div class="section-header fade-in-up">
       <div class="section-tag">On-Chain + Macro + Technical</div>
-      <h2>20 ÿπÿßŸÖŸÑÿßŸã Ÿäÿ≠ÿ±ŸÉ ÿßŸÑÿ≥ŸàŸÇ</h2>
-      <p>ÿ™ÿ≠ŸÑŸäŸÑ ÿ¥ÿßŸÖŸÑ ŸÑÿ£ŸáŸÖ ÿßŸÑÿπŸàÿßŸÖŸÑ ÿßŸÑŸÖÿ§ÿ´ÿ±ÿ© ÿπŸÑŸâ ÿ≥ÿπÿ± ÿ®Ÿäÿ™ŸÉŸàŸäŸÜ ‚Äî 4 ÿ£ÿ®ÿ±ŸäŸÑ 2026</p>
+      <h2>20 عاملاً يحرك السوق</h2>
+      <p>تحليل شامل لأهم العوامل المؤثرة على سعر بيتكوين — 4 أبريل 2026</p>
     </div>
 
     <div class="factors-table-wrap glass fade-in-up">
@@ -861,194 +861,194 @@
         <thead>
           <tr>
             <th>#</th>
-            <th>ÿßŸÑÿπÿßŸÖŸÑ</th>
-            <th>ÿßŸÑŸÅÿ¶ÿ©</th>
-            <th>ÿßŸÑŸàÿ∂ÿπ ÿßŸÑÿ≠ÿßŸÑŸä</th>
-            <th>ÿßŸÑÿßÿ™ÿ¨ÿßŸá</th>
-            <th>ÿßŸÑŸÇŸàÿ©</th>
-            <th>ŸÖÿßÿ∞ÿß ŸÜÿ±ÿßŸÇÿ®</th>
+            <th>العامل</th>
+            <th>الفئة</th>
+            <th>الوضع الحالي</th>
+            <th>الاتجاه</th>
+            <th>القوة</th>
+            <th>ماذا نراقب</th>
           </tr>
         </thead>
         <tbody>
           <tr class="bear">
             <td>1</td>
-            <td><div class="factor-name">Federal Reserve Policy</div><div class="factor-ar">ÿ≥Ÿäÿßÿ≥ÿ© ÿßŸÑŸÅŸäÿØÿ±ÿßŸÑŸä</div></td>
-            <td><span class="cat-badge">ŸÖÿßŸÉÿ±Ÿà</span></td>
-            <td class="status-text">ŸÖÿπÿØŸÑÿßÿ™ 4.25-4.5%ÿå ŸÑÿß ÿÆŸÅÿ∂ ŸÇÿ®ŸÑ ŸäŸàŸÜŸäŸà/ŸäŸàŸÑŸäŸà 2026ÿå ÿ™Ÿàÿ∏ŸäŸÅ ŸÇŸàŸä</td>
-            <td><span class="signal-badge bear">üî¥ Ÿáÿ®Ÿàÿ∑Ÿä</span></td>
-            <td><span class="stars">‚≠ê‚≠ê‚≠ê‚≠ê‚≠ê</span></td>
-            <td class="watch-text">FOMC 7 ŸÖÿßŸäŸà ‚Äî ÿ£Ÿä ÿ•ÿ¥ÿßÿ±ÿ© ÿØŸàŸÅŸäÿ© = ÿßÿ±ÿ™ÿØÿßÿØ</td>
+            <td><div class="factor-name">Federal Reserve Policy</div><div class="factor-ar">سياسة الفيدرالي</div></td>
+            <td><span class="cat-badge">ماكرو</span></td>
+            <td class="status-text">معدلات 4.25-4.5%، لا خفض قبل يونيو/يوليو 2026، توظيف قوي</td>
+            <td><span class="signal-badge bear">🔴 هبوطي</span></td>
+            <td><span class="stars">⭐⭐⭐⭐⭐</span></td>
+            <td class="watch-text">FOMC 7 مايو — أي إشارة دوفية = ارتداد</td>
           </tr>
           <tr class="neut">
             <td>2</td>
-            <td><div class="factor-name">Global M2 Liquidity</div><div class="factor-ar">ÿßŸÑÿ≥ŸäŸàŸÑÿ© ÿßŸÑÿπÿßŸÑŸÖŸäÿ© M2</div></td>
-            <td><span class="cat-badge">ŸÖÿßŸÉÿ±Ÿà</span></td>
-            <td class="status-text">ÿßÿ±ÿ™ŸÅÿßÿπ +5% ÿ≥ŸÜŸàŸäÿßŸãÿå ÿßŸÑÿµŸäŸÜ/ÿßŸÑÿ≥ÿπŸàÿØŸäÿ©/EU ÿ™ŸÇŸàÿØÿå ŸÑŸÉŸÜ ŸÇŸàÿ© ÿßŸÑÿØŸàŸÑÿßÿ± ÿ™ŸèÿπŸàŸëÿ∂</td>
-            <td><span class="signal-badge neut">üü° ŸÖÿ≠ÿßŸäÿØ</span></td>
-            <td><span class="stars">‚≠ê‚≠ê‚≠ê</span></td>
-            <td class="watch-text">ÿ∂ÿÆ ÿ≥ŸäŸàŸÑÿ© PBoC</td>
+            <td><div class="factor-name">Global M2 Liquidity</div><div class="factor-ar">السيولة العالمية M2</div></td>
+            <td><span class="cat-badge">ماكرو</span></td>
+            <td class="status-text">ارتفاع +5% سنوياً، الصين/السعودية/EU تقود، لكن قوة الدولار تُعوّض</td>
+            <td><span class="signal-badge neut">🟡 محايد</span></td>
+            <td><span class="stars">⭐⭐⭐</span></td>
+            <td class="watch-text">ضخ سيولة PBoC</td>
           </tr>
           <tr class="bear">
             <td>3</td>
-            <td><div class="factor-name">CPI Inflation</div><div class="factor-ar">ÿ®ŸäÿßŸÜÿßÿ™ ÿßŸÑÿ™ÿ∂ÿÆŸÖ</div></td>
-            <td><span class="cat-badge">ŸÖÿßŸÉÿ±Ÿà</span></td>
-            <td class="status-text">2.8% ‚Äî ÿßŸÑÿ±ÿ≥ŸàŸÖ ÿßŸÑÿ¨ŸÖÿ±ŸÉŸäÿ© ÿ≥ÿ™ÿØŸÅÿπŸá ÿ£ÿπŸÑŸâÿå ŸäŸèÿπŸÇŸëÿØ ŸÇÿ±ÿßÿ±ÿßÿ™ ÿßŸÑÿÆŸÅÿ∂</td>
-            <td><span class="signal-badge bear">üî¥ Ÿáÿ®Ÿàÿ∑Ÿä</span></td>
-            <td><span class="stars">‚≠ê‚≠ê‚≠ê‚≠ê</span></td>
-            <td class="watch-text">CPI 10 ÿ£ÿ®ÿ±ŸäŸÑ ‚Äî ÿ™ÿ≠ÿ™ 2.7% = ÿµÿπŸàÿØŸä</td>
+            <td><div class="factor-name">CPI Inflation</div><div class="factor-ar">بيانات التضخم</div></td>
+            <td><span class="cat-badge">ماكرو</span></td>
+            <td class="status-text">2.8% — الرسوم الجمركية ستدفعه أعلى، يُعقّد قرارات الخفض</td>
+            <td><span class="signal-badge bear">🔴 هبوطي</span></td>
+            <td><span class="stars">⭐⭐⭐⭐</span></td>
+            <td class="watch-text">CPI 10 أبريل — تحت 2.7% = صعودي</td>
           </tr>
           <tr class="bear">
             <td>4</td>
-            <td><div class="factor-name">DXY Dollar Index</div><div class="factor-ar">ŸÖÿ§ÿ¥ÿ± ÿßŸÑÿØŸàŸÑÿßÿ±</div></td>
-            <td><span class="cat-badge">ŸÖÿßŸÉÿ±Ÿà</span></td>
-            <td class="status-text">ŸÅŸàŸÇ 104ÿå Ÿäÿ™ŸÇŸàŸâ ÿ®ÿ≥ÿ®ÿ® ÿßŸÑŸÖŸÑÿßÿ∞ ÿßŸÑÿ¢ŸÖŸÜ ŸÖŸÜ ÿßŸÑÿ±ÿ≥ŸàŸÖ ÿßŸÑÿ¨ŸÖÿ±ŸÉŸäÿ©</td>
-            <td><span class="signal-badge bear">üî¥ Ÿáÿ®Ÿàÿ∑Ÿä</span></td>
-            <td><span class="stars">‚≠ê‚≠ê‚≠ê‚≠ê</span></td>
-            <td class="watch-text">ŸÉÿ≥ÿ± 105 = ÿ£ŸÑŸÖ ÿ£ŸÉÿ®ÿ± ŸÑŸÄ BTC</td>
+            <td><div class="factor-name">DXY Dollar Index</div><div class="factor-ar">مؤشر الدولار</div></td>
+            <td><span class="cat-badge">ماكرو</span></td>
+            <td class="status-text">فوق 104، يتقوى بسبب الملاذ الآمن من الرسوم الجمركية</td>
+            <td><span class="signal-badge bear">🔴 هبوطي</span></td>
+            <td><span class="stars">⭐⭐⭐⭐</span></td>
+            <td class="watch-text">كسر 105 = ألم أكبر لـ BTC</td>
           </tr>
           <tr class="bear">
             <td>5</td>
-            <td><div class="factor-name">S&amp;P 500 Correlation</div><div class="factor-ar">ÿßÿ±ÿ™ÿ®ÿßÿ∑ S&P 500</div></td>
-            <td><span class="cat-badge">ŸÖÿßŸÉÿ±Ÿà</span></td>
-            <td class="status-text">S&P -4.8% ÿßŸÑŸäŸàŸÖ (ÿ£ÿ≥Ÿàÿ£ ŸäŸàŸÖ ŸÖŸÜÿ∞ 2022)ÿå ÿßÿ±ÿ™ÿ®ÿßÿ∑ BTC 0.75+</td>
-            <td><span class="signal-badge bear">üî¥ Ÿáÿ®Ÿàÿ∑Ÿä</span></td>
-            <td><span class="stars">‚≠ê‚≠ê‚≠ê‚≠ê‚≠ê</span></td>
-            <td class="watch-text">ÿßÿ≥ÿ™ŸÇÿ±ÿßÿ± ÿßŸÑÿ£ÿ≥ŸáŸÖ = ÿ£ŸàŸÑ ÿπŸÑÿßŸÖÿ© ÿßŸÜÿ™ÿπÿßÿ¥ BTC</td>
+            <td><div class="factor-name">S&amp;P 500 Correlation</div><div class="factor-ar">ارتباط S&P 500</div></td>
+            <td><span class="cat-badge">ماكرو</span></td>
+            <td class="status-text">S&P -4.8% اليوم (أسوأ يوم منذ 2022)، ارتباط BTC 0.75+</td>
+            <td><span class="signal-badge bear">🔴 هبوطي</span></td>
+            <td><span class="stars">⭐⭐⭐⭐⭐</span></td>
+            <td class="watch-text">استقرار الأسهم = أول علامة انتعاش BTC</td>
           </tr>
           <tr class="bear">
             <td>6</td>
-            <td><div class="factor-name">Geopolitical Events</div><div class="factor-ar">ÿßŸÑÿ¨ŸäŸàÿ≥Ÿäÿßÿ≥Ÿäÿ©</div></td>
-            <td><span class="cat-badge">ŸÖÿßŸÉÿ±Ÿà</span></td>
-            <td class="status-text">Liberation Day: 34% ÿ±ÿ≥ŸàŸÖ ÿµŸäŸÜŸäÿ©ÿå 24% Ÿäÿßÿ®ÿßŸÜŸäÿ© ‚Äî ÿ≠ÿ±ÿ® ÿ™ÿ¨ÿßÿ±Ÿäÿ©</td>
-            <td><span class="signal-badge bear">üî¥ Ÿáÿ®Ÿàÿ∑Ÿä</span></td>
-            <td><span class="stars">‚≠ê‚≠ê‚≠ê‚≠ê‚≠ê</span></td>
-            <td class="watch-text">ÿ£Ÿä ÿ™ŸÅÿßŸàÿ∂/ÿ™ÿ±ÿßÿ¨ÿπ = ÿßÿ±ÿ™ÿØÿßÿØ ÿ≠ÿßÿØ</td>
+            <td><div class="factor-name">Geopolitical Events</div><div class="factor-ar">الجيوسياسية</div></td>
+            <td><span class="cat-badge">ماكرو</span></td>
+            <td class="status-text">Liberation Day: 34% رسوم صينية، 24% يابانية — حرب تجارية</td>
+            <td><span class="signal-badge bear">🔴 هبوطي</span></td>
+            <td><span class="stars">⭐⭐⭐⭐⭐</span></td>
+            <td class="watch-text">أي تفاوض/تراجع = ارتداد حاد</td>
           </tr>
           <tr class="bull">
             <td>7</td>
-            <td><div class="factor-name">Halving Cycle</div><div class="factor-ar">ÿØŸàÿ±ÿ© ÿßŸÑŸáÿßŸÑŸÅŸäŸÜÿ¨</div></td>
-            <td><span class="cat-badge">ÿ£ŸàŸÜ-ÿ™ÿ¥ŸäŸÜ</span></td>
-            <td class="status-text">ÿßŸÑÿ¥Ÿáÿ± 12 ÿ®ÿπÿØ ÿßŸÑŸáÿßŸÑŸÅŸäŸÜÿ¨ ‚Äî ÿ™ÿßÿ±ŸäÿÆŸäÿßŸã ÿ∞ÿ±Ÿàÿ© ÿßŸÑÿ¥Ÿáÿ± 12-18</td>
-            <td><span class="signal-badge bull">üü¢ ÿµÿπŸàÿØŸä</span></td>
-            <td><span class="stars">‚≠ê‚≠ê‚≠ê‚≠ê</span></td>
-            <td class="watch-text">ŸÜÿßŸÅÿ∞ÿ© ÿßŸÑÿ∞ÿ±Ÿàÿ©: ŸäŸàŸÜŸäŸà-ÿ£ÿ∫ÿ≥ÿ∑ÿ≥ 2026</td>
+            <td><div class="factor-name">Halving Cycle</div><div class="factor-ar">دورة الهالفينج</div></td>
+            <td><span class="cat-badge">أون-تشين</span></td>
+            <td class="status-text">الشهر 12 بعد الهالفينج — تاريخياً ذروة الشهر 12-18</td>
+            <td><span class="signal-badge bull">🟢 صعودي</span></td>
+            <td><span class="stars">⭐⭐⭐⭐</span></td>
+            <td class="watch-text">نافذة الذروة: يونيو-أغسطس 2026</td>
           </tr>
           <tr class="bull">
             <td>8</td>
-            <td><div class="factor-name">Miner Selling</div><div class="factor-ar">ÿ®Ÿäÿπ ÿßŸÑŸÖÿπÿØŸÜŸäŸÜ</div></td>
-            <td><span class="cat-badge">ÿ£ŸàŸÜ-ÿ™ÿ¥ŸäŸÜ</span></td>
-            <td class="status-text">ÿßŸÑŸÖÿπÿØŸÜŸàŸÜ Ÿäÿ≠ÿ™ŸÅÿ∏ŸàŸÜÿå ÿßÿ≠ÿ™Ÿäÿßÿ∑Ÿä ÿßŸÑŸÖÿπÿØŸÜŸäŸÜ ŸÖÿ≥ÿ™ŸÇÿ±</td>
-            <td><span class="signal-badge bull">üü¢ ÿµÿπŸàÿØŸä</span></td>
-            <td><span class="stars">‚≠ê‚≠ê‚≠ê</span></td>
-            <td class="watch-text">ŸÖÿ±ÿßŸÇÿ®ÿ© ÿ•ÿ∞ÿß ÿßŸÜŸáÿßÿ± ÿßŸÑÿ≥ÿπÿ± ÿ™ÿ≠ÿ™ $60K</td>
+            <td><div class="factor-name">Miner Selling</div><div class="factor-ar">بيع المعدنين</div></td>
+            <td><span class="cat-badge">أون-تشين</span></td>
+            <td class="status-text">المعدنون يحتفظون، احتياطي المعدنين مستقر</td>
+            <td><span class="signal-badge bull">🟢 صعودي</span></td>
+            <td><span class="stars">⭐⭐⭐</span></td>
+            <td class="watch-text">مراقبة إذا انهار السعر تحت $60K</td>
           </tr>
           <tr class="bull">
             <td>9</td>
-            <td><div class="factor-name">Stock-to-Flow</div><div class="factor-ar">ŸÜŸÖŸàÿ∞ÿ¨ S2F</div></td>
-            <td><span class="cat-badge">ÿ£ŸàŸÜ-ÿ™ÿ¥ŸäŸÜ</span></td>
-            <td class="status-text">ŸáÿØŸÅ ÿßŸÑŸÜŸÖŸàÿ∞ÿ¨ $100K-$150K ‚Äî ÿßŸÑÿ≥ÿπÿ± ÿßŸÑÿ≠ÿßŸÑŸä ŸÖŸèŸÇŸäŸéŸëŸÖ ÿ£ÿØŸÜŸâ ÿ®ŸÉÿ´Ÿäÿ±</td>
-            <td><span class="signal-badge bull">üü¢ ÿµÿπŸàÿØŸä</span></td>
-            <td><span class="stars">‚≠ê‚≠ê</span></td>
-            <td class="watch-text">ŸÜŸÖŸàÿ∞ÿ¨ ÿØÿπŸÖ ÿ∑ŸàŸäŸÑ ÿßŸÑÿ£ŸÖÿØ ŸÅŸÇÿ∑</td>
+            <td><div class="factor-name">Stock-to-Flow</div><div class="factor-ar">نموذج S2F</div></td>
+            <td><span class="cat-badge">أون-تشين</span></td>
+            <td class="status-text">هدف النموذج $100K-$150K — السعر الحالي مُقيَّم أدنى بكثير</td>
+            <td><span class="signal-badge bull">🟢 صعودي</span></td>
+            <td><span class="stars">⭐⭐</span></td>
+            <td class="watch-text">نموذج دعم طويل الأمد فقط</td>
           </tr>
           <tr class="bull">
             <td>10</td>
-            <td><div class="factor-name">Hash Rate</div><div class="factor-ar">ŸÖÿπÿØŸÑ ÿßŸÑŸáÿßÿ¥</div></td>
-            <td><span class="cat-badge">ÿ£ŸàŸÜ-ÿ™ÿ¥ŸäŸÜ</span></td>
-            <td class="status-text">ŸÖÿ≥ÿ™ŸàŸâ ŸÇŸäÿßÿ≥Ÿä 700+ EH/s ‚Äî ÿ´ŸÇÿ© ÿßŸÑÿ¥ÿ®ŸÉÿ© ŸÅŸä ÿ∞ÿ±Ÿàÿ™Ÿáÿß</td>
-            <td><span class="signal-badge bull">üü¢ ÿµÿπŸàÿØŸä</span></td>
-            <td><span class="stars">‚≠ê‚≠ê‚≠ê</span></td>
-            <td class="watch-text">ŸÖÿ§ÿ¥ÿ± ÿµÿ≠ÿ© ÿ∑ŸàŸäŸÑ ÿßŸÑÿ£ŸÖÿØ</td>
+            <td><div class="factor-name">Hash Rate</div><div class="factor-ar">معدل الهاش</div></td>
+            <td><span class="cat-badge">أون-تشين</span></td>
+            <td class="status-text">مستوى قياسي 700+ EH/s — ثقة الشبكة في ذروتها</td>
+            <td><span class="signal-badge bull">🟢 صعودي</span></td>
+            <td><span class="stars">⭐⭐⭐</span></td>
+            <td class="watch-text">مؤشر صحة طويل الأمد</td>
           </tr>
           <tr class="neut">
             <td>11</td>
-            <td><div class="factor-name">NVT Ratio</div><div class="factor-ar">ŸÜÿ≥ÿ®ÿ© NVT</div></td>
-            <td><span class="cat-badge">ÿ£ŸàŸÜ-ÿ™ÿ¥ŸäŸÜ</span></td>
-            <td class="status-text">~45-55 ‚Äî ŸÑŸäÿ≥ ŸÅŸÇÿßÿπÿ©ÿå ÿßÿ≥ÿ™ÿÆÿØÿßŸÖ ÿßŸÑÿ¥ÿ®ŸÉÿ© ÿµÿ≠Ÿä</td>
-            <td><span class="signal-badge neut">üü° ŸÖÿ≠ÿßŸäÿØ</span></td>
-            <td><span class="stars">‚≠ê‚≠ê</span></td>
-            <td class="watch-text">ŸÅŸàŸÇ 90 = ÿ™ÿ≠ÿ∞Ÿäÿ± ŸÅŸÇÿßÿπÿ©</td>
+            <td><div class="factor-name">NVT Ratio</div><div class="factor-ar">نسبة NVT</div></td>
+            <td><span class="cat-badge">أون-تشين</span></td>
+            <td class="status-text">~45-55 — ليس فقاعة، استخدام الشبكة صحي</td>
+            <td><span class="signal-badge neut">🟡 محايد</span></td>
+            <td><span class="stars">⭐⭐</span></td>
+            <td class="watch-text">فوق 90 = تحذير فقاعة</td>
           </tr>
           <tr class="bull">
             <td>12</td>
-            <td><div class="factor-name">LTH Behavior</div><div class="factor-ar">ÿßŸÑÿ≠ÿßŸÖŸÑŸàŸÜ ÿ∑ŸàŸäŸÑ ÿßŸÑÿ£ŸÖÿØ</div></td>
-            <td><span class="cat-badge">ÿ£ŸàŸÜ-ÿ™ÿ¥ŸäŸÜ</span></td>
-            <td class="status-text">75%+ ŸÖŸÜ ÿßŸÑŸÖÿπÿ±Ÿàÿ∂ ÿ®ŸäÿØ LTH ‚Äî ÿ£ŸäÿØŸä ŸÖŸÜ ŸÅŸàŸÑÿßÿ∞ ŸÑÿß ÿ™ÿ®Ÿäÿπ</td>
-            <td><span class="signal-badge bull">üü¢ ÿµÿπŸàÿØŸä</span></td>
-            <td><span class="stars">‚≠ê‚≠ê‚≠ê‚≠ê</span></td>
-            <td class="watch-text">ÿ®Ÿäÿπ ŸÖŸÉÿ´ŸÅ ŸÖŸÜ LTH = ÿÆÿ∑ÿ± ŸÉÿ®Ÿäÿ±</td>
+            <td><div class="factor-name">LTH Behavior</div><div class="factor-ar">الحاملون طويل الأمد</div></td>
+            <td><span class="cat-badge">أون-تشين</span></td>
+            <td class="status-text">75%+ من المعروض بيد LTH — أيدي من فولاذ لا تبيع</td>
+            <td><span class="signal-badge bull">🟢 صعودي</span></td>
+            <td><span class="stars">⭐⭐⭐⭐</span></td>
+            <td class="watch-text">بيع مكثف من LTH = خطر كبير</td>
           </tr>
           <tr class="bull">
             <td>13</td>
-            <td><div class="factor-name">Exchange Reserves</div><div class="factor-ar">ÿßÿ≠ÿ™Ÿäÿßÿ∑Ÿäÿßÿ™ ÿßŸÑÿ®Ÿàÿ±ÿµÿßÿ™</div></td>
-            <td><span class="cat-badge">ŸÖÿ§ÿ≥ÿ≥Ÿä</span></td>
-            <td class="status-text">ÿ£ÿØŸÜŸâ ŸÖÿ≥ÿ™ŸàŸâ ŸÖŸÜÿ∞ 2017 ‚Äî BTC ŸäŸÜÿ™ŸÇŸÑ ÿ•ŸÑŸâ ÿßŸÑÿ™ÿÆÿ≤ŸäŸÜ ÿßŸÑÿ®ÿßÿ±ÿØ</td>
-            <td><span class="signal-badge bull">üü¢ ÿµÿπŸàÿØŸä</span></td>
-            <td><span class="stars">‚≠ê‚≠ê‚≠ê‚≠ê</span></td>
-            <td class="watch-text">ÿßÿ±ÿ™ŸÅÿßÿπ ŸÖŸÅÿßÿ¨ÿ¶ ŸÅŸä ÿßŸÑÿßÿ≠ÿ™Ÿäÿßÿ∑Ÿäÿßÿ™ = ÿ∂ÿ∫ÿ∑ ÿ®Ÿäÿπ ŸÇÿßÿØŸÖ</td>
+            <td><div class="factor-name">Exchange Reserves</div><div class="factor-ar">احتياطيات البورصات</div></td>
+            <td><span class="cat-badge">مؤسسي</span></td>
+            <td class="status-text">أدنى مستوى منذ 2017 — BTC ينتقل إلى التخزين البارد</td>
+            <td><span class="signal-badge bull">🟢 صعودي</span></td>
+            <td><span class="stars">⭐⭐⭐⭐</span></td>
+            <td class="watch-text">ارتفاع مفاجئ في الاحتياطيات = ضغط بيع قادم</td>
           </tr>
           <tr class="bear">
             <td>14</td>
-            <td><div class="factor-name">ETF Flows</div><div class="factor-ar">ÿ™ÿØŸÅŸÇÿßÿ™ ETF</div></td>
-            <td><span class="cat-badge">ŸÖÿ§ÿ≥ÿ≥Ÿä</span></td>
-            <td class="status-text">ÿ™ÿØŸÅŸÇÿßÿ™ ÿÆÿßÿ±ÿ¨ÿ© $300M+ ÿßŸÑŸäŸàŸÖ (ÿµÿØŸÖÿ© ÿßŸÑÿ±ÿ≥ŸàŸÖ)ÿå BlackRock/Fidelity</td>
-            <td><span class="signal-badge bear">üî¥ Ÿáÿ®Ÿàÿ∑Ÿä</span></td>
-            <td><span class="stars">‚≠ê‚≠ê‚≠ê‚≠ê</span></td>
-            <td class="watch-text">ÿπŸàÿØÿ© ÿßŸÑÿ™ÿØŸÅŸÇÿßÿ™ ÿßŸÑÿØÿßÿÆŸÑÿ© = ÿ£ŸÇŸàŸâ ÿ•ÿ¥ÿßÿ±ÿ© ÿ¥ÿ±ÿßÿ°</td>
+            <td><div class="factor-name">ETF Flows</div><div class="factor-ar">تدفقات ETF</div></td>
+            <td><span class="cat-badge">مؤسسي</span></td>
+            <td class="status-text">تدفقات خارجة $300M+ اليوم (صدمة الرسوم)، BlackRock/Fidelity</td>
+            <td><span class="signal-badge bear">🔴 هبوطي</span></td>
+            <td><span class="stars">⭐⭐⭐⭐</span></td>
+            <td class="watch-text">عودة التدفقات الداخلة = أقوى إشارة شراء</td>
           </tr>
           <tr class="bull">
             <td>15</td>
-            <td><div class="factor-name">Whale Movements</div><div class="factor-ar">ÿ™ÿ≠ÿ±ŸÉÿßÿ™ ÿßŸÑÿ≠Ÿäÿ™ÿßŸÜ</div></td>
-            <td><span class="cat-badge">ŸÖÿ§ÿ≥ÿ≥Ÿä</span></td>
-            <td class="status-text">ÿ™ÿ±ÿßŸÉŸÖ ŸÖŸÉÿ™ÿ¥ŸÅ ÿπŸÜÿØ $66K-$68K ÿÆŸÑÿßŸÑ ÿßŸÑÿßŸÜÿÆŸÅÿßÿ∂ ÿßŸÑŸäŸàŸÖ</td>
-            <td><span class="signal-badge bull">üü¢ ÿµÿπŸàÿØŸä</span></td>
-            <td><span class="stars">‚≠ê‚≠ê‚≠ê</span></td>
-            <td class="watch-text">ÿßÿ≥ÿ™ŸÖÿ±ÿßÿ± ÿßŸÑÿ™ÿ±ÿßŸÉŸÖ ÿ™ÿ≠ÿ™ $66K</td>
+            <td><div class="factor-name">Whale Movements</div><div class="factor-ar">تحركات الحيتان</div></td>
+            <td><span class="cat-badge">مؤسسي</span></td>
+            <td class="status-text">تراكم مكتشف عند $66K-$68K خلال الانخفاض اليوم</td>
+            <td><span class="signal-badge bull">🟢 صعودي</span></td>
+            <td><span class="stars">⭐⭐⭐</span></td>
+            <td class="watch-text">استمرار التراكم تحت $66K</td>
           </tr>
           <tr class="bear">
             <td>16</td>
-            <td><div class="factor-name">Futures &amp; Funding</div><div class="factor-ar">ÿßŸÑÿπŸÇŸàÿØ ÿßŸÑÿ¢ÿ¨ŸÑÿ©</div></td>
-            <td><span class="cat-badge">ŸÖÿ¥ÿ™ŸÇÿßÿ™</span></td>
-            <td class="status-text">ŸÖÿπÿØŸÑ ÿßŸÑÿ™ŸÖŸàŸäŸÑ ÿ≥ÿßŸÑÿ® (-0.01%) ‚Äî ÿßŸÑŸÖÿπŸÜŸàŸäÿßÿ™ Ÿáÿ®Ÿàÿ∑Ÿäÿ©</td>
-            <td><span class="signal-badge bear">üî¥ Ÿáÿ®Ÿàÿ∑Ÿä</span></td>
-            <td><span class="stars">‚≠ê‚≠ê‚≠ê</span></td>
-            <td class="watch-text">ŸÖÿπÿØŸÑ ÿ™ŸÖŸàŸäŸÑ ŸÖŸàÿ¨ÿ® = ÿπŸàÿØÿ© ÿßŸÑÿ≤ÿÆŸÖ ÿßŸÑÿµÿπŸàÿØŸä</td>
+            <td><div class="factor-name">Futures &amp; Funding</div><div class="factor-ar">العقود الآجلة</div></td>
+            <td><span class="cat-badge">مشتقات</span></td>
+            <td class="status-text">معدل التمويل سالب (-0.01%) — المعنويات هبوطية</td>
+            <td><span class="signal-badge bear">🔴 هبوطي</span></td>
+            <td><span class="stars">⭐⭐⭐</span></td>
+            <td class="watch-text">معدل تمويل موجب = عودة الزخم الصعودي</td>
           </tr>
           <tr class="neut">
             <td>17</td>
-            <td><div class="factor-name">Options Expiry</div><div class="factor-ar">ÿßŸÜÿ™Ÿáÿßÿ° ÿßŸÑÿÆŸäÿßÿ±ÿßÿ™</div></td>
-            <td><span class="cat-badge">ŸÖÿ¥ÿ™ŸÇÿßÿ™</span></td>
-            <td class="status-text">Max Pain ~$70,000 ‚Äî ÿßŸÜÿ™Ÿáÿßÿ° 25 ÿ£ÿ®ÿ±ŸäŸÑ ŸÇÿØ Ÿäÿ≥ÿ≠ÿ® ÿßŸÑÿ≥ÿπÿ± ŸÑŸÑÿ£ÿπŸÑŸâ</td>
-            <td><span class="signal-badge neut">üü° ŸÖÿ≠ÿßŸäÿØ</span></td>
-            <td><span class="stars">‚≠ê‚≠ê‚≠ê</span></td>
-            <td class="watch-text">ŸÖÿ±ÿßŸÇÿ®ÿ© ÿØŸäŸÜÿßŸÖŸäŸÉŸäÿßÿ™ 25 ÿ£ÿ®ÿ±ŸäŸÑ</td>
+            <td><div class="factor-name">Options Expiry</div><div class="factor-ar">انتهاء الخيارات</div></td>
+            <td><span class="cat-badge">مشتقات</span></td>
+            <td class="status-text">Max Pain ~$70,000 — انتهاء 25 أبريل قد يسحب السعر للأعلى</td>
+            <td><span class="signal-badge neut">🟡 محايد</span></td>
+            <td><span class="stars">⭐⭐⭐</span></td>
+            <td class="watch-text">مراقبة ديناميكيات 25 أبريل</td>
           </tr>
           <tr class="neut">
             <td>18</td>
-            <td><div class="factor-name">Market Liquidity</div><div class="factor-ar">ÿ≥ŸäŸàŸÑÿ© ÿßŸÑÿ≥ŸàŸÇ</div></td>
-            <td><span class="cat-badge">ÿ≥ŸàŸÇ</span></td>
-            <td class="status-text">ÿ™ÿ±ÿßÿ¨ÿπÿ™ ÿßŸÑŸäŸàŸÖÿå ÿ£ŸàÿßŸÖÿ± ÿ¥ÿ±ÿßÿ° ŸÉÿ®Ÿäÿ±ÿ© ÿ™ÿ™ÿ±ÿßŸÉŸÖ $63K-$65K</td>
-            <td><span class="signal-badge neut">üü° ŸÖÿ≠ÿßŸäÿØ</span></td>
-            <td><span class="stars">‚≠ê‚≠ê</span></td>
-            <td class="watch-text">ÿßÿ≥ÿ™ÿπÿßÿØÿ© ÿßŸÑÿ≥ŸäŸàŸÑÿ© = ÿßÿ≥ÿ™ŸÇÿ±ÿßÿ± ÿßŸÑÿ£ÿ≥ÿπÿßÿ±</td>
+            <td><div class="factor-name">Market Liquidity</div><div class="factor-ar">سيولة السوق</div></td>
+            <td><span class="cat-badge">سوق</span></td>
+            <td class="status-text">تراجعت اليوم، أوامر شراء كبيرة تتراكم $63K-$65K</td>
+            <td><span class="signal-badge neut">🟡 محايد</span></td>
+            <td><span class="stars">⭐⭐</span></td>
+            <td class="watch-text">استعادة السيولة = استقرار الأسعار</td>
           </tr>
           <tr class="bull">
             <td>19</td>
-            <td><div class="factor-name">Fear &amp; Greed</div><div class="factor-ar">ÿßŸÑÿÆŸàŸÅ ŸàÿßŸÑÿ∑ŸÖÿπ</div></td>
-            <td><span class="cat-badge">ŸÖÿπŸÜŸàŸä</span></td>
-            <td class="status-text">29 (ÿÆŸàŸÅ) ‚Äî ÿ™ÿßÿ±ŸäÿÆŸäÿßŸã ŸÅÿ±ÿµÿ© ÿ¥ÿ±ÿßÿ° ŸÖŸÖÿ™ÿßÿ≤ÿ© ÿ™ÿ≠ÿ™ 25-30</td>
-            <td><span class="signal-badge bull">üü¢ ÿµÿπŸàÿØŸä (ÿπŸÉÿ≥Ÿä)</span></td>
-            <td><span class="stars">‚≠ê‚≠ê‚≠ê</span></td>
-            <td class="watch-text">ÿ™ÿ≠ÿ™ 15 = ŸÅÿ±ÿµÿ© ÿ¥ÿ±ÿßÿ° ÿ™ÿßÿ±ŸäÿÆŸäÿ©</td>
+            <td><div class="factor-name">Fear &amp; Greed</div><div class="factor-ar">الخوف والطمع</div></td>
+            <td><span class="cat-badge">معنوي</span></td>
+            <td class="status-text">29 (خوف) — تاريخياً فرصة شراء ممتازة تحت 25-30</td>
+            <td><span class="signal-badge bull">🟢 صعودي (عكسي)</span></td>
+            <td><span class="stars">⭐⭐⭐</span></td>
+            <td class="watch-text">تحت 15 = فرصة شراء تاريخية</td>
           </tr>
           <tr class="bull">
             <td>20</td>
-            <td><div class="factor-name">Regulatory</div><div class="factor-ar">ÿßŸÑÿ™ŸÜÿ∏ŸäŸÖ</div></td>
-            <td><span class="cat-badge">ÿ™ŸÜÿ∏ŸäŸÖŸä</span></td>
-            <td class="status-text">ÿßÿ≠ÿ™Ÿäÿßÿ∑Ÿä ÿ®Ÿäÿ™ŸÉŸàŸäŸÜ ÿ™ÿ±ÿßŸÖÿ®ÿå SEC ÿ™ÿÆŸÅŸÅ ŸÇŸàÿßÿπÿØ ÿßŸÑŸÉÿ±Ÿäÿ®ÿ™Ÿàÿå MiCA ÿ£Ÿàÿ±Ÿàÿ®ÿß</td>
-            <td><span class="signal-badge bull">üü¢ ÿµÿπŸàÿØŸä</span></td>
-            <td><span class="stars">‚≠ê‚≠ê‚≠ê‚≠ê</span></td>
-            <td class="watch-text">ÿ™ÿ¥ÿ±Ÿäÿπ ÿßŸÑÿßÿ≠ÿ™Ÿäÿßÿ∑Ÿä = ŸÖÿ≠ŸÅÿ≤ ÿ∂ÿÆŸÖ</td>
+            <td><div class="factor-name">Regulatory</div><div class="factor-ar">التنظيم</div></td>
+            <td><span class="cat-badge">تنظيمي</span></td>
+            <td class="status-text">احتياطي بيتكوين ترامب، SEC تخفف قواعد الكريبتو، MiCA أوروبا</td>
+            <td><span class="signal-badge bull">🟢 صعودي</span></td>
+            <td><span class="stars">⭐⭐⭐⭐</span></td>
+            <td class="watch-text">تشريع الاحتياطي = محفز ضخم</td>
           </tr>
         </tbody>
       </table>
@@ -1057,21 +1057,21 @@
     <!-- Summary Bar -->
     <div class="summary-bar fade-in-up">
       <div class="summary-item">
-        <span class="summary-label bear">üî¥ 9 Bearish</span>
+        <span class="summary-label bear">🔴 9 Bearish</span>
         <div class="summary-bar-track">
           <div class="summary-bar-fill bear" id="bar-bear" style="--bar-w:45%"></div>
         </div>
         <span class="summary-count" style="color:var(--red)">9</span>
       </div>
       <div class="summary-item">
-        <span class="summary-label bull">üü¢ 6 Bullish</span>
+        <span class="summary-label bull">🟢 6 Bullish</span>
         <div class="summary-bar-track">
           <div class="summary-bar-fill bull" id="bar-bull" style="--bar-w:30%"></div>
         </div>
         <span class="summary-count" style="color:var(--green)">6</span>
       </div>
       <div class="summary-item">
-        <span class="summary-label neut">üü° 5 Neutral</span>
+        <span class="summary-label neut">🟡 5 Neutral</span>
         <div class="summary-bar-track">
           <div class="summary-bar-fill neut" id="bar-neut" style="--bar-w:25%"></div>
         </div>
@@ -1083,13 +1083,13 @@
 
 <div class="divider"></div>
 
-<!-- ‚ïê‚ïê 5 TA TOOLS ‚ïê‚ïê -->
+<!-- ══ 5 TA TOOLS ══ -->
 <section id="ta">
   <div class="container">
     <div class="section-header fade-in-up">
       <div class="section-tag">Technical Analysis</div>
-      <h2>5 ÿ£ÿØŸàÿßÿ™ ÿßŸÑÿ™ÿ≠ŸÑŸäŸÑ ÿßŸÑŸÅŸÜŸä</h2>
-      <p>ŸÇÿ±ÿßÿ°ÿ© ÿ¥ÿßŸÖŸÑÿ© ŸÑŸÑŸÖÿ§ÿ¥ÿ±ÿßÿ™ ÿßŸÑÿ™ŸÇŸÜŸäÿ© ÿßŸÑÿ±ÿ¶Ÿäÿ≥Ÿäÿ©</p>
+      <h2>5 أدوات التحليل الفني</h2>
+      <p>قراءة شاملة للمؤشرات التقنية الرئيسية</p>
     </div>
 
     <div class="ta-grid">
@@ -1097,8 +1097,8 @@
       <!-- Card 1: EMA -->
       <div class="ta-card glass fade-in-up" style="animation-delay:0.05s">
         <div class="ta-card-title">Moving Averages</div>
-        <div class="ta-card-name">EMA ‚Äî ÿßŸÑŸÖÿ™Ÿàÿ≥ÿ∑ÿßÿ™ ÿßŸÑŸÖÿ™ÿ≠ÿ±ŸÉÿ©</div>
-        <span class="ta-badge bear">üî¥ DEATH CROSS FORMING</span>
+        <div class="ta-card-name">EMA — المتوسطات المتحركة</div>
+        <span class="ta-badge bear">🔴 DEATH CROSS FORMING</span>
         <div class="ema-chart">
           <svg class="ema-svg" viewBox="0 0 280 140" xmlns="http://www.w3.org/2000/svg">
             <!-- EMA200 line -->
@@ -1116,7 +1116,7 @@
             <!-- Price dot -->
             <circle cx="265" cy="98" r="7" fill="#F7931A" opacity="0.9"/>
             <circle cx="265" cy="98" r="12" fill="#F7931A" opacity="0.2"/>
-            <text x="200" y="114" fill="#F7931A" font-size="10" font-family="system-ui" font-weight="700">$66,902 ‚ñº</text>
+            <text x="200" y="114" fill="#F7931A" font-size="10" font-family="system-ui" font-weight="700">$66,902 ▼</text>
             <!-- Down zone shade -->
             <rect x="10" y="52" width="258" height="48" fill="rgba(239,68,68,0.04)" rx="2"/>
           </svg>
@@ -1132,44 +1132,44 @@
             <span style="color:var(--text-muted)">EMA 200</span><span style="color:var(--red);font-weight:600">$70,281</span>
           </div>
         </div>
-        <p class="ta-desc">ÿßŸÑÿ≥ÿπÿ± ÿ™ÿ≠ÿ™ EMA 50 ŸàEMA 200 ‚Äî ÿßÿ™ÿ¨ÿßŸá Ÿáÿ®Ÿàÿ∑Ÿä Ÿàÿßÿ∂ÿ≠ ŸÖÿπ ÿ™ÿ¥ŸÉŸëŸÑ Death Cross</p>
+        <p class="ta-desc">السعر تحت EMA 50 وEMA 200 — اتجاه هبوطي واضح مع تشكّل Death Cross</p>
       </div>
 
       <!-- Card 2: S/R -->
       <div class="ta-card glass fade-in-up" style="animation-delay:0.1s">
         <div class="ta-card-title">Support &amp; Resistance</div>
-        <div class="ta-card-name">ÿßŸÑÿØÿπŸÖ ŸàÿßŸÑŸÖŸÇÿßŸàŸÖÿ©</div>
-        <span class="ta-badge neut">üü° IN NO-MAN'S LAND</span>
+        <div class="ta-card-name">الدعم والمقاومة</div>
+        <span class="ta-badge neut">🟡 IN NO-MAN'S LAND</span>
         <div class="sr-levels">
           <div class="sr-level res">
-            <span class="sr-label">üî¥ ŸÖŸÇÿßŸàŸÖÿ© 2</span>
+            <span class="sr-label">🔴 مقاومة 2</span>
             <span class="sr-price red">$70,281</span>
           </div>
           <div class="sr-level res">
-            <span class="sr-label">üî¥ ŸÖŸÇÿßŸàŸÖÿ© 1</span>
+            <span class="sr-label">🔴 مقاومة 1</span>
             <span class="sr-price red">$69,090</span>
           </div>
           <div class="sr-level cur">
-            <span class="sr-label">üü† ÿßŸÑÿ≥ÿπÿ± ÿßŸÑÿ≠ÿßŸÑŸä</span>
+            <span class="sr-label">🟠 السعر الحالي</span>
             <span class="sr-price orange">$66,902</span>
           </div>
           <div class="sr-level sup">
-            <span class="sr-label">üü¢ ŸÖŸÜÿ∑ŸÇÿ© ÿØÿπŸÖ ŸÇŸàŸäÿ©</span>
-            <span class="sr-price green">$63K ‚Äì $65K</span>
+            <span class="sr-label">🟢 منطقة دعم قوية</span>
+            <span class="sr-price green">$63K – $65K</span>
           </div>
           <div class="sr-level sup2">
-            <span class="sr-label">‚ö†Ô∏è ÿØÿπŸÖ ÿ™ÿßŸÑŸç</span>
+            <span class="sr-label">⚠️ دعم تالٍ</span>
             <span class="sr-price" style="color:var(--text-muted)">$58,000</span>
           </div>
         </div>
-        <p class="ta-desc">ÿßŸÑÿ≥ÿπÿ± ŸÅŸä ŸÖŸÜÿ∑ŸÇÿ© ŸÅÿ±ÿßÿ∫ ‚Äî ŸÅŸàŸÇ ÿØÿπŸÖ HVN ÿßŸÑŸÇŸàŸä ŸÑŸÉŸÜ ÿ™ÿ≠ÿ™ ÿ¨ŸÖŸäÿπ ŸÖŸÇÿßŸàŸÖÿßÿ™ EMA</p>
+        <p class="ta-desc">السعر في منطقة فراغ — فوق دعم HVN القوي لكن تحت جميع مقاومات EMA</p>
       </div>
 
       <!-- Card 3: RSI -->
       <div class="ta-card glass fade-in-up" style="animation-delay:0.15s">
         <div class="ta-card-title">Relative Strength Index</div>
-        <div class="ta-card-name">RSI ‚Äî ŸÖÿ§ÿ¥ÿ± ÿßŸÑŸÇŸàÿ© ÿßŸÑŸÜÿ≥ÿ®Ÿäÿ©</div>
-        <span class="ta-badge bull">üü¢ EXTREME OVERSOLD ‚Äî BUY ZONE</span>
+        <div class="ta-card-name">RSI — مؤشر القوة النسبية</div>
+        <span class="ta-badge bull">🟢 EXTREME OVERSOLD — BUY ZONE</span>
         <div class="rsi-gauge-wrap">
           <div class="rsi-gauge">
             <svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
@@ -1182,17 +1182,17 @@
                   <stop offset="100%" stop-color="#22C55E"/>
                 </linearGradient>
               </defs>
-              <!-- Track arc (180¬∞) -->
+              <!-- Track arc (180°) -->
               <path d="M 10 100 A 90 90 0 0 1 190 100" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="14" stroke-linecap="round"/>
               <!-- Colored arc (same) -->
               <path d="M 10 100 A 90 90 0 0 1 190 100" fill="none" stroke="url(#gaugeGrad)" stroke-width="14" stroke-linecap="round" opacity="0.6"/>
               <!-- Oversold zone highlight -->
               <path d="M 10 100 A 90 90 0 0 1 64 28" fill="none" stroke="#22C55E" stroke-width="16" stroke-linecap="round" opacity="0.8"/>
-              <!-- Needle: RSI 24.3 ‚Üí angle = 180 - (24.3/100)*180 = 136.26¬∞ from right => -136.26¬∞ from positive x -->
+              <!-- Needle: RSI 24.3 → angle = 180 - (24.3/100)*180 = 136.26° from right => -136.26° from positive x -->
               <!-- origin is center (100,100), needle points from center -->
               <!-- angle for RSI=24.3: start at left (0 RSI = 180deg from +x axis), go clockwise -->
               <!-- RSI 0 = leftmost = 180deg, RSI 100 = rightmost = 0deg -->
-              <!-- RSI 24.3 ‚Üí angle = 180 - 24.3*1.8 = 180 - 43.74 = 136.26deg from +x => coords: cos(136.26¬∞)*75, sin(136.26¬∞)*-75 + 100 -->
+              <!-- RSI 24.3 → angle = 180 - 24.3*1.8 = 180 - 43.74 = 136.26deg from +x => coords: cos(136.26°)*75, sin(136.26°)*-75 + 100 -->
               <line x1="100" y1="100" x2="45" y2="46" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.95"/>
               <circle cx="100" cy="100" r="7" fill="white"/>
               <!-- Labels -->
@@ -1205,30 +1205,30 @@
           </div>
           <div class="rsi-number">24.3</div>
         </div>
-        <p class="ta-desc">ŸÉŸÑ ŸÖÿ±ÿ© ŸàÿµŸÑ RSI ŸÑŸáÿ∞ÿß ÿßŸÑŸÖÿ≥ÿ™ŸàŸâ ŸÉÿßŸÜÿ™ ŸÅÿ±ÿµÿ© ÿ¥ÿ±ÿßÿ° ÿ™ÿßÿ±ŸäÿÆŸäÿ© ‚Äî ŸÖŸÜÿ∑ŸÇÿ© ÿßŸÑÿ®Ÿäÿπ ÿßŸÑŸÖŸÅÿ±ÿ∑ ÿßŸÑÿ¥ÿØŸäÿØ</p>
+        <p class="ta-desc">كل مرة وصل RSI لهذا المستوى كانت فرصة شراء تاريخية — منطقة البيع المفرط الشديد</p>
       </div>
 
       <!-- Card 4: MACD -->
       <div class="ta-card glass fade-in-up" style="animation-delay:0.2s">
         <div class="ta-card-title">MACD Histogram</div>
-        <div class="ta-card-name">MACD ‚Äî ÿßŸÑÿ™ŸÇÿßÿ±ÿ® ŸàÿßŸÑÿ™ÿ®ÿßÿπÿØ</div>
-        <span class="ta-badge bear">üî¥ BEARISH ‚Äî Momentum Slowing</span>
+        <div class="ta-card-name">MACD — التقارب والتباعد</div>
+        <span class="ta-badge bear">🔴 BEARISH — Momentum Slowing</span>
         <div class="macd-chart" id="macd-chart">
           <!-- bars rendered by JS -->
         </div>
         <div class="macd-value-big">-934</div>
-        <p class="ta-desc">ÿßŸÑÿ≤ÿÆŸÖ ÿ≥ÿßŸÑÿ® ŸÑŸÉŸÜ ÿßŸÑÿ£ÿπŸÖÿØÿ© ÿ®ÿØÿ£ÿ™ ÿ™ÿ™ŸÇŸÑÿµ ‚Äî ÿ•ÿ¥ÿßÿ±ÿ© ÿ™ÿ≠ÿ≥ŸÜ ŸÖÿ≠ÿ™ŸÖŸÑÿ© ŸÇÿ±Ÿäÿ®ÿßŸã</p>
+        <p class="ta-desc">الزخم سالب لكن الأعمدة بدأت تتقلص — إشارة تحسن محتملة قريباً</p>
       </div>
 
       <!-- Card 5: Volume Profile -->
       <div class="ta-card glass fade-in-up" style="animation-delay:0.25s">
         <div class="ta-card-title">Volume Profile</div>
-        <div class="ta-card-name">ŸÖŸÑŸÅ ÿßŸÑÿ≠ÿ¨ŸÖ</div>
-        <span class="ta-badge neut">üü° PRICE IN THIN AIR</span>
+        <div class="ta-card-name">ملف الحجم</div>
+        <span class="ta-badge neut">🟡 PRICE IN THIN AIR</span>
         <div class="vol-profile" id="vol-profile">
           <!-- rows rendered by JS -->
         </div>
-        <p class="ta-desc">ÿßŸÑÿ≥ÿπÿ± ŸÅŸä ŸÖŸÜÿ∑ŸÇÿ© ÿ≠ÿ¨ŸÖ ŸÖŸÜÿÆŸÅÿ∂ ‚Äî ÿ£ÿ±ÿ∂Ÿäÿ© HVN ÿßŸÑŸÇŸàŸäÿ© ÿπŸÜÿØ $63K-$65K</p>
+        <p class="ta-desc">السعر في منطقة حجم منخفض — أرضية HVN القوية عند $63K-$65K</p>
       </div>
 
     </div><!-- /ta-grid -->
@@ -1237,104 +1237,104 @@
 
 <div class="divider"></div>
 
-<!-- ‚ïê‚ïê SCENARIOS ‚ïê‚ïê -->
+<!-- ══ SCENARIOS ══ -->
 <section id="scenarios">
   <div class="container">
     <div class="section-header fade-in-up">
       <div class="section-tag">Trading Scenarios</div>
-      <h2>3 ÿ≥ŸäŸÜÿßÿ±ŸäŸàŸáÿßÿ™ ÿßŸÑÿ™ÿØÿßŸàŸÑ</h2>
-      <p>ÿßŸÑÿßÿ≠ÿ™ŸÖÿßŸÑÿßÿ™ ŸàÿßŸÑŸÖÿ≥ÿ™ŸàŸäÿßÿ™ ÿßŸÑŸÖÿ≥ÿ™ŸáÿØŸÅÿ© ŸÑŸÉŸÑ ŸÖÿ≥ÿßÿ± ŸÖÿ≠ÿ™ŸÖŸÑ</p>
+      <h2>3 سيناريوهات التداول</h2>
+      <p>الاحتمالات والمستويات المستهدفة لكل مسار محتمل</p>
     </div>
 
     <div class="scenarios-grid">
 
       <!-- Bear -->
       <div class="scenario-card glass fade-in-up" style="animation-delay:0.05s">
-        <div class="scenario-icon">üêª</div>
-        <div class="scenario-title">Scenario A ‚Äî Bear</div>
-        <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px;">ÿßÿ≥ÿ™ŸÖÿ±ÿßÿ± ÿßŸÑŸáÿ®Ÿàÿ∑</div>
+        <div class="scenario-icon">🐻</div>
+        <div class="scenario-title">Scenario A — Bear</div>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px;">استمرار الهبوط</div>
         <div class="scenario-prob bear">35%</div>
         <div class="scenario-row">
-          <span class="scenario-row-label">ŸÜŸÇÿ∑ÿ© ÿßŸÑÿØÿÆŸàŸÑ</span>
-          <span class="scenario-row-val orange">$61,500 ‚Äì $63,000</span>
+          <span class="scenario-row-label">نقطة الدخول</span>
+          <span class="scenario-row-val orange">$61,500 – $63,000</span>
         </div>
         <div class="scenario-row">
-          <span class="scenario-row-label">ÿßŸÑŸáÿØŸÅ</span>
+          <span class="scenario-row-label">الهدف</span>
           <span class="scenario-row-val green">$66,000</span>
         </div>
         <div class="scenario-row">
-          <span class="scenario-row-label">ŸàŸÇŸÅ ÿßŸÑÿÆÿ≥ÿßÿ±ÿ©</span>
+          <span class="scenario-row-label">وقف الخسارة</span>
           <span class="scenario-row-val red">$58,000</span>
         </div>
-        <div class="rr-badge">‚öñÔ∏è R/R: 1 : 1.5</div>
+        <div class="rr-badge">⚖️ R/R: 1 : 1.5</div>
         <div class="trigger-list">
-          <div class="trigger-item">üêª ŸÉÿ≥ÿ± $63,000 ÿ®ÿ≠ÿ¨ŸÖ ÿ™ÿØÿßŸàŸÑ ŸÖÿ±ÿ™ŸÅÿπ</div>
-          <div class="trigger-item">üêª DXY ŸäÿÆÿ™ÿ±ŸÇ 105</div>
-          <div class="trigger-item">üêª ÿßÿ≥ÿ™ŸÖÿ±ÿßÿ± ÿßŸÑÿ™ÿØŸÅŸÇÿßÿ™ ÿßŸÑÿÆÿßÿ±ÿ¨ÿ© ŸÖŸÜ ETFs</div>
-          <div class="trigger-item">üêª ÿ™ÿµÿπŸäÿØ ÿßŸÑÿ≠ÿ±ÿ® ÿßŸÑÿ™ÿ¨ÿßÿ±Ÿäÿ©</div>
+          <div class="trigger-item">🐻 كسر $63,000 بحجم تداول مرتفع</div>
+          <div class="trigger-item">🐻 DXY يخترق 105</div>
+          <div class="trigger-item">🐻 استمرار التدفقات الخارجة من ETFs</div>
+          <div class="trigger-item">🐻 تصعيد الحرب التجارية</div>
         </div>
       </div>
 
       <!-- Bounce (Featured) -->
       <div class="scenario-card glass featured fade-in-up" style="animation-delay:0.1s">
-        <div class="scenario-icon">üéØ</div>
-        <div class="scenario-title">Scenario B ‚Äî Bounce</div>
-        <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px;margin-top:20px;">ÿßŸÑÿßÿ±ÿ™ÿØÿßÿØ ÿßŸÑŸÖÿ™ŸàŸÇÿπ</div>
+        <div class="scenario-icon">🎯</div>
+        <div class="scenario-title">Scenario B — Bounce</div>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px;margin-top:20px;">الارتداد المتوقع</div>
         <div class="scenario-prob bounce">45%</div>
         <div class="scenario-row">
-          <span class="scenario-row-label">ÿßŸÑÿØÿÆŸàŸÑ (3 ÿ¥ÿ±ÿßÿ¶ÿ≠)</span>
-          <span class="scenario-row-val orange">$64,500 ‚Äì $66,500</span>
+          <span class="scenario-row-label">الدخول (3 شرائح)</span>
+          <span class="scenario-row-val orange">$64,500 – $66,500</span>
         </div>
         <div class="scenario-row">
-          <span class="scenario-row-label">ÿßŸÑŸáÿØŸÅ 1</span>
+          <span class="scenario-row-label">الهدف 1</span>
           <span class="scenario-row-val green">$69,000</span>
         </div>
         <div class="scenario-row">
-          <span class="scenario-row-label">ÿßŸÑŸáÿØŸÅ 2</span>
+          <span class="scenario-row-label">الهدف 2</span>
           <span class="scenario-row-val green">$72,000</span>
         </div>
         <div class="scenario-row">
-          <span class="scenario-row-label">ŸàŸÇŸÅ ÿßŸÑÿÆÿ≥ÿßÿ±ÿ©</span>
+          <span class="scenario-row-label">وقف الخسارة</span>
           <span class="scenario-row-val red">$62,000</span>
         </div>
-        <div class="rr-badge">‚öñÔ∏è R/R: 1 : 2.5</div>
+        <div class="rr-badge">⚖️ R/R: 1 : 2.5</div>
         <div class="trigger-list">
-          <div class="trigger-item">üéØ RSI ÿ™ÿ≠ÿ™ 25 ‚Äî oversold ÿ¥ÿØŸäÿØ</div>
-          <div class="trigger-item">üéØ ÿßÿ≥ÿ™ŸÇÿ±ÿßÿ± ÿßŸÑÿ£ÿ≥ŸáŸÖ ÿßŸÑÿ£ŸÖÿ±ŸäŸÉŸäÿ©</div>
-          <div class="trigger-item">üéØ CPI 10 ÿ£ÿ®ÿ±ŸäŸÑ ÿ™ÿ≠ÿ™ ÿßŸÑÿ™ŸàŸÇÿπÿßÿ™</div>
-          <div class="trigger-item">üéØ ÿπŸàÿØÿ© ÿ™ÿØŸÅŸÇÿßÿ™ ETF ÿßŸÑÿ•Ÿäÿ¨ÿßÿ®Ÿäÿ©</div>
-          <div class="trigger-item">üéØ ÿ™ÿ±ÿßŸÉŸÖ ÿßŸÑÿ≠Ÿäÿ™ÿßŸÜ Ÿäÿ™ÿ£ŸÉÿØ</div>
+          <div class="trigger-item">🎯 RSI تحت 25 — oversold شديد</div>
+          <div class="trigger-item">🎯 استقرار الأسهم الأمريكية</div>
+          <div class="trigger-item">🎯 CPI 10 أبريل تحت التوقعات</div>
+          <div class="trigger-item">🎯 عودة تدفقات ETF الإيجابية</div>
+          <div class="trigger-item">🎯 تراكم الحيتان يتأكد</div>
         </div>
       </div>
 
       <!-- Sharp Reversal -->
       <div class="scenario-card glass fade-in-up" style="animation-delay:0.15s">
-        <div class="scenario-icon">üöÄ</div>
-        <div class="scenario-title">Scenario C ‚Äî Reversal</div>
-        <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px;">ÿßŸÑÿßŸÜÿπŸÉÿßÿ≥ ÿßŸÑÿ≠ÿßÿØ</div>
+        <div class="scenario-icon">🚀</div>
+        <div class="scenario-title">Scenario C — Reversal</div>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px;">الانعكاس الحاد</div>
         <div class="scenario-prob bull">20%</div>
         <div class="scenario-row">
-          <span class="scenario-row-label">ÿßŸÑÿØÿÆŸàŸÑ</span>
-          <span class="scenario-row-val orange">$65,000 ‚Äì $67,000</span>
+          <span class="scenario-row-label">الدخول</span>
+          <span class="scenario-row-val orange">$65,000 – $67,000</span>
         </div>
         <div class="scenario-row">
-          <span class="scenario-row-label">ÿßŸÑŸáÿØŸÅ 1</span>
+          <span class="scenario-row-label">الهدف 1</span>
           <span class="scenario-row-val green">$74,000</span>
         </div>
         <div class="scenario-row">
-          <span class="scenario-row-label">ÿßŸÑŸáÿØŸÅ 2</span>
+          <span class="scenario-row-label">الهدف 2</span>
           <span class="scenario-row-val green">$80,000+</span>
         </div>
         <div class="scenario-row">
-          <span class="scenario-row-label">ŸàŸÇŸÅ ÿßŸÑÿÆÿ≥ÿßÿ±ÿ©</span>
+          <span class="scenario-row-label">وقف الخسارة</span>
           <span class="scenario-row-val red">$63,000</span>
         </div>
-        <div class="rr-badge">‚öñÔ∏è R/R: 1 : 4+</div>
+        <div class="rr-badge">⚖️ R/R: 1 : 4+</div>
         <div class="trigger-list">
-          <div class="trigger-item">üöÄ ÿ™ÿ±ÿßÿ¨ÿπ ÿ™ÿ±ÿßŸÖÿ® ÿπŸÜ ÿßŸÑÿ±ÿ≥ŸàŸÖ ÿßŸÑÿ¨ŸÖÿ±ŸÉŸäÿ©</div>
-          <div class="trigger-item">üöÄ ÿ•ÿ¥ÿßÿ±ÿ© ÿØŸàŸÅŸäÿ© ŸÖŸÅÿßÿ¨ÿ¶ÿ© ŸÖŸÜ ÿßŸÑŸÅŸäÿØÿ±ÿßŸÑŸä</div>
-          <div class="trigger-item">üöÄ ETF flows ÿ™ÿØŸÅŸÇ ÿ∂ÿÆŸÖ +$500M</div>
-          <div class="trigger-item">üöÄ ÿ£ÿÆÿ®ÿßÿ± ÿßÿ≠ÿ™Ÿäÿßÿ∑Ÿä ÿ®Ÿäÿ™ŸÉŸàŸäŸÜ ÿßŸÑŸàÿ∑ŸÜŸä</div>
+          <div class="trigger-item">🚀 تراجع ترامب عن الرسوم الجمركية</div>
+          <div class="trigger-item">🚀 إشارة دوفية مفاجئة من الفيدرالي</div>
+          <div class="trigger-item">🚀 ETF flows تدفق ضخم +$500M</div>
+          <div class="trigger-item">🚀 أخبار احتياطي بيتكوين الوطني</div>
         </div>
       </div>
 
@@ -1344,88 +1344,88 @@
 
 <div class="divider"></div>
 
-<!-- ‚ïê‚ïê PERSONAL PLAN ‚ïê‚ïê -->
+<!-- ══ PERSONAL PLAN ══ -->
 <section id="plan">
   <div class="container">
     <div class="plan-header fade-in-up">
       <div class="plan-avatar">S</div>
       <div>
-        <div class="plan-title">ÿÆÿ∑ÿ© ÿ≥ÿßŸÑŸÖ ‚Äî ÿßÿ≥ÿ™ÿ±ÿßÿ™Ÿäÿ¨Ÿäÿ© 3 ÿ¥ÿ±ÿßÿ¶ÿ≠</div>
-        <div class="plan-subtitle">ÿ•ÿØÿßÿ±ÿ© ÿ±ÿ£ÿ≥ ÿßŸÑŸÖÿßŸÑ ÿßŸÑŸÖÿ´ŸÑŸâ ŸÖÿπ ÿ™Ÿàÿ≤Ÿäÿπ ÿßŸÑŸÖÿÆÿßÿ∑ÿ±</div>
+        <div class="plan-title">خطة سالم — استراتيجية 3 شرائح</div>
+        <div class="plan-subtitle">إدارة رأس المال المثلى مع توزيع المخاطر</div>
       </div>
     </div>
 
     <!-- Tranches -->
-    <div style="margin-bottom:12px;font-size:13px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:1.5px;">ŸÜŸÇÿßÿ∑ ÿßŸÑÿØÿÆŸàŸÑ</div>
+    <div style="margin-bottom:12px;font-size:13px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:1.5px;">نقاط الدخول</div>
     <div class="tranches-grid fade-in-up">
       <div class="tranche-card t1">
-        <div class="tranche-medal">ü•á</div>
-        <div class="tranche-label">ÿßŸÑÿ¥ÿ±Ÿäÿ≠ÿ© ÿßŸÑÿ£ŸàŸÑŸâ</div>
+        <div class="tranche-medal">🥇</div>
+        <div class="tranche-label">الشريحة الأولى</div>
         <div class="tranche-pct">30%</div>
-        <div class="tranche-range">$65,500 ‚Äì $66,000</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">ÿØÿÆŸàŸÑ ÿ£ŸàŸÑŸä ÿπŸÜÿØ ÿßŸÑŸáÿ®Ÿàÿ∑</div>
+        <div class="tranche-range">$65,500 – $66,000</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">دخول أولي عند الهبوط</div>
       </div>
       <div class="tranche-card t2">
-        <div class="tranche-medal">ü•à</div>
-        <div class="tranche-label">ÿßŸÑÿ¥ÿ±Ÿäÿ≠ÿ© ÿßŸÑÿ´ÿßŸÜŸäÿ©</div>
+        <div class="tranche-medal">🥈</div>
+        <div class="tranche-label">الشريحة الثانية</div>
         <div class="tranche-pct" style="color:var(--gold)">40%</div>
-        <div class="tranche-range">$63,500 ‚Äì $64,500</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">ÿßŸÑÿ¨ÿ≤ÿ° ÿßŸÑÿ£ŸÉÿ®ÿ± ÿπŸÜÿØ ÿßŸÑÿØÿπŸÖ</div>
+        <div class="tranche-range">$63,500 – $64,500</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">الجزء الأكبر عند الدعم</div>
       </div>
       <div class="tranche-card t3">
-        <div class="tranche-medal">ü•â</div>
-        <div class="tranche-label">ÿßŸÑÿ¥ÿ±Ÿäÿ≠ÿ© ÿßŸÑÿ´ÿßŸÑÿ´ÿ©</div>
+        <div class="tranche-medal">🥉</div>
+        <div class="tranche-label">الشريحة الثالثة</div>
         <div class="tranche-pct" style="color:var(--text)">30%</div>
-        <div class="tranche-range">$61,000 ‚Äì $62,000</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">ÿ≠ÿßŸÑ ÿßŸÖÿ™ÿØÿßÿØ ÿßŸÑŸáÿ®Ÿàÿ∑</div>
+        <div class="tranche-range">$61,000 – $62,000</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">حال امتداد الهبوط</div>
       </div>
     </div>
 
     <!-- Targets -->
-    <div style="margin-bottom:12px;font-size:13px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:1.5px;">ÿ£ŸáÿØÿßŸÅ ÿßŸÑÿ®Ÿäÿπ</div>
+    <div style="margin-bottom:12px;font-size:13px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:1.5px;">أهداف البيع</div>
     <div class="targets-grid fade-in-up">
       <div class="target-card">
-        <div class="target-label">ÿßŸÑŸáÿØŸÅ ÿßŸÑÿ£ŸàŸÑ</div>
+        <div class="target-label">الهدف الأول</div>
         <div class="target-price">$69,000</div>
-        <div class="target-action">ÿ®Ÿäÿπ 30% ŸÖŸÜ ÿßŸÑŸÖÿ±ŸÉÿ≤</div>
+        <div class="target-action">بيع 30% من المركز</div>
       </div>
       <div class="target-card" style="border-color:rgba(255,215,0,0.3);background:rgba(255,215,0,0.06)">
-        <div class="target-label">ÿßŸÑŸáÿØŸÅ ÿßŸÑÿ´ÿßŸÜŸä</div>
-        <div class="target-price" style="color:var(--gold)">$72,000 ‚Äì $74,000</div>
-        <div class="target-action">ÿ®Ÿäÿπ 40% ŸÖŸÜ ÿßŸÑŸÖÿ±ŸÉÿ≤</div>
+        <div class="target-label">الهدف الثاني</div>
+        <div class="target-price" style="color:var(--gold)">$72,000 – $74,000</div>
+        <div class="target-action">بيع 40% من المركز</div>
       </div>
       <div class="target-card" style="border-color:rgba(247,147,26,0.3);background:rgba(247,147,26,0.06)">
-        <div class="target-label">ÿßŸÑŸáÿØŸÅ ÿßŸÑÿ´ÿßŸÑÿ´</div>
-        <div class="target-price" style="color:var(--accent)">$78,000 ‚Äì $80,000+</div>
-        <div class="target-action">ÿ®Ÿäÿπ 30% ÿßŸÑÿ£ÿÆŸäÿ±</div>
+        <div class="target-label">الهدف الثالث</div>
+        <div class="target-price" style="color:var(--accent)">$78,000 – $80,000+</div>
+        <div class="target-action">بيع 30% الأخير</div>
       </div>
     </div>
 
     <!-- Key Dates -->
-    <div style="margin-bottom:12px;font-size:13px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:1.5px;">ÿßŸÑÿ™Ÿàÿßÿ±ŸäÿÆ ÿßŸÑŸÖÿ≠Ÿàÿ±Ÿäÿ©</div>
+    <div style="margin-bottom:12px;font-size:13px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:1.5px;">التواريخ المحورية</div>
     <div class="dates-grid fade-in-up">
       <div class="date-card">
-        <div class="date-icon">üìä</div>
+        <div class="date-icon">📊</div>
         <div>
-          <div class="date-day">10 ÿ£ÿ®ÿ±ŸäŸÑ 2026</div>
-          <div class="date-name">ÿ®ŸäÿßŸÜÿßÿ™ CPI ÿßŸÑÿ™ÿ∂ÿÆŸÖ</div>
-          <div class="date-desc">ÿ£ŸáŸÖ ÿ®ŸäÿßŸÜÿßÿ™ ÿßŸÇÿ™ÿµÿßÿØŸäÿ© ŸÇÿ±Ÿäÿ®ÿ©</div>
+          <div class="date-day">10 أبريل 2026</div>
+          <div class="date-name">بيانات CPI التضخم</div>
+          <div class="date-desc">أهم بيانات اقتصادية قريبة</div>
         </div>
       </div>
       <div class="date-card" style="border-color:rgba(247,147,26,0.2)">
-        <div class="date-icon">‚ö°</div>
+        <div class="date-icon">⚡</div>
         <div>
-          <div class="date-day" style="color:var(--gold)">25 ÿ£ÿ®ÿ±ŸäŸÑ 2026</div>
-          <div class="date-name">ÿßŸÜÿ™Ÿáÿßÿ° ÿßŸÑÿÆŸäÿßÿ±ÿßÿ™</div>
-          <div class="date-desc">Max Pain $70,000 ŸÇÿØ Ÿäÿ≥ÿ≠ÿ® ÿßŸÑÿ≥ÿπÿ±</div>
+          <div class="date-day" style="color:var(--gold)">25 أبريل 2026</div>
+          <div class="date-name">انتهاء الخيارات</div>
+          <div class="date-desc">Max Pain $70,000 قد يسحب السعر</div>
         </div>
       </div>
       <div class="date-card" style="border-color:rgba(239,68,68,0.2)">
-        <div class="date-icon">üè¶</div>
+        <div class="date-icon">🏦</div>
         <div>
-          <div class="date-day" style="color:var(--red)">7 ŸÖÿßŸäŸà 2026</div>
-          <div class="date-name">ÿßÿ¨ÿ™ŸÖÿßÿπ FOMC</div>
-          <div class="date-desc">ÿßŸÑÿ£ŸáŸÖ ‚Äî ÿ£Ÿä ÿ•ÿ¥ÿßÿ±ÿ© ÿÆŸÅÿ∂ = ÿßÿ±ÿ™ÿØÿßÿØ</div>
+          <div class="date-day" style="color:var(--red)">7 مايو 2026</div>
+          <div class="date-name">اجتماع FOMC</div>
+          <div class="date-desc">الأهم — أي إشارة خفض = ارتداد</div>
         </div>
       </div>
     </div>
@@ -1434,33 +1434,33 @@
 
 <div class="divider"></div>
 
-<!-- ‚ïê‚ïê HISTORY ‚ïê‚ïê -->
+<!-- ══ HISTORY ══ -->
 <section id="history">
   <div class="container">
     <div class="section-header fade-in-up">
       <div class="section-tag">Analysis Record</div>
-      <h2>ÿ≥ÿ¨ŸÑ ÿßŸÑÿ™ÿ≠ŸÑŸäŸÑÿßÿ™</h2>
-      <p>ÿ™ÿ™ÿ®ÿπ ÿØŸÇÿ© ÿßŸÑÿ™ÿ≠ŸÑŸäŸÑÿßÿ™ ÿßŸÑÿ≥ÿßÿ®ŸÇÿ©</p>
+      <h2>سجل التحليلات</h2>
+      <p>تتبع دقة التحليلات السابقة</p>
     </div>
 
     <div class="glass fade-in-up" style="overflow-x:auto;border-radius:var(--radius);">
       <table class="history-table">
         <thead>
           <tr>
-            <th>ÿßŸÑÿ™ÿßÿ±ŸäÿÆ</th>
-            <th>ÿ≥ÿπÿ± BTC</th>
-            <th>ÿßŸÑÿ•ÿ¥ÿßÿ±ÿ©</th>
-            <th>ÿßŸÑÿ≥ŸäŸÜÿßÿ±ŸäŸà</th>
-            <th>ÿßŸÑŸÜÿ™Ÿäÿ¨ÿ©</th>
+            <th>التاريخ</th>
+            <th>سعر BTC</th>
+            <th>الإشارة</th>
+            <th>السيناريو</th>
+            <th>النتيجة</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>4 ÿ£ÿ®ÿ±ŸäŸÑ 2026</td>
+            <td>4 أبريل 2026</td>
             <td style="font-variant-numeric:tabular-nums;color:var(--accent);font-weight:600">$66,902</td>
-            <td>RSI 24.3 ‚Äî Extreme Oversold</td>
-            <td>Scenario B ‚Äî Bounce 45%</td>
-            <td><span class="outcome-pending">‚è≥ ŸÇŸäÿØ ÿßŸÑÿßŸÜÿ™ÿ∏ÿßÿ±</span></td>
+            <td>RSI 24.3 — Extreme Oversold</td>
+            <td>Scenario B — Bounce 45%</td>
+            <td><span class="outcome-pending">⏳ قيد الانتظار</span></td>
           </tr>
         </tbody>
       </table>
@@ -1468,19 +1468,19 @@
   </div>
 </section>
 
-<!-- ‚ïê‚ïê FOOTER ‚ïê‚ïê -->
+<!-- ══ FOOTER ══ -->
 <footer>
-  <div style="font-size:20px;margin-bottom:12px;">‚Çø</div>
-  <div style="font-weight:600;margin-bottom:6px;">Bitcoin Intelligence ‚Äî btc.albadi.io</div>
+  <div style="font-size:20px;margin-bottom:12px;">₿</div>
+  <div style="font-weight:600;margin-bottom:6px;">Bitcoin Intelligence — btc.albadi.io</div>
   <div style="color:var(--text-muted);font-size:12px;line-height:1.8;">
-    ÿ™ÿ≠ÿØŸäÿ´: 4 ÿ£ÿ®ÿ±ŸäŸÑ 2026 ¬∑ ÿßŸÑÿ®ŸäÿßŸÜÿßÿ™ ŸÑŸÑÿ£ÿ∫ÿ±ÿßÿ∂ ÿßŸÑÿ™ÿπŸÑŸäŸÖŸäÿ© ŸÅŸÇÿ∑ ¬∑ ŸÑÿß ÿ™ŸèÿπÿØŸë ŸÜÿµŸäÿ≠ÿ© ÿßÿ≥ÿ™ÿ´ŸÖÿßÿ±Ÿäÿ©<br>
-    <span style="opacity:0.5">Price data: CoinGecko API ¬∑ Technical analysis: Manual</span>
+    تحديث: 4 أبريل 2026 · البيانات للأغراض التعليمية فقط · لا تُعدّ نصيحة استثمارية<br>
+    <span style="opacity:0.5">Price data: CoinGecko API · Technical analysis: Manual</span>
   </div>
 </footer>
 
-<!-- ‚ïê‚ïê JAVASCRIPT ‚ïê‚ïê -->
+<!-- ══ JAVASCRIPT ══ -->
 <script>
-// ‚îÄ‚îÄ‚îÄ ACCURACY WIDGET ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+// ─── ACCURACY WIDGET ───────────────────────────────────────────────
 const ACC_KEY = 'btc_accuracy_v1';
 
 function loadAccuracy() {
@@ -1496,7 +1496,7 @@ function renderAccuracy() {
   const correct = data.filter(d => d.outcome === 'correct').length;
   const total   = data.filter(d => d.outcome !== 'pending').length;
   document.getElementById('acc-text').textContent = `Accuracy: ${correct}/${total}`;
-  document.getElementById('acc-ratio').textContent = total > 0 ? `${Math.round(correct/total*100)}%` : '‚Äî';
+  document.getElementById('acc-ratio').textContent = total > 0 ? `${Math.round(correct/total*100)}%` : '—';
 
   const tbody = document.getElementById('accuracy-tbody');
   if (data.length === 0) {
@@ -1507,7 +1507,7 @@ function renderAccuracy() {
     <tr>
       <td>${d.date}</td>
       <td>${d.signal}</td>
-      <td class="acc-${d.outcome}">${d.outcome === 'pending' ? '‚è≥ Pending' : d.outcome === 'correct' ? '‚úÖ Correct' : '‚ùå Wrong'}</td>
+      <td class="acc-${d.outcome}">${d.outcome === 'pending' ? '⏳ Pending' : d.outcome === 'correct' ? '✅ Correct' : '❌ Wrong'}</td>
     </tr>
   `).join('');
 }
@@ -1541,7 +1541,7 @@ document.addEventListener('click', function(e) {
 
 renderAccuracy();
 
-// ‚îÄ‚îÄ‚îÄ LIVE PRICE ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+// ─── LIVE PRICE ────────────────────────────────────────────────────
 async function fetchPrice() {
   try {
     const res = await fetch(
@@ -1562,24 +1562,24 @@ async function fetchPrice() {
     changeEl.className = 'price-change ' + (change >= 0 ? 'up' : 'down');
 
     document.getElementById('refresh-info').innerHTML =
-      '<span class="live-dot"></span> ÿ¢ÿÆÿ± ÿ™ÿ≠ÿØŸäÿ´: ' + new Date().toLocaleTimeString('ar-SA');
+      '<span class="live-dot"></span> آخر تحديث: ' + new Date().toLocaleTimeString('ar-SA');
   } catch (e) {
     // Show fallback static price if API fails (e.g. rate limit)
-    if (document.getElementById('btc-price').textContent === '$‚Äî,‚Äî‚Äî‚Äî') {
+    if (document.getElementById('btc-price').textContent === '$—,———') {
       document.getElementById('btc-price').textContent = '$66,902';
       const changeEl = document.getElementById('btc-change');
       changeEl.textContent = '-4.82%';
       changeEl.className = 'price-change down';
     }
     document.getElementById('refresh-info').innerHTML =
-      '<span style="color:var(--text-muted)">‚ö†Ô∏è ÿ™ÿπÿ∞Ÿëÿ± ÿßŸÑÿßÿ™ÿµÿßŸÑ ÿ®ÿßŸÑŸÄ API</span>';
+      '<span style="color:var(--text-muted)">⚠️ تعذّر الاتصال بالـ API</span>';
   }
 }
 
 fetchPrice();
 setInterval(fetchPrice, 60000);
 
-// ‚îÄ‚îÄ‚îÄ MACD BARS ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+// ─── MACD BARS ─────────────────────────────────────────────────────
 (function() {
   const macdData = [100, 96, 92, 90, 87, 85, 84, 83, 82, 82]; // heights (% of max)
   const chart = document.getElementById('macd-chart');
@@ -1595,14 +1595,14 @@ setInterval(fetchPrice, 60000);
   });
 })();
 
-// ‚îÄ‚îÄ‚îÄ VOLUME PROFILE ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+// ─── VOLUME PROFILE ────────────────────────────────────────────────
 (function() {
   const rows = [
     { price: '$70,000+', pct: 12, type: 'lvn', label: 'LVN' },
     { price: '$68,000-70,000', pct: 18, type: 'lvn', label: '' },
-    { price: '$66,000-68,000', pct: 22, type: 'cur', label: '‚Üê Current' },
+    { price: '$66,000-68,000', pct: 22, type: 'cur', label: '← Current' },
     { price: '$65,000-66,000', pct: 20, type: 'lvn', label: 'LVN' },
-    { price: '$63,000-65,000', pct: 85, type: 'hvn', label: 'HVN üî•' },
+    { price: '$63,000-65,000', pct: 85, type: 'hvn', label: 'HVN 🔥' },
     { price: '$60,000-63,000', pct: 35, type: 'lvn', label: '' },
     { price: '$58,000-60,000', pct: 45, type: 'hvn', label: 'HVN' },
   ];
@@ -1624,7 +1624,7 @@ setInterval(fetchPrice, 60000);
   });
 })();
 
-// ‚îÄ‚îÄ‚îÄ SCROLL ANIMATIONS ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+// ─── SCROLL ANIMATIONS ─────────────────────────────────────────────
 (function() {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
@@ -1647,7 +1647,7 @@ setInterval(fetchPrice, 60000);
   });
 })();
 
-// ‚îÄ‚îÄ‚îÄ NUMBER COUNT-UP ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+// ─── NUMBER COUNT-UP ───────────────────────────────────────────────
 function countUp(el, target, duration = 1500, prefix = '$', suffix = '') {
   let start = 0;
   const startTime = performance.now();
@@ -1666,7 +1666,7 @@ function countUp(el, target, duration = 1500, prefix = '$', suffix = '') {
 window.addEventListener('load', () => {
   setTimeout(() => {
     const priceEl = document.getElementById('btc-price');
-    if (priceEl.textContent !== '$‚Äî,‚Äî‚Äî‚Äî') return; // already updated by API
+    if (priceEl.textContent !== '$—,———') return; // already updated by API
   }, 2000);
 });
 </script>
