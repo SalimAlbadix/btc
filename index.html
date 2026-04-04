@@ -1,0 +1,1674 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bitcoin Intelligence | ÿ™ÿ≠ŸÑŸäŸÑ ÿ®Ÿäÿ™ŸÉŸàŸäŸÜ</title>
+<style>
+  :root {
+    --bg: #000000;
+    --bg2: #0A0A0A;
+    --text: #F5F5F7;
+    --text-muted: #86868B;
+    --accent: #F7931A;
+    --gold: #FFD700;
+    --red: #EF4444;
+    --green: #22C55E;
+    --yellow: #EAB308;
+    --card-bg: rgba(255,255,255,0.05);
+    --card-border: rgba(255,255,255,0.1);
+    --card-blur: blur(20px);
+    --radius: 20px;
+    --font: system-ui,-apple-system,"SF Pro Display",Inter,sans-serif;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    min-height: 100vh;
+    overflow-x: hidden;
+    direction: rtl;
+  }
+
+  /* ‚îÄ‚îÄ Scrollbar ‚îÄ‚îÄ */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #111; }
+  ::-webkit-scrollbar-thumb { background: rgba(247,147,26,0.4); border-radius: 3px; }
+
+  /* ‚îÄ‚îÄ Background Grid ‚îÄ‚îÄ */
+  body::before {
+    content:'';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(247,147,26,0.12) 0%, transparent 70%),
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: auto, 60px 60px, 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ‚îÄ‚îÄ Animations ‚îÄ‚îÄ */
+  @keyframes fadeInUp {
+    from { opacity:0; transform:translateY(30px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  @keyframes glow {
+    0%,100% { filter: drop-shadow(0 0 20px rgba(247,147,26,0.4)); }
+    50%      { filter: drop-shadow(0 0 40px rgba(247,147,26,0.8)); }
+  }
+  @keyframes rotate {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+  @keyframes pulse {
+    0%,100% { opacity:1; }
+    50%      { opacity:0.5; }
+  }
+  @keyframes shimmer {
+    0%   { background-position: -200% center; }
+    100% { background-position:  200% center; }
+  }
+  @keyframes needleSwing {
+    from { transform: rotate(-90deg); }
+    to   { transform: rotate(var(--needle-angle)); }
+  }
+  @keyframes barGrow {
+    from { width: 0; }
+    to   { width: var(--bar-w); }
+  }
+  @keyframes float {
+    0%,100% { transform: translateY(0px); }
+    50%      { transform: translateY(-8px); }
+  }
+
+  .fade-in-up {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .fade-in-up.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ‚îÄ‚îÄ Layout ‚îÄ‚îÄ */
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  section { padding: 80px 0; }
+
+  /* ‚îÄ‚îÄ Glass Card ‚îÄ‚îÄ */
+  .glass {
+    background: var(--card-bg);
+    backdrop-filter: var(--card-blur);
+    -webkit-backdrop-filter: var(--card-blur);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+  }
+
+  /* ‚îÄ‚îÄ FLOATING ACCURACY WIDGET ‚îÄ‚îÄ */
+  #accuracy-widget {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 9999;
+  }
+  #accuracy-badge {
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(247,147,26,0.4);
+    border-radius: 30px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    user-select: none;
+  }
+  #accuracy-badge:hover {
+    border-color: var(--accent);
+    background: rgba(247,147,26,0.1);
+  }
+  #accuracy-panel {
+    display: none;
+    position: absolute;
+    top: 50px;
+    left: 0;
+    min-width: 360px;
+    background: rgba(0,0,0,0.95);
+    backdrop-filter: blur(30px);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+  }
+  #accuracy-panel.open { display: block; animation: fadeInUp 0.2s ease; }
+  .accuracy-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .accuracy-table th {
+    padding: 8px 10px;
+    text-align: right;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--card-border);
+    font-weight: 500;
+  }
+  .accuracy-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    color: var(--text);
+  }
+  .acc-pending { color: var(--yellow); }
+  .acc-correct { color: var(--green); }
+  .acc-wrong   { color: var(--red); }
+
+  /* ‚îÄ‚îÄ HERO ‚îÄ‚îÄ */
+  #hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 120px 24px 80px;
+    position: relative;
+  }
+
+  .btc-logo-wrap {
+    margin-bottom: 32px;
+    animation: float 4s ease-in-out infinite;
+  }
+  .btc-logo {
+    width: 100px;
+    height: 100px;
+    animation: glow 3s ease-in-out infinite;
+  }
+  .btc-logo-ring {
+    position: absolute;
+    inset: -10px;
+    border-radius: 50%;
+    border: 2px solid rgba(247,147,26,0.3);
+    animation: rotate 8s linear infinite;
+  }
+  .btc-logo-ring::after {
+    content:'';
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 0 12px var(--accent);
+  }
+
+  h1.hero-title {
+    font-size: clamp(48px, 7vw, 96px);
+    font-weight: 700;
+    letter-spacing: -2px;
+    line-height: 1;
+    background: linear-gradient(135deg, #fff 0%, var(--accent) 50%, var(--gold) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .hero-arabic {
+    font-size: clamp(18px, 3vw, 26px);
+    color: var(--text-muted);
+    margin-bottom: 48px;
+    font-weight: 400;
+  }
+
+  .price-card {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 28px 48px;
+    border-radius: 24px;
+    background: rgba(247,147,26,0.08);
+    border: 1px solid rgba(247,147,26,0.25);
+    backdrop-filter: blur(20px);
+    margin-bottom: 24px;
+  }
+  .price-label { font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; }
+  .price-value {
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -2px;
+    font-variant-numeric: tabular-nums;
+  }
+  .price-change {
+    font-size: 18px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+  .price-change.up   { background: rgba(34,197,94,0.15);  color: var(--green); }
+  .price-change.down { background: rgba(239,68,68,0.15);  color: var(--red); }
+  .price-refresh {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .live-dot {
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s ease infinite;
+    display: inline-block;
+  }
+
+  .hero-meta {
+    font-size: 16px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .hero-meta span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .hero-meta .sep { color: rgba(255,255,255,0.2); }
+
+  /* ‚îÄ‚îÄ SECTION HEADER ‚îÄ‚îÄ */
+  .section-header {
+    text-align: center;
+    margin-bottom: 60px;
+  }
+  .section-header h2 {
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 700;
+    letter-spacing: -1px;
+    margin-bottom: 12px;
+  }
+  .section-header p {
+    font-size: 18px;
+    color: var(--text-muted);
+  }
+  .section-tag {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    background: rgba(247,147,26,0.1);
+    border: 1px solid rgba(247,147,26,0.3);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  /* ‚îÄ‚îÄ 20 FACTORS TABLE ‚îÄ‚îÄ */
+  .factors-table-wrap {
+    overflow-x: auto;
+    border-radius: var(--radius);
+    border: 1px solid var(--card-border);
+  }
+  table.factors {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 900px;
+  }
+  table.factors thead th {
+    padding: 16px 14px;
+    text-align: right;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    background: rgba(255,255,255,0.03);
+    border-bottom: 1px solid var(--card-border);
+    white-space: nowrap;
+  }
+  table.factors td {
+    padding: 14px;
+    font-size: 13.5px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    vertical-align: top;
+  }
+  table.factors tr:last-child td { border-bottom: none; }
+  table.factors tr.bull { background: rgba(34,197,94,0.06);  border-right: 3px solid var(--green); }
+  table.factors tr.bear { background: rgba(239,68,68,0.06);  border-right: 3px solid var(--red); }
+  table.factors tr.neut { background: rgba(234,179,8,0.06);  border-right: 3px solid var(--yellow); }
+
+  table.factors td:first-child {
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    width: 40px;
+  }
+  .factor-name { font-weight: 600; color: var(--text); line-height: 1.4; }
+  .factor-ar   { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .cat-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(255,255,255,0.08);
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .signal-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .signal-badge.bull { background: rgba(34,197,94,0.15);  color: var(--green); }
+  .signal-badge.bear { background: rgba(239,68,68,0.15);  color: var(--red); }
+  .signal-badge.neut { background: rgba(234,179,8,0.15);  color: var(--yellow); }
+
+  .stars { color: var(--accent); font-size: 12px; letter-spacing: 1px; }
+  .watch-text { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+  .status-text { font-size: 13px; color: var(--text); line-height: 1.5; max-width: 240px; }
+
+  /* Summary bar */
+  .summary-bar {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 20px 28px;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--card-border);
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+  .summary-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 120px;
+  }
+  .summary-label { font-size: 14px; font-weight: 600; }
+  .summary-label.bear { color: var(--red); }
+  .summary-label.bull { color: var(--green); }
+  .summary-label.neut { color: var(--yellow); }
+  .summary-bar-track {
+    flex: 1;
+    height: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .summary-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    width: 0;
+    transition: width 1.5s ease;
+  }
+  .summary-bar-fill.bear { background: var(--red); }
+  .summary-bar-fill.bull { background: var(--green); }
+  .summary-bar-fill.neut { background: var(--yellow); }
+  .summary-count {
+    font-size: 14px;
+    font-weight: 700;
+    min-width: 24px;
+  }
+
+  /* ‚îÄ‚îÄ TA CARDS ‚îÄ‚îÄ */
+  .ta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+  }
+  .ta-card {
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .ta-card::before {
+    content:'';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at center, rgba(247,147,26,0.04) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .ta-card-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .ta-card-name {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+  .ta-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .ta-badge.bull  { background: rgba(34,197,94,0.15);  color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+  .ta-badge.bear  { background: rgba(239,68,68,0.15);  color: var(--red);   border: 1px solid rgba(239,68,68,0.3); }
+  .ta-badge.neut  { background: rgba(234,179,8,0.15);  color: var(--yellow);border: 1px solid rgba(234,179,8,0.3); }
+  .ta-desc { font-size: 13px; color: var(--text-muted); line-height: 1.7; margin-top: 12px; }
+
+  /* EMA Chart */
+  .ema-chart { margin: 16px 0; position: relative; height: 140px; }
+  .ema-svg { width: 100%; height: 100%; }
+
+  /* RSI Gauge */
+  .rsi-gauge-wrap { display: flex; flex-direction: column; align-items: center; margin: 8px 0 4px; }
+  .rsi-gauge { width: 200px; height: 110px; position: relative; }
+  .rsi-number {
+    font-size: 48px;
+    font-weight: 800;
+    color: var(--green);
+    text-align: center;
+    margin-top: -8px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Support/Resistance Levels */
+  .sr-levels { display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+  .sr-level {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+  }
+  .sr-level.res  { background: rgba(239,68,68,0.1);  border-right: 3px solid var(--red); }
+  .sr-level.cur  { background: rgba(247,147,26,0.1); border-right: 3px solid var(--accent); }
+  .sr-level.sup  { background: rgba(34,197,94,0.1);  border-right: 3px solid var(--green); }
+  .sr-level.sup2 { background: rgba(34,197,94,0.06); border-right: 3px solid rgba(34,197,94,0.4); }
+  .sr-label { flex: 1; font-weight: 600; }
+  .sr-price { font-variant-numeric: tabular-nums; font-weight: 700; }
+  .sr-price.red { color: var(--red); }
+  .sr-price.orange { color: var(--accent); }
+  .sr-price.green { color: var(--green); }
+
+  /* MACD Bars */
+  .macd-chart { display: flex; align-items: flex-end; gap: 4px; height: 80px; margin: 16px 0; direction: ltr; }
+  .macd-bar {
+    flex: 1;
+    border-radius: 3px 3px 0 0;
+    background: rgba(239,68,68,0.6);
+    transition: height 1s ease;
+    position: relative;
+  }
+  .macd-value-big {
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--red);
+    text-align: center;
+    margin: 8px 0 4px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Volume Profile */
+  .vol-profile { display: flex; flex-direction: column; gap: 6px; margin: 16px 0; direction: ltr; }
+  .vol-row { display: flex; align-items: center; gap: 8px; }
+  .vol-price-label { font-size: 11px; color: var(--text-muted); width: 90px; text-align: right; font-variant-numeric: tabular-nums; direction: ltr; }
+  .vol-bar-track { flex: 1; height: 18px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; position: relative; }
+  .vol-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    padding-right: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.7);
+    width: 0;
+    transition: width 1.5s ease;
+  }
+  .vol-bar-fill.hvn { background: rgba(34,197,94,0.5); }
+  .vol-bar-fill.cur { background: rgba(247,147,26,0.5); }
+  .vol-bar-fill.lvn { background: rgba(255,255,255,0.2); }
+  .vol-marker { font-size: 10px; color: var(--text-muted); width: 30px; }
+
+  /* ‚îÄ‚îÄ SCENARIOS ‚îÄ‚îÄ */
+  .scenarios-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.15fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  .scenario-card { padding: 28px; position: relative; overflow: hidden; }
+  .scenario-card.featured {
+    border-color: rgba(255,215,0,0.4);
+    background: rgba(255,215,0,0.04);
+  }
+  .scenario-card.featured::after {
+    content:'MOST LIKELY';
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    background: linear-gradient(135deg, var(--gold), var(--accent));
+    color: #000;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+  .scenario-icon { font-size: 36px; margin-bottom: 12px; }
+  .scenario-title { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+  .scenario-prob {
+    font-size: 64px;
+    font-weight: 800;
+    line-height: 1;
+    margin: 12px 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .scenario-prob.bear { color: var(--red); }
+  .scenario-prob.bounce { color: var(--gold); }
+  .scenario-prob.bull { color: var(--green); }
+  .scenario-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    font-size: 13px;
+  }
+  .scenario-row:last-of-type { border-bottom: none; }
+  .scenario-row-label { color: var(--text-muted); }
+  .scenario-row-val { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .scenario-row-val.green { color: var(--green); }
+  .scenario-row-val.red   { color: var(--red); }
+  .scenario-row-val.orange{ color: var(--accent); }
+  .rr-badge {
+    display: inline-block;
+    margin-top: 14px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid var(--card-border);
+  }
+  .trigger-list { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
+  .trigger-item { font-size: 12px; color: var(--text-muted); display: flex; gap: 6px; align-items: flex-start; line-height: 1.5; }
+
+  /* ‚îÄ‚îÄ PERSONAL PLAN ‚îÄ‚îÄ */
+  #plan { background: linear-gradient(180deg, rgba(247,147,26,0.04) 0%, transparent 100%); }
+
+  .plan-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+  .plan-avatar {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--gold));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 700;
+    color: #000;
+    flex-shrink: 0;
+  }
+  .plan-title { font-size: 28px; font-weight: 700; }
+  .plan-subtitle { font-size: 15px; color: var(--text-muted); }
+
+  .tranches-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .tranche-card {
+    padding: 20px;
+    border-radius: 16px;
+    text-align: center;
+    position: relative;
+  }
+  .tranche-card.t1 { background: rgba(247,147,26,0.08); border: 1px solid rgba(247,147,26,0.25); }
+  .tranche-card.t2 { background: rgba(255,215,0,0.06);  border: 1px solid rgba(255,215,0,0.2); }
+  .tranche-card.t3 { background: rgba(255,255,255,0.04);border: 1px solid rgba(255,255,255,0.1); }
+  .tranche-medal { font-size: 28px; margin-bottom: 8px; }
+  .tranche-label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; }
+  .tranche-pct { font-size: 32px; font-weight: 800; color: var(--accent); margin-bottom: 4px; }
+  .tranche-range { font-size: 13px; font-weight: 600; color: var(--text); }
+  .tranche-connector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: var(--text-muted);
+  }
+
+  .targets-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .target-card {
+    padding: 18px;
+    border-radius: 16px;
+    text-align: center;
+    background: rgba(34,197,94,0.06);
+    border: 1px solid rgba(34,197,94,0.2);
+  }
+  .target-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .target-price { font-size: 22px; font-weight: 700; color: var(--green); margin-bottom: 4px; font-variant-numeric: tabular-nums; }
+  .target-action { font-size: 12px; color: var(--text-muted); }
+
+  .dates-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .date-card {
+    padding: 18px 20px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--card-border);
+  }
+  .date-icon { font-size: 24px; flex-shrink: 0; }
+  .date-day  { font-size: 13px; font-weight: 700; color: var(--accent); }
+  .date-name { font-size: 13px; font-weight: 600; }
+  .date-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  /* ‚îÄ‚îÄ HISTORY TABLE ‚îÄ‚îÄ */
+  .history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  .history-table th {
+    padding: 14px 16px;
+    text-align: right;
+    color: var(--text-muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    border-bottom: 1px solid var(--card-border);
+    background: rgba(255,255,255,0.02);
+  }
+  .history-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    color: var(--text);
+  }
+  .history-table tr:last-child td { border-bottom: none; }
+  .outcome-pending { color: var(--yellow); font-weight: 600; }
+  .outcome-correct { color: var(--green); font-weight: 600; }
+  .outcome-wrong   { color: var(--red); font-weight: 600; }
+
+  /* ‚îÄ‚îÄ FOOTER ‚îÄ‚îÄ */
+  footer {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--text-muted);
+    font-size: 13px;
+    border-top: 1px solid var(--card-border);
+    position: relative;
+    z-index: 1;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  /* ‚îÄ‚îÄ RESPONSIVE ‚îÄ‚îÄ */
+  @media (max-width: 900px) {
+    .scenarios-grid { grid-template-columns: 1fr; }
+    .scenario-card.featured { order: -1; }
+    .tranches-grid, .targets-grid, .dates-grid { grid-template-columns: 1fr; }
+    .summary-bar { flex-direction: column; gap: 16px; }
+    #accuracy-widget { top: 12px; left: 12px; }
+    #accuracy-panel { min-width: 280px; }
+    section { padding: 60px 0; }
+  }
+  @media (max-width: 600px) {
+    h1.hero-title { letter-spacing: -1px; }
+    .price-card { padding: 20px 28px; }
+    .ta-grid { grid-template-columns: 1fr; }
+    table.factors { min-width: 700px; }
+  }
+
+  /* ‚îÄ‚îÄ DIVIDER ‚îÄ‚îÄ */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--card-border), transparent);
+    margin: 0;
+  }
+
+  /* Number count-up */
+  .count-up { font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+
+<!-- ‚ïê‚ïê ACCURACY WIDGET ‚ïê‚ïê -->
+<div id="accuracy-widget">
+  <div id="accuracy-badge" onclick="toggleAccuracy()">
+    üéØ <span id="acc-text">Accuracy: 0/0</span>
+  </div>
+  <div id="accuracy-panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <span style="font-weight:700;font-size:15px;">üìä Analysis History</span>
+      <span id="acc-ratio" style="color:var(--accent);font-weight:700;"></span>
+    </div>
+    <table class="accuracy-table">
+      <thead>
+        <tr><th>Date</th><th>Signal</th><th>Outcome</th></tr>
+      </thead>
+      <tbody id="accuracy-tbody"></tbody>
+    </table>
+    <div style="margin-top:16px;text-align:center;">
+      <button onclick="addAccuracyEntry()" style="background:rgba(247,147,26,0.15);border:1px solid rgba(247,147,26,0.3);color:var(--accent);padding:7px 18px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">+ Add Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- ‚ïê‚ïê HERO ‚ïê‚ïê -->
+<section id="hero">
+  <div style="position:relative;display:inline-block;" class="btc-logo-wrap">
+    <div class="btc-logo-ring"></div>
+    <svg class="btc-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="btcGrad" cx="30%" cy="30%">
+          <stop offset="0%" stop-color="#FFD700"/>
+          <stop offset="100%" stop-color="#F7931A"/>
+        </radialGradient>
+      </defs>
+      <circle cx="50" cy="50" r="48" fill="url(#btcGrad)" opacity="0.15"/>
+      <circle cx="50" cy="50" r="44" fill="none" stroke="url(#btcGrad)" stroke-width="2" opacity="0.4"/>
+      <text x="50" y="66" text-anchor="middle" font-size="58" font-weight="900" font-family="system-ui" fill="url(#btcGrad)">‚Çø</text>
+    </svg>
+  </div>
+
+  <h1 class="hero-title fade-in-up" style="animation-delay:0.1s">Bitcoin Intelligence</h1>
+  <p class="hero-arabic fade-in-up" style="animation-delay:0.2s">ÿ™ÿ≠ŸÑŸäŸÑ ÿ®Ÿäÿ™ŸÉŸàŸäŸÜ ÿßŸÑÿ¥ÿßŸÖŸÑ ÿ®ÿßŸÑÿ∞ŸÉÿßÿ° ÿßŸÑÿßÿµÿ∑ŸÜÿßÿπŸä</p>
+
+  <div class="price-card glass fade-in-up" style="animation-delay:0.3s">
+    <div class="price-label">Bitcoin Price <span class="live-dot" style="margin-right:6px;"></span></div>
+    <div class="price-value count-up" id="btc-price">$‚Äî,‚Äî‚Äî‚Äî</div>
+    <div class="price-change" id="btc-change">‚Äî%</div>
+    <div class="price-refresh" id="refresh-info">
+      <span class="live-dot"></span> Ÿäÿ™ÿ¨ÿØÿØ ŸÉŸÑ 60 ÿ´ÿßŸÜŸäÿ©
+    </div>
+  </div>
+
+  <div class="hero-meta fade-in-up" style="animation-delay:0.4s">
+    <span>üìÖ 4 ÿ£ÿ®ÿ±ŸäŸÑ 2026</span>
+    <span class="sep">|</span>
+    <span>üìä RSI: <strong style="color:var(--green)">24.3</strong></span>
+    <span class="sep">|</span>
+    <span>üò® Fear &amp; Greed: <strong style="color:var(--yellow)">29</strong></span>
+    <span class="sep">|</span>
+    <span>‚õèÔ∏è Hash Rate: <strong style="color:var(--green)">700+ EH/s</strong></span>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ‚ïê‚ïê 20 FACTORS ‚ïê‚ïê -->
+<section id="factors">
+  <div class="container">
+    <div class="section-header fade-in-up">
+      <div class="section-tag">On-Chain + Macro + Technical</div>
+      <h2>20 ÿπÿßŸÖŸÑÿßŸã Ÿäÿ≠ÿ±ŸÉ ÿßŸÑÿ≥ŸàŸÇ</h2>
+      <p>ÿ™ÿ≠ŸÑŸäŸÑ ÿ¥ÿßŸÖŸÑ ŸÑÿ£ŸáŸÖ ÿßŸÑÿπŸàÿßŸÖŸÑ ÿßŸÑŸÖÿ§ÿ´ÿ±ÿ© ÿπŸÑŸâ ÿ≥ÿπÿ± ÿ®Ÿäÿ™ŸÉŸàŸäŸÜ ‚Äî 4 ÿ£ÿ®ÿ±ŸäŸÑ 2026</p>
+    </div>
+
+    <div class="factors-table-wrap glass fade-in-up">
+      <table class="factors">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>ÿßŸÑÿπÿßŸÖŸÑ</th>
+            <th>ÿßŸÑŸÅÿ¶ÿ©</th>
+            <th>ÿßŸÑŸàÿ∂ÿπ ÿßŸÑÿ≠ÿßŸÑŸä</th>
+            <th>ÿßŸÑÿßÿ™ÿ¨ÿßŸá</th>
+            <th>ÿßŸÑŸÇŸàÿ©</th>
+            <th>ŸÖÿßÿ∞ÿß ŸÜÿ±ÿßŸÇÿ®</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="bear">
+            <td>1</td>
+            <td><div class="factor-name">Federal Reserve Policy</div><div class="factor-ar">ÿ≥Ÿäÿßÿ≥ÿ© ÿßŸÑŸÅŸäÿØÿ±ÿßŸÑŸä</div></td>
+            <td><span class="cat-badge">ŸÖÿßŸÉÿ±Ÿà</span></td>
+            <td class="status-text">ŸÖÿπÿØŸÑÿßÿ™ 4.25-4.5%ÿå ŸÑÿß ÿÆŸÅÿ∂ ŸÇÿ®ŸÑ ŸäŸàŸÜŸäŸà/ŸäŸàŸÑŸäŸà 2026ÿå ÿ™Ÿàÿ∏ŸäŸÅ ŸÇŸàŸä</td>
+            <td><span class="signal-badge bear">üî¥ Ÿáÿ®Ÿàÿ∑Ÿä</span></td>
+            <td><span class="stars">‚≠ê‚≠ê‚≠ê‚≠ê‚≠ê</span></td>
+            <td class="watch-text">FOMC 7 ŸÖÿßŸäŸà ‚Äî ÿ£Ÿä ÿ•ÿ¥ÿßÿ±ÿ© ÿØŸàŸÅŸäÿ© = ÿßÿ±ÿ™ÿØÿßÿØ</td>
+          </tr>
+          <tr class="neut">
+            <td>2</td>
+            <td><div class="factor-name">Global M2 Liquidity</div><div class="factor-ar">ÿßŸÑÿ≥ŸäŸàŸÑÿ© ÿßŸÑÿπÿßŸÑŸÖŸäÿ© M2</div></td>
+            <td><span class="cat-badge">ŸÖÿßŸÉÿ±Ÿà</span></td>
+            <td class="status-text">ÿßÿ±ÿ™ŸÅÿßÿπ +5% ÿ≥ŸÜŸàŸäÿßŸãÿå ÿßŸÑÿµŸäŸÜ/ÿßŸÑÿ≥ÿπŸàÿØŸäÿ©/EU ÿ™ŸÇŸàÿØÿå ŸÑŸÉŸÜ ŸÇŸàÿ© ÿßŸÑÿØŸàŸÑÿßÿ± ÿ™ŸèÿπŸàŸëÿ∂</td>
+            <td><span class="signal-badge neut">üü° ŸÖÿ≠ÿßŸäÿØ</span></td>
+            <td><span class="stars">‚≠ê‚≠ê‚≠ê</span></td>
+            <td class="watch-text">ÿ∂ÿÆ ÿ≥ŸäŸàŸÑÿ© PBoC</td>
+          </tr>
+          <tr class="bear">
+            <td>3</td>
+            <td><div class="factor-name">CPI Inflation</div><div class="factor-ar">ÿ®ŸäÿßŸÜÿßÿ™ ÿßŸÑÿ™ÿ∂ÿÆŸÖ</div></td>
+            <td><span class="cat-badge">ŸÖÿßŸÉÿ±Ÿà</span></td>
+            <td class="status-text">2.8% ‚Äî ÿßŸÑÿ±ÿ≥ŸàŸÖ ÿßŸÑÿ¨ŸÖÿ±ŸÉŸäÿ© ÿ≥ÿ™ÿØŸÅÿπŸá ÿ£ÿπŸÑŸâÿå ŸäŸèÿπŸÇŸëÿØ ŸÇÿ±ÿßÿ±ÿßÿ™ ÿßŸÑÿÆŸÅÿ∂</td>
+            <td><span class="signal-badge bear">üî¥ Ÿáÿ®Ÿàÿ∑Ÿä</span></td>
+            <td><span class="stars">‚≠ê‚≠ê‚≠ê‚≠ê</span></td>
+            <td class="watch-text">CPI 10 ÿ£ÿ®ÿ±ŸäŸÑ ‚Äî ÿ™ÿ≠ÿ™ 2.7% = ÿµÿπŸàÿØŸä</td>
+          </tr>
+          <tr class="bear">
+            <td>4</td>
+            <td><div class="factor-name">DXY Dollar Index</div><div class="factor-ar">ŸÖÿ§ÿ¥ÿ± ÿßŸÑÿØŸàŸÑÿßÿ±</div></td>
+            <td><span class="cat-badge">ŸÖÿßŸÉÿ±Ÿà</span></td>
+            <td class="status-text">ŸÅŸàŸÇ 104ÿå Ÿäÿ™ŸÇŸàŸâ ÿ®ÿ≥ÿ®ÿ® ÿßŸÑŸÖŸÑÿßÿ∞ ÿßŸÑÿ¢ŸÖŸÜ ŸÖŸÜ ÿßŸÑÿ±ÿ≥ŸàŸÖ ÿßŸÑÿ¨ŸÖÿ±ŸÉŸäÿ©</td>
+            <td><span class="signal-badge bear">üî¥ Ÿáÿ®Ÿàÿ∑Ÿä</span></td>
+            <td><span class="stars">‚≠ê‚≠ê‚≠ê‚≠ê</span></td>
+            <td class="watch-text">ŸÉÿ≥ÿ± 105 = ÿ£ŸÑŸÖ ÿ£ŸÉÿ®ÿ± ŸÑŸÄ BTC</td>
+          </tr>
+          <tr class="bear">
+            <td>5</td>
+            <td><div class="factor-name">S&amp;P 500 Correlation</div><div class="factor-ar">ÿßÿ±ÿ™ÿ®ÿßÿ∑ S&P 500</div></td>
+            <td><span class="cat-badge">ŸÖÿßŸÉÿ±Ÿà</span></td>
+            <td class="status-text">S&P -4.8% ÿßŸÑŸäŸàŸÖ (ÿ£ÿ≥Ÿàÿ£ ŸäŸàŸÖ ŸÖŸÜÿ∞ 2022)ÿå ÿßÿ±ÿ™ÿ®ÿßÿ∑ BTC 0.75+</td>
+            <td><span class="signal-badge bear">üî¥ Ÿáÿ®Ÿàÿ∑Ÿä</span></td>
+            <td><span class="stars">‚≠ê‚≠ê‚≠ê‚≠ê‚≠ê</span></td>
+            <td class="watch-text">ÿßÿ≥ÿ™ŸÇÿ±ÿßÿ± ÿßŸÑÿ£ÿ≥ŸáŸÖ = ÿ£ŸàŸÑ ÿπŸÑÿßŸÖÿ© ÿßŸÜÿ™ÿπÿßÿ¥ BTC</td>
+          </tr>
+          <tr class="bear">
+            <td>6</td>
+            <td><div class="factor-name">Geopolitical Events</div><div class="factor-ar">ÿßŸÑÿ¨ŸäŸàÿ≥Ÿäÿßÿ≥Ÿäÿ©</div></td>
+            <td><span class="cat-badge">ŸÖÿßŸÉÿ±Ÿà</span></td>
+            <td class="status-text">Liberation Day: 34% ÿ±ÿ≥ŸàŸÖ ÿµŸäŸÜŸäÿ©ÿå 24% Ÿäÿßÿ®ÿßŸÜŸäÿ© ‚Äî ÿ≠ÿ±ÿ® ÿ™ÿ¨ÿßÿ±Ÿäÿ©</td>
+            <td><span class="signal-badge bear">üî¥ Ÿáÿ®Ÿàÿ∑Ÿä</span></td>
+            <td><span class="stars">‚≠ê‚≠ê‚≠ê‚≠ê‚≠ê</span></td>
+            <td class="watch-text">ÿ£Ÿä ÿ™ŸÅÿßŸàÿ∂/ÿ™ÿ±ÿßÿ¨ÿπ = ÿßÿ±ÿ™ÿØÿßÿØ ÿ≠ÿßÿØ</td>
+          </tr>
+          <tr class="bull">
+            <td>7</td>
+            <td><div class="factor-name">Halving Cycle</div><div class="factor-ar">ÿØŸàÿ±ÿ© ÿßŸÑŸáÿßŸÑŸÅŸäŸÜÿ¨</div></td>
+            <td><span class="cat-badge">ÿ£ŸàŸÜ-ÿ™ÿ¥ŸäŸÜ</span></td>
+            <td class="status-text">ÿßŸÑÿ¥Ÿáÿ± 12 ÿ®ÿπÿØ ÿßŸÑŸáÿßŸÑŸÅŸäŸÜÿ¨ ‚Äî ÿ™ÿßÿ±ŸäÿÆŸäÿßŸã ÿ∞ÿ±Ÿàÿ© ÿßŸÑÿ¥Ÿáÿ± 12-18</td>
+            <td><span class="signal-badge bull">üü¢ ÿµÿπŸàÿØŸä</span></td>
+            <td><span class="stars">‚≠ê‚≠ê‚≠ê‚≠ê</span></td>
+            <td class="watch-text">ŸÜÿßŸÅÿ∞ÿ© ÿßŸÑÿ∞ÿ±Ÿàÿ©: ŸäŸàŸÜŸäŸà-ÿ£ÿ∫ÿ≥ÿ∑ÿ≥ 2026</td>
+          </tr>
+          <tr class="bull">
+            <td>8</td>
+            <td><div class="factor-name">Miner Selling</div><div class="factor-ar">ÿ®Ÿäÿπ ÿßŸÑŸÖÿπÿØŸÜŸäŸÜ</div></td>
+            <td><span class="cat-badge">ÿ£ŸàŸÜ-ÿ™ÿ¥ŸäŸÜ</span></td>
+            <td class="status-text">ÿßŸÑŸÖÿπÿØŸÜŸàŸÜ Ÿäÿ≠ÿ™ŸÅÿ∏ŸàŸÜÿå ÿßÿ≠ÿ™Ÿäÿßÿ∑Ÿä ÿßŸÑŸÖÿπÿØŸÜŸäŸÜ ŸÖÿ≥ÿ™ŸÇÿ±</td>
+            <td><span class="signal-badge bull">üü¢ ÿµÿπŸàÿØŸä</span></td>
+            <td><span class="stars">‚≠ê‚≠ê‚≠ê</span></td>
+            <td class="watch-text">ŸÖÿ±ÿßŸÇÿ®ÿ© ÿ•ÿ∞ÿß ÿßŸÜŸáÿßÿ± ÿßŸÑÿ≥ÿπÿ± ÿ™ÿ≠ÿ™ $60K</td>
+          </tr>
+          <tr class="bull">
+            <td>9</td>
+            <td><div class="factor-name">Stock-to-Flow</div><div class="factor-ar">ŸÜŸÖŸàÿ∞ÿ¨ S2F</div></td>
+            <td><span class="cat-badge">ÿ£ŸàŸÜ-ÿ™ÿ¥ŸäŸÜ</span></td>
+            <td class="status-text">ŸáÿØŸÅ ÿßŸÑŸÜŸÖŸàÿ∞ÿ¨ $100K-$150K ‚Äî ÿßŸÑÿ≥ÿπÿ± ÿßŸÑÿ≠ÿßŸÑŸä ŸÖŸèŸÇŸäŸéŸëŸÖ ÿ£ÿØŸÜŸâ ÿ®ŸÉÿ´Ÿäÿ±</td>
+            <td><span class="signal-badge bull">üü¢ ÿµÿπŸàÿØŸä</span></td>
+            <td><span class="stars">‚≠ê‚≠ê</span></td>
+            <td class="watch-text">ŸÜŸÖŸàÿ∞ÿ¨ ÿØÿπŸÖ ÿ∑ŸàŸäŸÑ ÿßŸÑÿ£ŸÖÿØ ŸÅŸÇÿ∑</td>
+          </tr>
+          <tr class="bull">
+            <td>10</td>
+            <td><div class="factor-name">Hash Rate</div><div class="factor-ar">ŸÖÿπÿØŸÑ ÿßŸÑŸáÿßÿ¥</div></td>
+            <td><span class="cat-badge">ÿ£ŸàŸÜ-ÿ™ÿ¥ŸäŸÜ</span></td>
+            <td class="status-text">ŸÖÿ≥ÿ™ŸàŸâ ŸÇŸäÿßÿ≥Ÿä 700+ EH/s ‚Äî ÿ´ŸÇÿ© ÿßŸÑÿ¥ÿ®ŸÉÿ© ŸÅŸä ÿ∞ÿ±Ÿàÿ™Ÿáÿß</td>
+            <td><span class="signal-badge bull">üü¢ ÿµÿπŸàÿØŸä</span></td>
+            <td><span class="stars">‚≠ê‚≠ê‚≠ê</span></td>
+            <td class="watch-text">ŸÖÿ§ÿ¥ÿ± ÿµÿ≠ÿ© ÿ∑ŸàŸäŸÑ ÿßŸÑÿ£ŸÖÿØ</td>
+          </tr>
+          <tr class="neut">
+            <td>11</td>
+            <td><div class="factor-name">NVT Ratio</div><div class="factor-ar">ŸÜÿ≥ÿ®ÿ© NVT</div></td>
+            <td><span class="cat-badge">ÿ£ŸàŸÜ-ÿ™ÿ¥ŸäŸÜ</span></td>
+            <td class="status-text">~45-55 ‚Äî ŸÑŸäÿ≥ ŸÅŸÇÿßÿπÿ©ÿå ÿßÿ≥ÿ™ÿÆÿØÿßŸÖ ÿßŸÑÿ¥ÿ®ŸÉÿ© ÿµÿ≠Ÿä</td>
+            <td><span class="signal-badge neut">üü° ŸÖÿ≠ÿßŸäÿØ</span></td>
+            <td><span class="stars">‚≠ê‚≠ê</span></td>
+            <td class="watch-text">ŸÅŸàŸÇ 90 = ÿ™ÿ≠ÿ∞Ÿäÿ± ŸÅŸÇÿßÿπÿ©</td>
+          </tr>
+          <tr class="bull">
+            <td>12</td>
+            <td><div class="factor-name">LTH Behavior</div><div class="factor-ar">ÿßŸÑÿ≠ÿßŸÖŸÑŸàŸÜ ÿ∑ŸàŸäŸÑ ÿßŸÑÿ£ŸÖÿØ</div></td>
+            <td><span class="cat-badge">ÿ£ŸàŸÜ-ÿ™ÿ¥ŸäŸÜ</span></td>
+            <td class="status-text">75%+ ŸÖŸÜ ÿßŸÑŸÖÿπÿ±Ÿàÿ∂ ÿ®ŸäÿØ LTH ‚Äî ÿ£ŸäÿØŸä ŸÖŸÜ ŸÅŸàŸÑÿßÿ∞ ŸÑÿß ÿ™ÿ®Ÿäÿπ</td>
+            <td><span class="signal-badge bull">üü¢ ÿµÿπŸàÿØŸä</span></td>
+            <td><span class="stars">‚≠ê‚≠ê‚≠ê‚≠ê</span></td>
+            <td class="watch-text">ÿ®Ÿäÿπ ŸÖŸÉÿ´ŸÅ ŸÖŸÜ LTH = ÿÆÿ∑ÿ± ŸÉÿ®Ÿäÿ±</td>
+          </tr>
+          <tr class="bull">
+            <td>13</td>
+            <td><div class="factor-name">Exchange Reserves</div><div class="factor-ar">ÿßÿ≠ÿ™Ÿäÿßÿ∑Ÿäÿßÿ™ ÿßŸÑÿ®Ÿàÿ±ÿµÿßÿ™</div></td>
+            <td><span class="cat-badge">ŸÖÿ§ÿ≥ÿ≥Ÿä</span></td>
+            <td class="status-text">ÿ£ÿØŸÜŸâ ŸÖÿ≥ÿ™ŸàŸâ ŸÖŸÜÿ∞ 2017 ‚Äî BTC ŸäŸÜÿ™ŸÇŸÑ ÿ•ŸÑŸâ ÿßŸÑÿ™ÿÆÿ≤ŸäŸÜ ÿßŸÑÿ®ÿßÿ±ÿØ</td>
+            <td><span class="signal-badge bull">üü¢ ÿµÿπŸàÿØŸä</span></td>
+            <td><span class="stars">‚≠ê‚≠ê‚≠ê‚≠ê</span></td>
+            <td class="watch-text">ÿßÿ±ÿ™ŸÅÿßÿπ ŸÖŸÅÿßÿ¨ÿ¶ ŸÅŸä ÿßŸÑÿßÿ≠ÿ™Ÿäÿßÿ∑Ÿäÿßÿ™ = ÿ∂ÿ∫ÿ∑ ÿ®Ÿäÿπ ŸÇÿßÿØŸÖ</td>
+          </tr>
+          <tr class="bear">
+            <td>14</td>
+            <td><div class="factor-name">ETF Flows</div><div class="factor-ar">ÿ™ÿØŸÅŸÇÿßÿ™ ETF</div></td>
+            <td><span class="cat-badge">ŸÖÿ§ÿ≥ÿ≥Ÿä</span></td>
+            <td class="status-text">ÿ™ÿØŸÅŸÇÿßÿ™ ÿÆÿßÿ±ÿ¨ÿ© $300M+ ÿßŸÑŸäŸàŸÖ (ÿµÿØŸÖÿ© ÿßŸÑÿ±ÿ≥ŸàŸÖ)ÿå BlackRock/Fidelity</td>
+            <td><span class="signal-badge bear">üî¥ Ÿáÿ®Ÿàÿ∑Ÿä</span></td>
+            <td><span class="stars">‚≠ê‚≠ê‚≠ê‚≠ê</span></td>
+            <td class="watch-text">ÿπŸàÿØÿ© ÿßŸÑÿ™ÿØŸÅŸÇÿßÿ™ ÿßŸÑÿØÿßÿÆŸÑÿ© = ÿ£ŸÇŸàŸâ ÿ•ÿ¥ÿßÿ±ÿ© ÿ¥ÿ±ÿßÿ°</td>
+          </tr>
+          <tr class="bull">
+            <td>15</td>
+            <td><div class="factor-name">Whale Movements</div><div class="factor-ar">ÿ™ÿ≠ÿ±ŸÉÿßÿ™ ÿßŸÑÿ≠Ÿäÿ™ÿßŸÜ</div></td>
+            <td><span class="cat-badge">ŸÖÿ§ÿ≥ÿ≥Ÿä</span></td>
+            <td class="status-text">ÿ™ÿ±ÿßŸÉŸÖ ŸÖŸÉÿ™ÿ¥ŸÅ ÿπŸÜÿØ $66K-$68K ÿÆŸÑÿßŸÑ ÿßŸÑÿßŸÜÿÆŸÅÿßÿ∂ ÿßŸÑŸäŸàŸÖ</td>
+            <td><span class="signal-badge bull">üü¢ ÿµÿπŸàÿØŸä</span></td>
+            <td><span class="stars">‚≠ê‚≠ê‚≠ê</span></td>
+            <td class="watch-text">ÿßÿ≥ÿ™ŸÖÿ±ÿßÿ± ÿßŸÑÿ™ÿ±ÿßŸÉŸÖ ÿ™ÿ≠ÿ™ $66K</td>
+          </tr>
+          <tr class="bear">
+            <td>16</td>
+            <td><div class="factor-name">Futures &amp; Funding</div><div class="factor-ar">ÿßŸÑÿπŸÇŸàÿØ ÿßŸÑÿ¢ÿ¨ŸÑÿ©</div></td>
+            <td><span class="cat-badge">ŸÖÿ¥ÿ™ŸÇÿßÿ™</span></td>
+            <td class="status-text">ŸÖÿπÿØŸÑ ÿßŸÑÿ™ŸÖŸàŸäŸÑ ÿ≥ÿßŸÑÿ® (-0.01%) ‚Äî ÿßŸÑŸÖÿπŸÜŸàŸäÿßÿ™ Ÿáÿ®Ÿàÿ∑Ÿäÿ©</td>
+            <td><span class="signal-badge bear">üî¥ Ÿáÿ®Ÿàÿ∑Ÿä</span></td>
+            <td><span class="stars">‚≠ê‚≠ê‚≠ê</span></td>
+            <td class="watch-text">ŸÖÿπÿØŸÑ ÿ™ŸÖŸàŸäŸÑ ŸÖŸàÿ¨ÿ® = ÿπŸàÿØÿ© ÿßŸÑÿ≤ÿÆŸÖ ÿßŸÑÿµÿπŸàÿØŸä</td>
+          </tr>
+          <tr class="neut">
+            <td>17</td>
+            <td><div class="factor-name">Options Expiry</div><div class="factor-ar">ÿßŸÜÿ™Ÿáÿßÿ° ÿßŸÑÿÆŸäÿßÿ±ÿßÿ™</div></td>
+            <td><span class="cat-badge">ŸÖÿ¥ÿ™ŸÇÿßÿ™</span></td>
+            <td class="status-text">Max Pain ~$70,000 ‚Äî ÿßŸÜÿ™Ÿáÿßÿ° 25 ÿ£ÿ®ÿ±ŸäŸÑ ŸÇÿØ Ÿäÿ≥ÿ≠ÿ® ÿßŸÑÿ≥ÿπÿ± ŸÑŸÑÿ£ÿπŸÑŸâ</td>
+            <td><span class="signal-badge neut">üü° ŸÖÿ≠ÿßŸäÿØ</span></td>
+            <td><span class="stars">‚≠ê‚≠ê‚≠ê</span></td>
+            <td class="watch-text">ŸÖÿ±ÿßŸÇÿ®ÿ© ÿØŸäŸÜÿßŸÖŸäŸÉŸäÿßÿ™ 25 ÿ£ÿ®ÿ±ŸäŸÑ</td>
+          </tr>
+          <tr class="neut">
+            <td>18</td>
+            <td><div class="factor-name">Market Liquidity</div><div class="factor-ar">ÿ≥ŸäŸàŸÑÿ© ÿßŸÑÿ≥ŸàŸÇ</div></td>
+            <td><span class="cat-badge">ÿ≥ŸàŸÇ</span></td>
+            <td class="status-text">ÿ™ÿ±ÿßÿ¨ÿπÿ™ ÿßŸÑŸäŸàŸÖÿå ÿ£ŸàÿßŸÖÿ± ÿ¥ÿ±ÿßÿ° ŸÉÿ®Ÿäÿ±ÿ© ÿ™ÿ™ÿ±ÿßŸÉŸÖ $63K-$65K</td>
+            <td><span class="signal-badge neut">üü° ŸÖÿ≠ÿßŸäÿØ</span></td>
+            <td><span class="stars">‚≠ê‚≠ê</span></td>
+            <td class="watch-text">ÿßÿ≥ÿ™ÿπÿßÿØÿ© ÿßŸÑÿ≥ŸäŸàŸÑÿ© = ÿßÿ≥ÿ™ŸÇÿ±ÿßÿ± ÿßŸÑÿ£ÿ≥ÿπÿßÿ±</td>
+          </tr>
+          <tr class="bull">
+            <td>19</td>
+            <td><div class="factor-name">Fear &amp; Greed</div><div class="factor-ar">ÿßŸÑÿÆŸàŸÅ ŸàÿßŸÑÿ∑ŸÖÿπ</div></td>
+            <td><span class="cat-badge">ŸÖÿπŸÜŸàŸä</span></td>
+            <td class="status-text">29 (ÿÆŸàŸÅ) ‚Äî ÿ™ÿßÿ±ŸäÿÆŸäÿßŸã ŸÅÿ±ÿµÿ© ÿ¥ÿ±ÿßÿ° ŸÖŸÖÿ™ÿßÿ≤ÿ© ÿ™ÿ≠ÿ™ 25-30</td>
+            <td><span class="signal-badge bull">üü¢ ÿµÿπŸàÿØŸä (ÿπŸÉÿ≥Ÿä)</span></td>
+            <td><span class="stars">‚≠ê‚≠ê‚≠ê</span></td>
+            <td class="watch-text">ÿ™ÿ≠ÿ™ 15 = ŸÅÿ±ÿµÿ© ÿ¥ÿ±ÿßÿ° ÿ™ÿßÿ±ŸäÿÆŸäÿ©</td>
+          </tr>
+          <tr class="bull">
+            <td>20</td>
+            <td><div class="factor-name">Regulatory</div><div class="factor-ar">ÿßŸÑÿ™ŸÜÿ∏ŸäŸÖ</div></td>
+            <td><span class="cat-badge">ÿ™ŸÜÿ∏ŸäŸÖŸä</span></td>
+            <td class="status-text">ÿßÿ≠ÿ™Ÿäÿßÿ∑Ÿä ÿ®Ÿäÿ™ŸÉŸàŸäŸÜ ÿ™ÿ±ÿßŸÖÿ®ÿå SEC ÿ™ÿÆŸÅŸÅ ŸÇŸàÿßÿπÿØ ÿßŸÑŸÉÿ±Ÿäÿ®ÿ™Ÿàÿå MiCA ÿ£Ÿàÿ±Ÿàÿ®ÿß</td>
+            <td><span class="signal-badge bull">üü¢ ÿµÿπŸàÿØŸä</span></td>
+            <td><span class="stars">‚≠ê‚≠ê‚≠ê‚≠ê</span></td>
+            <td class="watch-text">ÿ™ÿ¥ÿ±Ÿäÿπ ÿßŸÑÿßÿ≠ÿ™Ÿäÿßÿ∑Ÿä = ŸÖÿ≠ŸÅÿ≤ ÿ∂ÿÆŸÖ</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Summary Bar -->
+    <div class="summary-bar fade-in-up">
+      <div class="summary-item">
+        <span class="summary-label bear">üî¥ 9 Bearish</span>
+        <div class="summary-bar-track">
+          <div class="summary-bar-fill bear" id="bar-bear" style="--bar-w:45%"></div>
+        </div>
+        <span class="summary-count" style="color:var(--red)">9</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label bull">üü¢ 6 Bullish</span>
+        <div class="summary-bar-track">
+          <div class="summary-bar-fill bull" id="bar-bull" style="--bar-w:30%"></div>
+        </div>
+        <span class="summary-count" style="color:var(--green)">6</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label neut">üü° 5 Neutral</span>
+        <div class="summary-bar-track">
+          <div class="summary-bar-fill neut" id="bar-neut" style="--bar-w:25%"></div>
+        </div>
+        <span class="summary-count" style="color:var(--yellow)">5</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ‚ïê‚ïê 5 TA TOOLS ‚ïê‚ïê -->
+<section id="ta">
+  <div class="container">
+    <div class="section-header fade-in-up">
+      <div class="section-tag">Technical Analysis</div>
+      <h2>5 ÿ£ÿØŸàÿßÿ™ ÿßŸÑÿ™ÿ≠ŸÑŸäŸÑ ÿßŸÑŸÅŸÜŸä</h2>
+      <p>ŸÇÿ±ÿßÿ°ÿ© ÿ¥ÿßŸÖŸÑÿ© ŸÑŸÑŸÖÿ§ÿ¥ÿ±ÿßÿ™ ÿßŸÑÿ™ŸÇŸÜŸäÿ© ÿßŸÑÿ±ÿ¶Ÿäÿ≥Ÿäÿ©</p>
+    </div>
+
+    <div class="ta-grid">
+
+      <!-- Card 1: EMA -->
+      <div class="ta-card glass fade-in-up" style="animation-delay:0.05s">
+        <div class="ta-card-title">Moving Averages</div>
+        <div class="ta-card-name">EMA ‚Äî ÿßŸÑŸÖÿ™Ÿàÿ≥ÿ∑ÿßÿ™ ÿßŸÑŸÖÿ™ÿ≠ÿ±ŸÉÿ©</div>
+        <span class="ta-badge bear">üî¥ DEATH CROSS FORMING</span>
+        <div class="ema-chart">
+          <svg class="ema-svg" viewBox="0 0 280 140" xmlns="http://www.w3.org/2000/svg">
+            <!-- EMA200 line -->
+            <line x1="10" y1="20" x2="270" y2="20" stroke="#EF4444" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.7"/>
+            <text x="12" y="16" fill="#EF4444" font-size="9" font-family="system-ui" opacity="0.9">EMA 200: $70,281</text>
+            <!-- EMA50 line -->
+            <line x1="10" y1="52" x2="270" y2="52" stroke="#F97316" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.7"/>
+            <text x="12" y="48" fill="#F97316" font-size="9" font-family="system-ui" opacity="0.9">EMA 50: $69,090</text>
+            <!-- EMA20 line -->
+            <line x1="10" y1="80" x2="270" y2="80" stroke="#EAB308" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.7"/>
+            <text x="12" y="76" fill="#EAB308" font-size="9" font-family="system-ui" opacity="0.9">EMA 20: $67,200</text>
+            <!-- Simulated price path -->
+            <polyline points="10,130 40,115 70,120 100,105 130,110 160,95 190,100 220,88 250,92 270,98"
+              fill="none" stroke="rgba(247,147,26,0.4)" stroke-width="1.5"/>
+            <!-- Price dot -->
+            <circle cx="265" cy="98" r="7" fill="#F7931A" opacity="0.9"/>
+            <circle cx="265" cy="98" r="12" fill="#F7931A" opacity="0.2"/>
+            <text x="200" y="114" fill="#F7931A" font-size="10" font-family="system-ui" font-weight="700">$66,902 ‚ñº</text>
+            <!-- Down zone shade -->
+            <rect x="10" y="52" width="258" height="48" fill="rgba(239,68,68,0.04)" rx="2"/>
+          </svg>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;justify-content:space-between;font-size:13px;">
+            <span style="color:var(--text-muted)">EMA 20</span><span style="color:var(--yellow);font-weight:600">$67,200</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;">
+            <span style="color:var(--text-muted)">EMA 50</span><span style="color:#F97316;font-weight:600">$69,090</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;">
+            <span style="color:var(--text-muted)">EMA 200</span><span style="color:var(--red);font-weight:600">$70,281</span>
+          </div>
+        </div>
+        <p class="ta-desc">ÿßŸÑÿ≥ÿπÿ± ÿ™ÿ≠ÿ™ EMA 50 ŸàEMA 200 ‚Äî ÿßÿ™ÿ¨ÿßŸá Ÿáÿ®Ÿàÿ∑Ÿä Ÿàÿßÿ∂ÿ≠ ŸÖÿπ ÿ™ÿ¥ŸÉŸëŸÑ Death Cross</p>
+      </div>
+
+      <!-- Card 2: S/R -->
+      <div class="ta-card glass fade-in-up" style="animation-delay:0.1s">
+        <div class="ta-card-title">Support &amp; Resistance</div>
+        <div class="ta-card-name">ÿßŸÑÿØÿπŸÖ ŸàÿßŸÑŸÖŸÇÿßŸàŸÖÿ©</div>
+        <span class="ta-badge neut">üü° IN NO-MAN'S LAND</span>
+        <div class="sr-levels">
+          <div class="sr-level res">
+            <span class="sr-label">üî¥ ŸÖŸÇÿßŸàŸÖÿ© 2</span>
+            <span class="sr-price red">$70,281</span>
+          </div>
+          <div class="sr-level res">
+            <span class="sr-label">üî¥ ŸÖŸÇÿßŸàŸÖÿ© 1</span>
+            <span class="sr-price red">$69,090</span>
+          </div>
+          <div class="sr-level cur">
+            <span class="sr-label">üü† ÿßŸÑÿ≥ÿπÿ± ÿßŸÑÿ≠ÿßŸÑŸä</span>
+            <span class="sr-price orange">$66,902</span>
+          </div>
+          <div class="sr-level sup">
+            <span class="sr-label">üü¢ ŸÖŸÜÿ∑ŸÇÿ© ÿØÿπŸÖ ŸÇŸàŸäÿ©</span>
+            <span class="sr-price green">$63K ‚Äì $65K</span>
+          </div>
+          <div class="sr-level sup2">
+            <span class="sr-label">‚ö†Ô∏è ÿØÿπŸÖ ÿ™ÿßŸÑŸç</span>
+            <span class="sr-price" style="color:var(--text-muted)">$58,000</span>
+          </div>
+        </div>
+        <p class="ta-desc">ÿßŸÑÿ≥ÿπÿ± ŸÅŸä ŸÖŸÜÿ∑ŸÇÿ© ŸÅÿ±ÿßÿ∫ ‚Äî ŸÅŸàŸÇ ÿØÿπŸÖ HVN ÿßŸÑŸÇŸàŸä ŸÑŸÉŸÜ ÿ™ÿ≠ÿ™ ÿ¨ŸÖŸäÿπ ŸÖŸÇÿßŸàŸÖÿßÿ™ EMA</p>
+      </div>
+
+      <!-- Card 3: RSI -->
+      <div class="ta-card glass fade-in-up" style="animation-delay:0.15s">
+        <div class="ta-card-title">Relative Strength Index</div>
+        <div class="ta-card-name">RSI ‚Äî ŸÖÿ§ÿ¥ÿ± ÿßŸÑŸÇŸàÿ© ÿßŸÑŸÜÿ≥ÿ®Ÿäÿ©</div>
+        <span class="ta-badge bull">üü¢ EXTREME OVERSOLD ‚Äî BUY ZONE</span>
+        <div class="rsi-gauge-wrap">
+          <div class="rsi-gauge">
+            <svg viewBox="0 0 200 110" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+              <defs>
+                <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%"   stop-color="#EF4444"/>
+                  <stop offset="20%"  stop-color="#F97316"/>
+                  <stop offset="50%"  stop-color="#EAB308"/>
+                  <stop offset="80%"  stop-color="#86EFAC"/>
+                  <stop offset="100%" stop-color="#22C55E"/>
+                </linearGradient>
+              </defs>
+              <!-- Track arc (180¬∞) -->
+              <path d="M 10 100 A 90 90 0 0 1 190 100" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="14" stroke-linecap="round"/>
+              <!-- Colored arc (same) -->
+              <path d="M 10 100 A 90 90 0 0 1 190 100" fill="none" stroke="url(#gaugeGrad)" stroke-width="14" stroke-linecap="round" opacity="0.6"/>
+              <!-- Oversold zone highlight -->
+              <path d="M 10 100 A 90 90 0 0 1 64 28" fill="none" stroke="#22C55E" stroke-width="16" stroke-linecap="round" opacity="0.8"/>
+              <!-- Needle: RSI 24.3 ‚Üí angle = 180 - (24.3/100)*180 = 136.26¬∞ from right => -136.26¬∞ from positive x -->
+              <!-- origin is center (100,100), needle points from center -->
+              <!-- angle for RSI=24.3: start at left (0 RSI = 180deg from +x axis), go clockwise -->
+              <!-- RSI 0 = leftmost = 180deg, RSI 100 = rightmost = 0deg -->
+              <!-- RSI 24.3 ‚Üí angle = 180 - 24.3*1.8 = 180 - 43.74 = 136.26deg from +x => coords: cos(136.26¬∞)*75, sin(136.26¬∞)*-75 + 100 -->
+              <line x1="100" y1="100" x2="45" y2="46" stroke="white" stroke-width="3" stroke-linecap="round" opacity="0.95"/>
+              <circle cx="100" cy="100" r="7" fill="white"/>
+              <!-- Labels -->
+              <text x="8"   y="115" fill="rgba(255,255,255,0.4)" font-size="9" font-family="system-ui">0</text>
+              <text x="90"  y="12"  fill="rgba(255,255,255,0.4)" font-size="9" font-family="system-ui">50</text>
+              <text x="182" y="115" fill="rgba(255,255,255,0.4)" font-size="9" font-family="system-ui">100</text>
+              <text x="28"  y="62"  fill="#22C55E" font-size="8" font-family="system-ui" font-weight="700">30</text>
+              <text x="146" y="62"  fill="#EF4444" font-size="8" font-family="system-ui" font-weight="700">70</text>
+            </svg>
+          </div>
+          <div class="rsi-number">24.3</div>
+        </div>
+        <p class="ta-desc">ŸÉŸÑ ŸÖÿ±ÿ© ŸàÿµŸÑ RSI ŸÑŸáÿ∞ÿß ÿßŸÑŸÖÿ≥ÿ™ŸàŸâ ŸÉÿßŸÜÿ™ ŸÅÿ±ÿµÿ© ÿ¥ÿ±ÿßÿ° ÿ™ÿßÿ±ŸäÿÆŸäÿ© ‚Äî ŸÖŸÜÿ∑ŸÇÿ© ÿßŸÑÿ®Ÿäÿπ ÿßŸÑŸÖŸÅÿ±ÿ∑ ÿßŸÑÿ¥ÿØŸäÿØ</p>
+      </div>
+
+      <!-- Card 4: MACD -->
+      <div class="ta-card glass fade-in-up" style="animation-delay:0.2s">
+        <div class="ta-card-title">MACD Histogram</div>
+        <div class="ta-card-name">MACD ‚Äî ÿßŸÑÿ™ŸÇÿßÿ±ÿ® ŸàÿßŸÑÿ™ÿ®ÿßÿπÿØ</div>
+        <span class="ta-badge bear">üî¥ BEARISH ‚Äî Momentum Slowing</span>
+        <div class="macd-chart" id="macd-chart">
+          <!-- bars rendered by JS -->
+        </div>
+        <div class="macd-value-big">-934</div>
+        <p class="ta-desc">ÿßŸÑÿ≤ÿÆŸÖ ÿ≥ÿßŸÑÿ® ŸÑŸÉŸÜ ÿßŸÑÿ£ÿπŸÖÿØÿ© ÿ®ÿØÿ£ÿ™ ÿ™ÿ™ŸÇŸÑÿµ ‚Äî ÿ•ÿ¥ÿßÿ±ÿ© ÿ™ÿ≠ÿ≥ŸÜ ŸÖÿ≠ÿ™ŸÖŸÑÿ© ŸÇÿ±Ÿäÿ®ÿßŸã</p>
+      </div>
+
+      <!-- Card 5: Volume Profile -->
+      <div class="ta-card glass fade-in-up" style="animation-delay:0.25s">
+        <div class="ta-card-title">Volume Profile</div>
+        <div class="ta-card-name">ŸÖŸÑŸÅ ÿßŸÑÿ≠ÿ¨ŸÖ</div>
+        <span class="ta-badge neut">üü° PRICE IN THIN AIR</span>
+        <div class="vol-profile" id="vol-profile">
+          <!-- rows rendered by JS -->
+        </div>
+        <p class="ta-desc">ÿßŸÑÿ≥ÿπÿ± ŸÅŸä ŸÖŸÜÿ∑ŸÇÿ© ÿ≠ÿ¨ŸÖ ŸÖŸÜÿÆŸÅÿ∂ ‚Äî ÿ£ÿ±ÿ∂Ÿäÿ© HVN ÿßŸÑŸÇŸàŸäÿ© ÿπŸÜÿØ $63K-$65K</p>
+      </div>
+
+    </div><!-- /ta-grid -->
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ‚ïê‚ïê SCENARIOS ‚ïê‚ïê -->
+<section id="scenarios">
+  <div class="container">
+    <div class="section-header fade-in-up">
+      <div class="section-tag">Trading Scenarios</div>
+      <h2>3 ÿ≥ŸäŸÜÿßÿ±ŸäŸàŸáÿßÿ™ ÿßŸÑÿ™ÿØÿßŸàŸÑ</h2>
+      <p>ÿßŸÑÿßÿ≠ÿ™ŸÖÿßŸÑÿßÿ™ ŸàÿßŸÑŸÖÿ≥ÿ™ŸàŸäÿßÿ™ ÿßŸÑŸÖÿ≥ÿ™ŸáÿØŸÅÿ© ŸÑŸÉŸÑ ŸÖÿ≥ÿßÿ± ŸÖÿ≠ÿ™ŸÖŸÑ</p>
+    </div>
+
+    <div class="scenarios-grid">
+
+      <!-- Bear -->
+      <div class="scenario-card glass fade-in-up" style="animation-delay:0.05s">
+        <div class="scenario-icon">üêª</div>
+        <div class="scenario-title">Scenario A ‚Äî Bear</div>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px;">ÿßÿ≥ÿ™ŸÖÿ±ÿßÿ± ÿßŸÑŸáÿ®Ÿàÿ∑</div>
+        <div class="scenario-prob bear">35%</div>
+        <div class="scenario-row">
+          <span class="scenario-row-label">ŸÜŸÇÿ∑ÿ© ÿßŸÑÿØÿÆŸàŸÑ</span>
+          <span class="scenario-row-val orange">$61,500 ‚Äì $63,000</span>
+        </div>
+        <div class="scenario-row">
+          <span class="scenario-row-label">ÿßŸÑŸáÿØŸÅ</span>
+          <span class="scenario-row-val green">$66,000</span>
+        </div>
+        <div class="scenario-row">
+          <span class="scenario-row-label">ŸàŸÇŸÅ ÿßŸÑÿÆÿ≥ÿßÿ±ÿ©</span>
+          <span class="scenario-row-val red">$58,000</span>
+        </div>
+        <div class="rr-badge">‚öñÔ∏è R/R: 1 : 1.5</div>
+        <div class="trigger-list">
+          <div class="trigger-item">üêª ŸÉÿ≥ÿ± $63,000 ÿ®ÿ≠ÿ¨ŸÖ ÿ™ÿØÿßŸàŸÑ ŸÖÿ±ÿ™ŸÅÿπ</div>
+          <div class="trigger-item">üêª DXY ŸäÿÆÿ™ÿ±ŸÇ 105</div>
+          <div class="trigger-item">üêª ÿßÿ≥ÿ™ŸÖÿ±ÿßÿ± ÿßŸÑÿ™ÿØŸÅŸÇÿßÿ™ ÿßŸÑÿÆÿßÿ±ÿ¨ÿ© ŸÖŸÜ ETFs</div>
+          <div class="trigger-item">üêª ÿ™ÿµÿπŸäÿØ ÿßŸÑÿ≠ÿ±ÿ® ÿßŸÑÿ™ÿ¨ÿßÿ±Ÿäÿ©</div>
+        </div>
+      </div>
+
+      <!-- Bounce (Featured) -->
+      <div class="scenario-card glass featured fade-in-up" style="animation-delay:0.1s">
+        <div class="scenario-icon">üéØ</div>
+        <div class="scenario-title">Scenario B ‚Äî Bounce</div>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px;margin-top:20px;">ÿßŸÑÿßÿ±ÿ™ÿØÿßÿØ ÿßŸÑŸÖÿ™ŸàŸÇÿπ</div>
+        <div class="scenario-prob bounce">45%</div>
+        <div class="scenario-row">
+          <span class="scenario-row-label">ÿßŸÑÿØÿÆŸàŸÑ (3 ÿ¥ÿ±ÿßÿ¶ÿ≠)</span>
+          <span class="scenario-row-val orange">$64,500 ‚Äì $66,500</span>
+        </div>
+        <div class="scenario-row">
+          <span class="scenario-row-label">ÿßŸÑŸáÿØŸÅ 1</span>
+          <span class="scenario-row-val green">$69,000</span>
+        </div>
+        <div class="scenario-row">
+          <span class="scenario-row-label">ÿßŸÑŸáÿØŸÅ 2</span>
+          <span class="scenario-row-val green">$72,000</span>
+        </div>
+        <div class="scenario-row">
+          <span class="scenario-row-label">ŸàŸÇŸÅ ÿßŸÑÿÆÿ≥ÿßÿ±ÿ©</span>
+          <span class="scenario-row-val red">$62,000</span>
+        </div>
+        <div class="rr-badge">‚öñÔ∏è R/R: 1 : 2.5</div>
+        <div class="trigger-list">
+          <div class="trigger-item">üéØ RSI ÿ™ÿ≠ÿ™ 25 ‚Äî oversold ÿ¥ÿØŸäÿØ</div>
+          <div class="trigger-item">üéØ ÿßÿ≥ÿ™ŸÇÿ±ÿßÿ± ÿßŸÑÿ£ÿ≥ŸáŸÖ ÿßŸÑÿ£ŸÖÿ±ŸäŸÉŸäÿ©</div>
+          <div class="trigger-item">üéØ CPI 10 ÿ£ÿ®ÿ±ŸäŸÑ ÿ™ÿ≠ÿ™ ÿßŸÑÿ™ŸàŸÇÿπÿßÿ™</div>
+          <div class="trigger-item">üéØ ÿπŸàÿØÿ© ÿ™ÿØŸÅŸÇÿßÿ™ ETF ÿßŸÑÿ•Ÿäÿ¨ÿßÿ®Ÿäÿ©</div>
+          <div class="trigger-item">üéØ ÿ™ÿ±ÿßŸÉŸÖ ÿßŸÑÿ≠Ÿäÿ™ÿßŸÜ Ÿäÿ™ÿ£ŸÉÿØ</div>
+        </div>
+      </div>
+
+      <!-- Sharp Reversal -->
+      <div class="scenario-card glass fade-in-up" style="animation-delay:0.15s">
+        <div class="scenario-icon">üöÄ</div>
+        <div class="scenario-title">Scenario C ‚Äî Reversal</div>
+        <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px;">ÿßŸÑÿßŸÜÿπŸÉÿßÿ≥ ÿßŸÑÿ≠ÿßÿØ</div>
+        <div class="scenario-prob bull">20%</div>
+        <div class="scenario-row">
+          <span class="scenario-row-label">ÿßŸÑÿØÿÆŸàŸÑ</span>
+          <span class="scenario-row-val orange">$65,000 ‚Äì $67,000</span>
+        </div>
+        <div class="scenario-row">
+          <span class="scenario-row-label">ÿßŸÑŸáÿØŸÅ 1</span>
+          <span class="scenario-row-val green">$74,000</span>
+        </div>
+        <div class="scenario-row">
+          <span class="scenario-row-label">ÿßŸÑŸáÿØŸÅ 2</span>
+          <span class="scenario-row-val green">$80,000+</span>
+        </div>
+        <div class="scenario-row">
+          <span class="scenario-row-label">ŸàŸÇŸÅ ÿßŸÑÿÆÿ≥ÿßÿ±ÿ©</span>
+          <span class="scenario-row-val red">$63,000</span>
+        </div>
+        <div class="rr-badge">‚öñÔ∏è R/R: 1 : 4+</div>
+        <div class="trigger-list">
+          <div class="trigger-item">üöÄ ÿ™ÿ±ÿßÿ¨ÿπ ÿ™ÿ±ÿßŸÖÿ® ÿπŸÜ ÿßŸÑÿ±ÿ≥ŸàŸÖ ÿßŸÑÿ¨ŸÖÿ±ŸÉŸäÿ©</div>
+          <div class="trigger-item">üöÄ ÿ•ÿ¥ÿßÿ±ÿ© ÿØŸàŸÅŸäÿ© ŸÖŸÅÿßÿ¨ÿ¶ÿ© ŸÖŸÜ ÿßŸÑŸÅŸäÿØÿ±ÿßŸÑŸä</div>
+          <div class="trigger-item">üöÄ ETF flows ÿ™ÿØŸÅŸÇ ÿ∂ÿÆŸÖ +$500M</div>
+          <div class="trigger-item">üöÄ ÿ£ÿÆÿ®ÿßÿ± ÿßÿ≠ÿ™Ÿäÿßÿ∑Ÿä ÿ®Ÿäÿ™ŸÉŸàŸäŸÜ ÿßŸÑŸàÿ∑ŸÜŸä</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ‚ïê‚ïê PERSONAL PLAN ‚ïê‚ïê -->
+<section id="plan">
+  <div class="container">
+    <div class="plan-header fade-in-up">
+      <div class="plan-avatar">S</div>
+      <div>
+        <div class="plan-title">ÿÆÿ∑ÿ© ÿ≥ÿßŸÑŸÖ ‚Äî ÿßÿ≥ÿ™ÿ±ÿßÿ™Ÿäÿ¨Ÿäÿ© 3 ÿ¥ÿ±ÿßÿ¶ÿ≠</div>
+        <div class="plan-subtitle">ÿ•ÿØÿßÿ±ÿ© ÿ±ÿ£ÿ≥ ÿßŸÑŸÖÿßŸÑ ÿßŸÑŸÖÿ´ŸÑŸâ ŸÖÿπ ÿ™Ÿàÿ≤Ÿäÿπ ÿßŸÑŸÖÿÆÿßÿ∑ÿ±</div>
+      </div>
+    </div>
+
+    <!-- Tranches -->
+    <div style="margin-bottom:12px;font-size:13px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:1.5px;">ŸÜŸÇÿßÿ∑ ÿßŸÑÿØÿÆŸàŸÑ</div>
+    <div class="tranches-grid fade-in-up">
+      <div class="tranche-card t1">
+        <div class="tranche-medal">ü•á</div>
+        <div class="tranche-label">ÿßŸÑÿ¥ÿ±Ÿäÿ≠ÿ© ÿßŸÑÿ£ŸàŸÑŸâ</div>
+        <div class="tranche-pct">30%</div>
+        <div class="tranche-range">$65,500 ‚Äì $66,000</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">ÿØÿÆŸàŸÑ ÿ£ŸàŸÑŸä ÿπŸÜÿØ ÿßŸÑŸáÿ®Ÿàÿ∑</div>
+      </div>
+      <div class="tranche-card t2">
+        <div class="tranche-medal">ü•à</div>
+        <div class="tranche-label">ÿßŸÑÿ¥ÿ±Ÿäÿ≠ÿ© ÿßŸÑÿ´ÿßŸÜŸäÿ©</div>
+        <div class="tranche-pct" style="color:var(--gold)">40%</div>
+        <div class="tranche-range">$63,500 ‚Äì $64,500</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">ÿßŸÑÿ¨ÿ≤ÿ° ÿßŸÑÿ£ŸÉÿ®ÿ± ÿπŸÜÿØ ÿßŸÑÿØÿπŸÖ</div>
+      </div>
+      <div class="tranche-card t3">
+        <div class="tranche-medal">ü•â</div>
+        <div class="tranche-label">ÿßŸÑÿ¥ÿ±Ÿäÿ≠ÿ© ÿßŸÑÿ´ÿßŸÑÿ´ÿ©</div>
+        <div class="tranche-pct" style="color:var(--text)">30%</div>
+        <div class="tranche-range">$61,000 ‚Äì $62,000</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">ÿ≠ÿßŸÑ ÿßŸÖÿ™ÿØÿßÿØ ÿßŸÑŸáÿ®Ÿàÿ∑</div>
+      </div>
+    </div>
+
+    <!-- Targets -->
+    <div style="margin-bottom:12px;font-size:13px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:1.5px;">ÿ£ŸáÿØÿßŸÅ ÿßŸÑÿ®Ÿäÿπ</div>
+    <div class="targets-grid fade-in-up">
+      <div class="target-card">
+        <div class="target-label">ÿßŸÑŸáÿØŸÅ ÿßŸÑÿ£ŸàŸÑ</div>
+        <div class="target-price">$69,000</div>
+        <div class="target-action">ÿ®Ÿäÿπ 30% ŸÖŸÜ ÿßŸÑŸÖÿ±ŸÉÿ≤</div>
+      </div>
+      <div class="target-card" style="border-color:rgba(255,215,0,0.3);background:rgba(255,215,0,0.06)">
+        <div class="target-label">ÿßŸÑŸáÿØŸÅ ÿßŸÑÿ´ÿßŸÜŸä</div>
+        <div class="target-price" style="color:var(--gold)">$72,000 ‚Äì $74,000</div>
+        <div class="target-action">ÿ®Ÿäÿπ 40% ŸÖŸÜ ÿßŸÑŸÖÿ±ŸÉÿ≤</div>
+      </div>
+      <div class="target-card" style="border-color:rgba(247,147,26,0.3);background:rgba(247,147,26,0.06)">
+        <div class="target-label">ÿßŸÑŸáÿØŸÅ ÿßŸÑÿ´ÿßŸÑÿ´</div>
+        <div class="target-price" style="color:var(--accent)">$78,000 ‚Äì $80,000+</div>
+        <div class="target-action">ÿ®Ÿäÿπ 30% ÿßŸÑÿ£ÿÆŸäÿ±</div>
+      </div>
+    </div>
+
+    <!-- Key Dates -->
+    <div style="margin-bottom:12px;font-size:13px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:1.5px;">ÿßŸÑÿ™Ÿàÿßÿ±ŸäÿÆ ÿßŸÑŸÖÿ≠Ÿàÿ±Ÿäÿ©</div>
+    <div class="dates-grid fade-in-up">
+      <div class="date-card">
+        <div class="date-icon">üìä</div>
+        <div>
+          <div class="date-day">10 ÿ£ÿ®ÿ±ŸäŸÑ 2026</div>
+          <div class="date-name">ÿ®ŸäÿßŸÜÿßÿ™ CPI ÿßŸÑÿ™ÿ∂ÿÆŸÖ</div>
+          <div class="date-desc">ÿ£ŸáŸÖ ÿ®ŸäÿßŸÜÿßÿ™ ÿßŸÇÿ™ÿµÿßÿØŸäÿ© ŸÇÿ±Ÿäÿ®ÿ©</div>
+        </div>
+      </div>
+      <div class="date-card" style="border-color:rgba(247,147,26,0.2)">
+        <div class="date-icon">‚ö°</div>
+        <div>
+          <div class="date-day" style="color:var(--gold)">25 ÿ£ÿ®ÿ±ŸäŸÑ 2026</div>
+          <div class="date-name">ÿßŸÜÿ™Ÿáÿßÿ° ÿßŸÑÿÆŸäÿßÿ±ÿßÿ™</div>
+          <div class="date-desc">Max Pain $70,000 ŸÇÿØ Ÿäÿ≥ÿ≠ÿ® ÿßŸÑÿ≥ÿπÿ±</div>
+        </div>
+      </div>
+      <div class="date-card" style="border-color:rgba(239,68,68,0.2)">
+        <div class="date-icon">üè¶</div>
+        <div>
+          <div class="date-day" style="color:var(--red)">7 ŸÖÿßŸäŸà 2026</div>
+          <div class="date-name">ÿßÿ¨ÿ™ŸÖÿßÿπ FOMC</div>
+          <div class="date-desc">ÿßŸÑÿ£ŸáŸÖ ‚Äî ÿ£Ÿä ÿ•ÿ¥ÿßÿ±ÿ© ÿÆŸÅÿ∂ = ÿßÿ±ÿ™ÿØÿßÿØ</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ‚ïê‚ïê HISTORY ‚ïê‚ïê -->
+<section id="history">
+  <div class="container">
+    <div class="section-header fade-in-up">
+      <div class="section-tag">Analysis Record</div>
+      <h2>ÿ≥ÿ¨ŸÑ ÿßŸÑÿ™ÿ≠ŸÑŸäŸÑÿßÿ™</h2>
+      <p>ÿ™ÿ™ÿ®ÿπ ÿØŸÇÿ© ÿßŸÑÿ™ÿ≠ŸÑŸäŸÑÿßÿ™ ÿßŸÑÿ≥ÿßÿ®ŸÇÿ©</p>
+    </div>
+
+    <div class="glass fade-in-up" style="overflow-x:auto;border-radius:var(--radius);">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>ÿßŸÑÿ™ÿßÿ±ŸäÿÆ</th>
+            <th>ÿ≥ÿπÿ± BTC</th>
+            <th>ÿßŸÑÿ•ÿ¥ÿßÿ±ÿ©</th>
+            <th>ÿßŸÑÿ≥ŸäŸÜÿßÿ±ŸäŸà</th>
+            <th>ÿßŸÑŸÜÿ™Ÿäÿ¨ÿ©</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>4 ÿ£ÿ®ÿ±ŸäŸÑ 2026</td>
+            <td style="font-variant-numeric:tabular-nums;color:var(--accent);font-weight:600">$66,902</td>
+            <td>RSI 24.3 ‚Äî Extreme Oversold</td>
+            <td>Scenario B ‚Äî Bounce 45%</td>
+            <td><span class="outcome-pending">‚è≥ ŸÇŸäÿØ ÿßŸÑÿßŸÜÿ™ÿ∏ÿßÿ±</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ‚ïê‚ïê FOOTER ‚ïê‚ïê -->
+<footer>
+  <div style="font-size:20px;margin-bottom:12px;">‚Çø</div>
+  <div style="font-weight:600;margin-bottom:6px;">Bitcoin Intelligence ‚Äî btc.albadi.io</div>
+  <div style="color:var(--text-muted);font-size:12px;line-height:1.8;">
+    ÿ™ÿ≠ÿØŸäÿ´: 4 ÿ£ÿ®ÿ±ŸäŸÑ 2026 ¬∑ ÿßŸÑÿ®ŸäÿßŸÜÿßÿ™ ŸÑŸÑÿ£ÿ∫ÿ±ÿßÿ∂ ÿßŸÑÿ™ÿπŸÑŸäŸÖŸäÿ© ŸÅŸÇÿ∑ ¬∑ ŸÑÿß ÿ™ŸèÿπÿØŸë ŸÜÿµŸäÿ≠ÿ© ÿßÿ≥ÿ™ÿ´ŸÖÿßÿ±Ÿäÿ©<br>
+    <span style="opacity:0.5">Price data: CoinGecko API ¬∑ Technical analysis: Manual</span>
+  </div>
+</footer>
+
+<!-- ‚ïê‚ïê JAVASCRIPT ‚ïê‚ïê -->
+<script>
+// ‚îÄ‚îÄ‚îÄ ACCURACY WIDGET ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+const ACC_KEY = 'btc_accuracy_v1';
+
+function loadAccuracy() {
+  try { return JSON.parse(localStorage.getItem(ACC_KEY)) || []; }
+  catch { return []; }
+}
+function saveAccuracy(data) {
+  localStorage.setItem(ACC_KEY, JSON.stringify(data));
+}
+
+function renderAccuracy() {
+  const data = loadAccuracy();
+  const correct = data.filter(d => d.outcome === 'correct').length;
+  const total   = data.filter(d => d.outcome !== 'pending').length;
+  document.getElementById('acc-text').textContent = `Accuracy: ${correct}/${total}`;
+  document.getElementById('acc-ratio').textContent = total > 0 ? `${Math.round(correct/total*100)}%` : '‚Äî';
+
+  const tbody = document.getElementById('accuracy-tbody');
+  if (data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:20px;">No entries yet</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(d => `
+    <tr>
+      <td>${d.date}</td>
+      <td>${d.signal}</td>
+      <td class="acc-${d.outcome}">${d.outcome === 'pending' ? '‚è≥ Pending' : d.outcome === 'correct' ? '‚úÖ Correct' : '‚ùå Wrong'}</td>
+    </tr>
+  `).join('');
+}
+
+function toggleAccuracy() {
+  const panel = document.getElementById('accuracy-panel');
+  panel.classList.toggle('open');
+  if (panel.classList.contains('open')) renderAccuracy();
+}
+
+function addAccuracyEntry() {
+  const date   = prompt('Date (e.g. Apr 4, 2026):', new Date().toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}));
+  if (!date) return;
+  const signal = prompt('Signal/Scenario:', 'Scenario B Bounce 45%');
+  if (!signal) return;
+  const outcome = prompt('Outcome (pending/correct/wrong):', 'pending');
+  if (!outcome) return;
+  const data = loadAccuracy();
+  data.unshift({ date, signal, outcome: outcome.toLowerCase() });
+  saveAccuracy(data);
+  renderAccuracy();
+}
+
+// Close panel on outside click
+document.addEventListener('click', function(e) {
+  const widget = document.getElementById('accuracy-widget');
+  if (!widget.contains(e.target)) {
+    document.getElementById('accuracy-panel').classList.remove('open');
+  }
+});
+
+renderAccuracy();
+
+// ‚îÄ‚îÄ‚îÄ LIVE PRICE ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+async function fetchPrice() {
+  try {
+    const res = await fetch(
+      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true',
+      { signal: AbortSignal.timeout(8000) }
+    );
+    if (!res.ok) throw new Error('API error');
+    const data = await res.json();
+    const price  = data.bitcoin.usd;
+    const change = data.bitcoin.usd_24h_change;
+
+    document.getElementById('btc-price').textContent =
+      '$' + price.toLocaleString('en-US', { maximumFractionDigits: 0 });
+
+    const changeEl = document.getElementById('btc-change');
+    const sign = change >= 0 ? '+' : '';
+    changeEl.textContent = `${sign}${change.toFixed(2)}%`;
+    changeEl.className = 'price-change ' + (change >= 0 ? 'up' : 'down');
+
+    document.getElementById('refresh-info').innerHTML =
+      '<span class="live-dot"></span> ÿ¢ÿÆÿ± ÿ™ÿ≠ÿØŸäÿ´: ' + new Date().toLocaleTimeString('ar-SA');
+  } catch (e) {
+    // Show fallback static price if API fails (e.g. rate limit)
+    if (document.getElementById('btc-price').textContent === '$‚Äî,‚Äî‚Äî‚Äî') {
+      document.getElementById('btc-price').textContent = '$66,902';
+      const changeEl = document.getElementById('btc-change');
+      changeEl.textContent = '-4.82%';
+      changeEl.className = 'price-change down';
+    }
+    document.getElementById('refresh-info').innerHTML =
+      '<span style="color:var(--text-muted)">‚ö†Ô∏è ÿ™ÿπÿ∞Ÿëÿ± ÿßŸÑÿßÿ™ÿµÿßŸÑ ÿ®ÿßŸÑŸÄ API</span>';
+  }
+}
+
+fetchPrice();
+setInterval(fetchPrice, 60000);
+
+// ‚îÄ‚îÄ‚îÄ MACD BARS ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+(function() {
+  const macdData = [100, 96, 92, 90, 87, 85, 84, 83, 82, 82]; // heights (% of max)
+  const chart = document.getElementById('macd-chart');
+  const maxH = 80;
+  macdData.forEach((v, i) => {
+    const bar = document.createElement('div');
+    bar.className = 'macd-bar';
+    const targetH = Math.round(v * maxH / 100);
+    bar.style.height = '0px';
+    bar.style.opacity = 0.4 + (i * 0.06);
+    chart.appendChild(bar);
+    setTimeout(() => { bar.style.transition = 'height 1s ease'; bar.style.height = targetH + 'px'; }, 300 + i * 80);
+  });
+})();
+
+// ‚îÄ‚îÄ‚îÄ VOLUME PROFILE ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+(function() {
+  const rows = [
+    { price: '$70,000+', pct: 12, type: 'lvn', label: 'LVN' },
+    { price: '$68,000-70,000', pct: 18, type: 'lvn', label: '' },
+    { price: '$66,000-68,000', pct: 22, type: 'cur', label: '‚Üê Current' },
+    { price: '$65,000-66,000', pct: 20, type: 'lvn', label: 'LVN' },
+    { price: '$63,000-65,000', pct: 85, type: 'hvn', label: 'HVN üî•' },
+    { price: '$60,000-63,000', pct: 35, type: 'lvn', label: '' },
+    { price: '$58,000-60,000', pct: 45, type: 'hvn', label: 'HVN' },
+  ];
+  const container = document.getElementById('vol-profile');
+  rows.forEach((r, i) => {
+    const row = document.createElement('div');
+    row.className = 'vol-row';
+    row.innerHTML = `
+      <div class="vol-price-label">${r.price}</div>
+      <div class="vol-bar-track">
+        <div class="vol-bar-fill ${r.type}" id="vb-${i}" style="width:0%"></div>
+      </div>
+      <div class="vol-marker" style="color:${r.type==='hvn'?'var(--green)':r.type==='cur'?'var(--accent)':'rgba(255,255,255,0.3)'};font-size:10px">${r.label}</div>
+    `;
+    container.appendChild(row);
+    setTimeout(() => {
+      document.getElementById(`vb-${i}`).style.width = r.pct + '%';
+    }, 400 + i * 100);
+  });
+})();
+
+// ‚îÄ‚îÄ‚îÄ SCROLL ANIMATIONS ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+(function() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        // Animate summary bars
+        if (entry.target.classList.contains('summary-bar')) {
+          setTimeout(() => {
+            document.getElementById('bar-bear').style.width = '45%';
+            document.getElementById('bar-bull').style.width = '30%';
+            document.getElementById('bar-neut').style.width = '25%';
+          }, 200);
+        }
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+  document.querySelectorAll('.fade-in-up').forEach(el => {
+    observer.observe(el);
+  });
+})();
+
+// ‚îÄ‚îÄ‚îÄ NUMBER COUNT-UP ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ‚îÄ
+function countUp(el, target, duration = 1500, prefix = '$', suffix = '') {
+  let start = 0;
+  const startTime = performance.now();
+  function update(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3);
+    const current = Math.round(ease * target);
+    el.textContent = prefix + current.toLocaleString() + suffix;
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+// Count-up on first render
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const priceEl = document.getElementById('btc-price');
+    if (priceEl.textContent !== '$‚Äî,‚Äî‚Äî‚Äî') return; // already updated by API
+  }, 2000);
+});
+</script>
+</body>
+</html>
