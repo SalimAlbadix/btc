@@ -89,13 +89,19 @@
   }
 
   .fade-in-up {
-    opacity: 0;
-    transform: translateY(30px);
-    transition: opacity 0.7s ease, transform 0.7s ease;
-  }
-  .fade-in-up.visible {
     opacity: 1;
     transform: translateY(0);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .fade-in-up.animate-ready {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .fade-in-up.animate-ready.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   /* ── Layout ── */
@@ -107,7 +113,7 @@
     z-index: 1;
   }
 
-  section { padding: 80px 0; }
+  section { padding: 40px 0; }
 
   /* ── Glass Card ── */
   .glass {
@@ -185,7 +191,7 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 120px 24px 80px;
+    padding: 80px 24px 40px;
     position: relative;
   }
 
@@ -302,7 +308,7 @@
   /* ── SECTION HEADER ── */
   .section-header {
     text-align: center;
-    margin-bottom: 60px;
+    margin-bottom: 32px;
   }
   .section-header h2 {
     font-size: clamp(28px, 4vw, 48px);
@@ -638,7 +644,7 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    margin-bottom: 40px;
+    margin-bottom: 24px;
   }
   .plan-avatar {
     width: 56px; height: 56px;
@@ -764,7 +770,7 @@
     .summary-bar { flex-direction: column; gap: 16px; }
     #accuracy-widget { top: 12px; left: 12px; }
     #accuracy-panel { min-width: 280px; }
-    section { padding: 60px 0; }
+    section { padding: 30px 0; }
   }
   @media (max-width: 600px) {
     h1.hero-title { letter-spacing: -1px; }
@@ -830,19 +836,27 @@
     margin-top: 20px;
   }
   .data-card {
-    padding: 18px 16px;
+    padding: 20px 16px;
     text-align: center;
     position: relative;
     overflow: hidden;
+    min-height: 130px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
   .data-card-icon { font-size: 22px; margin-bottom: 6px; }
-  .data-card-label-ar { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
-  .data-card-label-en { font-size: 10px; color: var(--text-muted); margin-bottom: 8px; }
-  .data-card-value { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; margin-bottom: 2px; }
-  .data-card-sub { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
-  .data-card.gold   .data-card-value { color: var(--gold); }
-  .data-card.green  .data-card-value { color: var(--green); }
-  .data-card.orange .data-card-value { color: var(--accent); }
+  .data-card-label-ar { font-size: 14px; font-weight: 700; color: #F5F5F7; margin-bottom: 2px; }
+  .data-card-label-en { font-size: 11px; color: #86868B; margin-bottom: 8px; }
+  .data-card-value { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; margin-bottom: 4px; color: #F5F5F7; }
+  .data-card-sub { font-size: 12px; color: #A1A1AA; line-height: 1.5; }
+  .data-card.gold   .data-card-value { color: #FFD700 !important; }
+  .data-card.gold   .data-card-label-ar { color: #FFD700; }
+  .data-card.green  .data-card-value { color: #22C55E !important; }
+  .data-card.green  .data-card-label-ar { color: #22C55E; }
+  .data-card.orange .data-card-value { color: #F7931A !important; }
+  .data-card.orange .data-card-label-ar { color: #F7931A; }
 
   @media (max-width: 600px) {
     .chart-wrap { height: 200px; }
@@ -1972,11 +1986,18 @@ renderAccuracy();
         }
       }
     });
-  }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+  }, { threshold: 0.05, rootMargin: '0px 0px 0px 0px' });
 
+  // Add animate-ready class for progressive enhancement, then observe
   document.querySelectorAll('.fade-in-up').forEach(el => {
+    el.classList.add('animate-ready');
     observer.observe(el);
   });
+
+  // Fallback: make everything visible after 2s in case observer doesn't fire
+  setTimeout(() => {
+    document.querySelectorAll('.fade-in-up').forEach(el => el.classList.add('visible'));
+  }, 2000);
 })();
 
 // ─── NUMBER COUNT-UP ───────────────────────────────────────────────
