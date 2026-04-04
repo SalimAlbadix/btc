@@ -941,6 +941,104 @@
   @media (max-width: 900px) {
     .intel-grid { grid-template-columns: 1fr; }
   }
+
+  /* ── AI SIGNAL ── */
+  .ai-signal-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 36px;
+    border-radius: 50px;
+    border: none;
+    background: linear-gradient(135deg, #F7931A, #FFD700, #F7931A);
+    background-size: 200% 200%;
+    color: #000;
+    font-size: 18px;
+    font-weight: 800;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+    box-shadow: 0 4px 24px rgba(247,147,26,0.3);
+    animation: shimmer 3s ease infinite;
+  }
+  .ai-signal-btn:hover { transform: scale(1.04); box-shadow: 0 6px 32px rgba(247,147,26,0.5); }
+  .ai-signal-btn:active { transform: scale(0.97); }
+  .ai-signal-btn.loading { opacity: 0.7; pointer-events: none; }
+
+  .ai-panel {
+    display: none;
+    width: 100%;
+    max-width: 600px;
+    margin: 16px auto 0;
+    padding: 28px 24px;
+    border-radius: 20px;
+    text-align: right;
+  }
+  .ai-panel.open { display: block; }
+  .ai-decision { font-size: 56px; font-weight: 900; text-align: center; margin-bottom: 4px; }
+  .ai-decision.buy { color: #22C55E; }
+  .ai-decision.sell { color: #EF4444; }
+  .ai-decision.wait { color: #EAB308; }
+  .ai-conf { text-align: center; font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .ai-tf { text-align: center; font-size: 13px; color: #86868B; margin-bottom: 16px; }
+  .ai-reasons { list-style: none; padding: 0; margin: 0 0 16px; }
+  .ai-reasons li { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 14px; color: #D4D4D8; line-height: 1.6; display: flex; gap: 8px; }
+  .ai-reasons li:last-child { border-bottom: none; }
+  .ai-entry { text-align: center; padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
+  .ai-entry-label { font-size: 12px; color: #86868B; margin-bottom: 4px; }
+  .ai-entry-price { font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .ai-entry-price.green { color: #22C55E; }
+  .ai-entry-price.red { color: #EF4444; }
+  .ai-entry-price.orange { color: #EAB308; }
+
+  /* ── S/R TOOLTIP ── */
+  .sr-info {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    color: #86868B;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-right: 6px;
+    position: relative;
+    vertical-align: middle;
+  }
+  .sr-info:hover .sr-tooltip { display: block; }
+  .sr-tooltip {
+    display: none;
+    position: absolute;
+    bottom: 28px;
+    right: -140px;
+    width: 320px;
+    padding: 16px;
+    border-radius: 14px;
+    background: rgba(0,0,0,0.95);
+    border: 1px solid rgba(255,255,255,0.15);
+    backdrop-filter: blur(20px);
+    font-size: 13px;
+    font-weight: 400;
+    color: #D4D4D8;
+    line-height: 1.8;
+    text-align: right;
+    z-index: 999;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+  }
+  .sr-tooltip::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    right: 150px;
+    width: 12px; height: 12px;
+    background: rgba(0,0,0,0.95);
+    border-right: 1px solid rgba(255,255,255,0.15);
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+    transform: rotate(45deg);
+  }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -1005,6 +1103,19 @@
     <span>😨 Fear &amp; Greed: <strong style="color:var(--yellow)">29</strong></span>
     <span class="sep">|</span>
     <span>⛏️ Hash Rate: <strong style="color:var(--green)">700+ EH/s</strong></span>
+  </div>
+
+  <!-- AI SIGNAL BUTTON -->
+  <button class="ai-signal-btn fade-in-up" id="ai-signal-btn" onclick="fetchAISignal()">🔮 ما أفضل قرار الآن؟</button>
+  <div class="ai-panel glass fade-in-up" id="ai-panel">
+    <div class="ai-decision" id="ai-decision">—</div>
+    <div class="ai-conf" id="ai-conf"></div>
+    <div class="ai-tf" id="ai-tf"></div>
+    <ul class="ai-reasons" id="ai-reasons"></ul>
+    <div class="ai-entry" id="ai-entry" style="display:none;">
+      <div class="ai-entry-label" id="ai-entry-label"></div>
+      <div class="ai-entry-price" id="ai-entry-price"></div>
+    </div>
   </div>
 
   <!-- CHART SECTION -->
@@ -1105,7 +1216,7 @@
       <!-- Card 2: S/R -->
       <div class="ta-card glass fade-in-up" style="animation-delay:0.1s">
         <div class="ta-card-title">Support &amp; Resistance</div>
-        <div class="ta-card-name">الدعم والمقاومة</div>
+        <div class="ta-card-name">الدعم والمقاومة <span class="sr-info">؟<div class="sr-tooltip">الدعم والمقاومة: مستوى الدعم هو السعر الذي يتوقف عنده الهبوط ويرتد السوق للأعلى — كأنه «أرضية». مستوى المقاومة هو السعر الذي يتوقف عنده الصعود ويرتد السوق للأسفل — كأنه «سقف». عندما يخترق السعر أحدهما، يتحول الدور: المقاومة تصبح دعماً والعكس صحيح.</div></span></div>
         <span class="ta-badge neut">🟡 IN NO-MAN'S LAND</span>
         <div class="sr-levels">
           <div class="sr-level res">
@@ -1821,6 +1932,151 @@
 
 <!-- ══ JAVASCRIPT ══ -->
 <script>
+// ─── AI SIGNAL ────────────────────────────────────────────────────
+async function fetchAISignal() {
+  const btn = document.getElementById('ai-signal-btn');
+  const panel = document.getElementById('ai-panel');
+  btn.classList.add('loading');
+  btn.textContent = '🔮 جارٍ التحليل...';
+
+  try {
+    // Fetch all data in parallel
+    const [klinesRes, tickerRes, fngRes] = await Promise.all([
+      fetch('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=4h&limit=20').then(r => r.json()),
+      fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT').then(r => r.json()),
+      fetch('https://api.alternative.me/fng/?limit=1').then(r => r.json()).catch(() => null)
+    ]);
+
+    // Current price
+    const price = parseFloat(tickerRes.lastPrice);
+    const change24h = parseFloat(tickerRes.priceChangePercent);
+
+    // Calculate RSI(14) from closes
+    const closes = klinesRes.map(k => parseFloat(k[4]));
+    let gains = 0, losses = 0;
+    for (let i = closes.length - 14; i < closes.length; i++) {
+      const diff = closes[i] - closes[i - 1];
+      if (diff > 0) gains += diff; else losses -= diff;
+    }
+    const avgGain = gains / 14;
+    const avgLoss = losses / 14 || 0.001;
+    const rs = avgGain / avgLoss;
+    const rsi = 100 - (100 / (1 + rs));
+
+    // Calculate EMA20
+    const ema20Period = 20;
+    const mult = 2 / (ema20Period + 1);
+    let ema = closes[0];
+    for (let i = 1; i < closes.length; i++) {
+      ema = (closes[i] - ema) * mult + ema;
+    }
+
+    // Fear & Greed
+    const fng = fngRes && fngRes.data ? parseInt(fngRes.data[0].value) : 50;
+
+    // Decision logic
+    let decision, confidence, reasons = [], entryLabel, entryPrice, entryClass;
+
+    if (rsi < 35 && price > ema) {
+      decision = 'شراء قوي';
+      confidence = Math.min(92, 70 + Math.round((35 - rsi) * 1.5));
+      entryLabel = 'سعر الدخول المقترح';
+      entryPrice = '$' + Math.round(price * 0.995).toLocaleString();
+      entryClass = 'green';
+      reasons = [
+        '📊 RSI عند ' + rsi.toFixed(1) + ' — منطقة بيع مفرط شديد',
+        '📈 السعر أعلى من EMA20 ($' + Math.round(ema).toLocaleString() + ') — الاتجاه صاعد',
+        fng < 35 ? '😨 مؤشر الخوف والطمع عند ' + fng + ' — خوف = فرصة تاريخية' : '📉 المؤشرات تدعم الارتداد',
+        '💰 فرصة دخول بنسبة مخاطرة منخفضة'
+      ];
+    } else if (rsi < 45 && change24h > -3) {
+      decision = 'شراء';
+      confidence = Math.min(82, 55 + Math.round((45 - rsi) * 0.8));
+      entryLabel = 'سعر الدخول المقترح';
+      entryPrice = '$' + Math.round(price * 0.998).toLocaleString();
+      entryClass = 'green';
+      reasons = [
+        '📊 RSI عند ' + rsi.toFixed(1) + ' — أقل من المعدل',
+        change24h >= 0 ? '🟢 تغير 24 ساعة: +' + change24h.toFixed(2) + '% — زخم إيجابي' : '🟡 تغير 24 ساعة: ' + change24h.toFixed(2) + '% — هبوط محدود',
+        '💹 EMA20: $' + Math.round(ema).toLocaleString() + (price > ema ? ' — السعر فوقه ✓' : ' — قريب منه'),
+        fng < 40 ? '😨 خوف في السوق = فرصة محتملة' : '📊 المعنويات معتدلة'
+      ];
+    } else if (rsi > 70 && price < ema) {
+      decision = 'بيع قوي';
+      confidence = Math.min(90, 65 + Math.round((rsi - 70) * 1.5));
+      entryLabel = 'سعر الخروج المقترح';
+      entryPrice = '$' + Math.round(price * 1.005).toLocaleString();
+      entryClass = 'red';
+      reasons = [
+        '📊 RSI عند ' + rsi.toFixed(1) + ' — منطقة شراء مفرط',
+        '📉 السعر تحت EMA20 ($' + Math.round(ema).toLocaleString() + ') — ضعف',
+        '🔴 احتمال تصحيح وشيك',
+        '⚠️ يُنصح بجني الأرباح أو تقليل المركز'
+      ];
+    } else if (rsi > 60 && change24h > 5) {
+      decision = 'بيع';
+      confidence = Math.min(78, 50 + Math.round(change24h * 3));
+      entryLabel = 'سعر الخروج المقترح';
+      entryPrice = '$' + Math.round(price * 1.003).toLocaleString();
+      entryClass = 'red';
+      reasons = [
+        '📊 RSI عند ' + rsi.toFixed(1) + ' — مرتفع',
+        '🚀 ارتفاع +' + change24h.toFixed(2) + '% في 24 ساعة — مبالغ فيه',
+        '⚠️ احتمال جني أرباح قريب',
+        '📉 ننصح بتأمين جزء من الأرباح'
+      ];
+    } else {
+      decision = 'انتظار';
+      confidence = Math.min(70, 40 + Math.round(Math.abs(50 - rsi) * 0.5));
+      entryLabel = '';
+      entryPrice = '';
+      entryClass = 'orange';
+      reasons = [
+        '📊 RSI عند ' + rsi.toFixed(1) + ' — في المنطقة المحايدة',
+        '📈 EMA20: $' + Math.round(ema).toLocaleString() + (price > ema ? ' — السعر فوقه' : ' — السعر تحته'),
+        '🔄 تغير 24 ساعة: ' + (change24h >= 0 ? '+' : '') + change24h.toFixed(2) + '%',
+        '⏳ لا توجد إشارة واضحة — انتظر كسر مستوى رئيسي'
+      ];
+    }
+
+    // Render
+    const decEl = document.getElementById('ai-decision');
+    decEl.textContent = decision;
+    decEl.className = 'ai-decision ' + (decision.includes('شراء') ? 'buy' : decision.includes('بيع') ? 'sell' : 'wait');
+
+    document.getElementById('ai-conf').textContent = confidence + '% ثقة';
+    document.getElementById('ai-tf').textContent = 'خلال الـ 12 ساعة القادمة — بناءً على بيانات حية';
+
+    const reasonsEl = document.getElementById('ai-reasons');
+    reasonsEl.innerHTML = reasons.map(r => '<li>' + r + '</li>').join('');
+
+    const entryEl = document.getElementById('ai-entry');
+    if (entryLabel) {
+      entryEl.style.display = 'block';
+      document.getElementById('ai-entry-label').textContent = entryLabel;
+      const epEl = document.getElementById('ai-entry-price');
+      epEl.textContent = entryPrice;
+      epEl.className = 'ai-entry-price ' + entryClass;
+    } else {
+      entryEl.style.display = 'none';
+    }
+
+    panel.classList.add('open');
+  } catch (e) {
+    // Fallback
+    document.getElementById('ai-decision').textContent = 'انتظار';
+    document.getElementById('ai-decision').className = 'ai-decision wait';
+    document.getElementById('ai-conf').textContent = '— تعذّر جلب البيانات';
+    document.getElementById('ai-tf').textContent = 'حاول مرة أخرى';
+    document.getElementById('ai-reasons').innerHTML = '<li>⚠️ تعذّر الاتصال بالخادم</li>';
+    document.getElementById('ai-entry').style.display = 'none';
+    panel.classList.add('open');
+  }
+
+  btn.classList.remove('loading');
+  btn.textContent = '🔮 ما أفضل قرار الآن؟';
+}
+
 // ─── TRADING CHART ────────────────────────────────────────────────
 (function() {
   let btcChart = null;
