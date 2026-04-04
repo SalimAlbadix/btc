@@ -256,7 +256,10 @@
     color: var(--text);
     letter-spacing: -2px;
     font-variant-numeric: tabular-nums;
+    transition: color 0.3s ease;
   }
+  .price-value.flash-up   { color: var(--green); }
+  .price-value.flash-down { color: var(--red); }
   .price-change {
     font-size: 18px;
     font-weight: 600;
@@ -830,7 +833,7 @@
     <div class="price-value count-up" id="btc-price">$—,———</div>
     <div class="price-change" id="btc-change">—%</div>
     <div class="price-refresh" id="refresh-info">
-      <span class="live-dot"></span> يتجدد كل 60 ثانية
+      <span class="live-dot"></span> جارٍ الاتصال...
     </div>
   </div>
 
@@ -1541,43 +1544,79 @@ document.addEventListener('click', function(e) {
 
 renderAccuracy();
 
-// ─── LIVE PRICE ────────────────────────────────────────────────────
-async function fetchPrice() {
-  try {
-    const res = await fetch(
-      'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true',
-      { signal: AbortSignal.timeout(8000) }
-    );
-    if (!res.ok) throw new Error('API error');
-    const data = await res.json();
-    const price  = data.bitcoin.usd;
-    const change = data.bitcoin.usd_24h_change;
+// ─── LIVE PRICE — BINANCE WEBSOCKET ───────────────────────────────
+(function() {
+  let lastPrice = 0;
+  let openPrice = 0;
+  let flashTimeout = null;
+  const priceEl = document.getElementById('btc-price');
+  const changeEl = document.getElementById('btc-change');
+  const refreshEl = document.getElementById('refresh-info');
 
-    document.getElementById('btc-price').textContent =
-      '$' + price.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  function updatePrice(price) {
+    const formatted = '$' + price.toLocaleString('en-US', { maximumFractionDigits: 0 });
 
-    const changeEl = document.getElementById('btc-change');
-    const sign = change >= 0 ? '+' : '';
-    changeEl.textContent = `${sign}${change.toFixed(2)}%`;
-    changeEl.className = 'price-change ' + (change >= 0 ? 'up' : 'down');
-
-    document.getElementById('refresh-info').innerHTML =
-      '<span class="live-dot"></span> آخر تحديث: ' + new Date().toLocaleTimeString('ar-SA');
-  } catch (e) {
-    // Show fallback static price if API fails (e.g. rate limit)
-    if (document.getElementById('btc-price').textContent === '$—,———') {
-      document.getElementById('btc-price').textContent = '$66,902';
-      const changeEl = document.getElementById('btc-change');
-      changeEl.textContent = '-4.82%';
-      changeEl.className = 'price-change down';
+    // Flash green/red on change
+    if (lastPrice > 0 && price !== lastPrice) {
+      const direction = price > lastPrice ? 'flash-up' : 'flash-down';
+      priceEl.classList.remove('flash-up', 'flash-down');
+      void priceEl.offsetWidth; // force reflow
+      priceEl.classList.add(direction);
+      clearTimeout(flashTimeout);
+      flashTimeout = setTimeout(() => priceEl.classList.remove('flash-up', 'flash-down'), 600);
     }
-    document.getElementById('refresh-info').innerHTML =
-      '<span style="color:var(--text-muted)">⚠️ تعذّر الاتصال بالـ API</span>';
-  }
-}
 
-fetchPrice();
-setInterval(fetchPrice, 60000);
+    priceEl.textContent = formatted;
+    lastPrice = price;
+
+    // 24h change from open price
+    if (openPrice > 0) {
+      const pctChange = ((price - openPrice) / openPrice) * 100;
+      const sign = pctChange >= 0 ? '+' : '';
+      changeEl.textContent = `${sign}${pctChange.toFixed(2)}%`;
+      changeEl.className = 'price-change ' + (pctChange >= 0 ? 'up' : 'down');
+    }
+  }
+
+  function connectWebSocket() {
+    refreshEl.innerHTML = '<span class="live-dot"></span> جارٍ الاتصال...';
+
+    const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@trade');
+
+    ws.onopen = function() {
+      refreshEl.innerHTML = '<span class="live-dot"></span> مباشر — Binance WebSocket';
+    };
+
+    ws.onmessage = function(event) {
+      const data = JSON.parse(event.data);
+      const price = parseFloat(data.p);
+      updatePrice(price);
+    };
+
+    ws.onerror = function() {
+      refreshEl.innerHTML = '<span style="color:var(--yellow)">⚠️ خطأ — إعادة الاتصال...</span>';
+    };
+
+    ws.onclose = function() {
+      refreshEl.innerHTML = '<span style="color:var(--text-muted)">🔄 إعادة الاتصال...</span>';
+      setTimeout(connectWebSocket, 3000);
+    };
+  }
+
+  // Get 24h open price from CoinGecko (one-time) for % change calculation
+  fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true')
+    .then(r => r.json())
+    .then(data => {
+      const currentPrice = data.bitcoin.usd;
+      const change24h = data.bitcoin.usd_24h_change;
+      // Calculate what the price was 24h ago
+      openPrice = currentPrice / (1 + change24h / 100);
+    })
+    .catch(() => { openPrice = 0; });
+
+  // Start WebSocket
+  connectWebSocket();
+})();
 
 // ─── MACD BARS ─────────────────────────────────────────────────────
 (function() {
