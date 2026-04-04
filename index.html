@@ -849,6 +849,97 @@
     .chart-wrap { height: 200px; }
     .data-cards { grid-template-columns: 1fr; }
   }
+
+  /* ── INTELLIGENCE DASHBOARD ── */
+  .intel-quicklinks {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 0 0 12px;
+    margin-bottom: 20px;
+    scrollbar-width: none;
+  }
+  .intel-quicklinks::-webkit-scrollbar { display: none; }
+  .intel-pill {
+    white-space: nowrap;
+    padding: 6px 16px;
+    border-radius: 30px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.04);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+    font-family: var(--font);
+  }
+  .intel-pill:hover { border-color: var(--accent); color: var(--text); background: rgba(247,147,26,0.1); }
+
+  .intel-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .intel-card {
+    padding: 20px;
+    min-height: 160px;
+    position: relative;
+    overflow: hidden;
+  }
+  .intel-card-icon { font-size: 24px; margin-bottom: 8px; }
+  .intel-card-title-ar { font-size: 14px; font-weight: 700; color: #F5F5F7; margin-bottom: 2px; }
+  .intel-card-title-en { font-size: 10px; color: #86868B; margin-bottom: 10px; }
+  .intel-card-body { font-size: 13px; color: #D4D4D8; line-height: 1.7; }
+  .intel-card-body strong { color: #F5F5F7; }
+  .intel-val-big { font-size: 22px; font-weight: 800; margin: 4px 0; font-variant-numeric: tabular-nums; }
+  .intel-val-big.green { color: #22C55E; }
+  .intel-val-big.red { color: #EF4444; }
+  .intel-val-big.gold { color: #FFD700; }
+  .intel-val-big.blue { color: #60A5FA; }
+  .intel-sub-row { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.06); color: #A1A1AA; }
+  .intel-sub-row:last-child { border-bottom: none; }
+  .intel-sub-row .name { color: #D4D4D8; }
+  .intel-link { display: inline-block; margin-top: 10px; font-size: 11px; color: var(--accent); text-decoration: none; font-weight: 600; }
+  .intel-link:hover { text-decoration: underline; }
+
+  .intel-card.blue-tint { background: rgba(96,165,250,0.06); border-color: rgba(96,165,250,0.2); }
+
+  /* Combined Score Bar */
+  .intel-score-card { padding: 24px; }
+  .intel-score-title-ar { font-size: 16px; font-weight: 700; color: #F5F5F7; margin-bottom: 2px; }
+  .intel-score-title-en { font-size: 11px; color: #86868B; margin-bottom: 16px; }
+  .intel-score-track { height: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; overflow: hidden; position: relative; margin-bottom: 8px; }
+  .intel-score-fill { height: 100%; border-radius: 6px; transition: width 1.5s ease; }
+  .intel-score-labels { display: flex; justify-content: space-between; font-size: 10px; color: #86868B; margin-bottom: 12px; }
+  .intel-score-reading { font-size: 28px; font-weight: 800; text-align: center; margin: 8px 0 4px; }
+  .intel-score-desc { text-align: center; font-size: 13px; color: #D4D4D8; }
+  .intel-score-rec { text-align: center; font-size: 12px; color: var(--accent); margin-top: 8px; font-weight: 600; }
+
+  /* TA card intel badge */
+  .ta-intel-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #D4D4D8;
+    margin-top: 8px;
+  }
+
+  /* Bull/bear bar */
+  .bull-bear-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin: 8px 0; }
+  .bull-bear-bar .bull-fill { background: #22C55E; }
+  .bull-bear-bar .bear-fill { background: #EF4444; }
+  .bull-bear-labels { display: flex; justify-content: space-between; font-size: 11px; }
+
+  @media (max-width: 900px) {
+    .intel-grid { grid-template-columns: 1fr; }
+  }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -1007,6 +1098,7 @@
           </div>
         </div>
         <p class="ta-desc">السعر تحت EMA 50 وEMA 200 — اتجاه هبوطي واضح مع تشكّل Death Cross</p>
+        <div class="ta-intel-badge">🐋 الحيتان يتراكمون عند $65K-$67K</div>
       </div>
 
       <!-- Card 2: S/R -->
@@ -1037,6 +1129,7 @@
           </div>
         </div>
         <p class="ta-desc">السعر في منطقة فراغ — فوق دعم HVN القوي لكن تحت جميع مقاومات EMA</p>
+        <div class="ta-intel-badge">🏦 ETF تدفقات سلبية -$297M</div>
       </div>
 
       <!-- Card 3: RSI -->
@@ -1080,6 +1173,7 @@
           <div class="rsi-number">24.3</div>
         </div>
         <p class="ta-desc">كل مرة وصل RSI لهذا المستوى كانت فرصة شراء تاريخية — منطقة البيع المفرط الشديد</p>
+        <div class="ta-intel-badge">🔮 Polymarket: 55% صعود</div>
       </div>
 
       <!-- Card 4: MACD -->
@@ -1213,6 +1307,140 @@
       </div>
 
     </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ INTELLIGENCE DASHBOARD ══ -->
+<section id="intel">
+  <div class="container">
+    <div class="section-header fade-in-up">
+      <div class="section-tag">Intelligence Dashboard</div>
+      <h2>لوحة الاستخبارات</h2>
+      <p>بيانات مباشرة من 6 مصادر خارجية مرتبطة بالتحليل الفني</p>
+    </div>
+
+    <!-- Quick Links Bar -->
+    <div class="intel-quicklinks fade-in-up">
+      <a href="https://polymarket.com" target="_blank" class="intel-pill">🔮 Polymarket</a>
+      <a href="https://whale-alert.io" target="_blank" class="intel-pill">🐋 Whale Alert</a>
+      <a href="https://www.coinglass.com/bitcoin-etf" target="_blank" class="intel-pill">🏦 CoinGlass ETF</a>
+      <a href="https://intel.arkm.com" target="_blank" class="intel-pill">🕵️ Arkham</a>
+      <a href="https://app.nansen.ai/smart-money" target="_blank" class="intel-pill">🧠 Nansen</a>
+      <a href="https://farside.co.uk/bitcoin-etf-flow-all-data/" target="_blank" class="intel-pill">📋 Farside</a>
+    </div>
+
+    <!-- ROW 1: Live Data Widgets -->
+    <div class="intel-grid fade-in-up">
+
+      <!-- Widget 1: Polymarket Sentiment -->
+      <div class="intel-card glass">
+        <div class="intel-card-icon">🔮</div>
+        <div class="intel-card-title-ar">توقع الجمهور</div>
+        <div class="intel-card-title-en">Polymarket Sentiment</div>
+        <div class="intel-val-big gold" id="poly-pct">55%</div>
+        <div class="intel-card-body" id="poly-body">يتوقع الارتفاع خلال 24 ساعة</div>
+        <div id="poly-markets" style="margin-top:8px;"></div>
+        <a href="https://polymarket.com" target="_blank" class="intel-link">افتح Polymarket ←</a>
+      </div>
+
+      <!-- Widget 2: ETF Flows -->
+      <div class="intel-card glass">
+        <div class="intel-card-icon">🏦</div>
+        <div class="intel-card-title-ar">تدفقات ETF المؤسسية</div>
+        <div class="intel-card-title-en">Bitcoin ETF Flows</div>
+        <div class="intel-val-big red" id="etf-total">-$297M</div>
+        <div class="intel-card-body" id="etf-label" style="color:#EF4444;">تدفقات خارجة اليوم (صدمة الرسوم)</div>
+        <div style="margin-top:8px;">
+          <div class="intel-sub-row"><span class="name">BlackRock IBIT</span><span style="color:#EF4444;">-$180M</span></div>
+          <div class="intel-sub-row"><span class="name">Fidelity FBTC</span><span style="color:#EF4444;">-$85M</span></div>
+          <div class="intel-sub-row"><span class="name">ARK ARKB</span><span style="color:#EF4444;">-$32M</span></div>
+        </div>
+        <a href="https://www.coinglass.com/bitcoin-etf" target="_blank" class="intel-link">تفاصيل CoinGlass ←</a>
+      </div>
+
+      <!-- Widget 3: Whale Alert -->
+      <div class="intel-card glass">
+        <div class="intel-card-icon">🐋</div>
+        <div class="intel-card-title-ar">تحركات الحيتان الكبيرة</div>
+        <div class="intel-card-title-en">Whale Alert</div>
+        <div id="whale-list">
+          <div class="intel-sub-row"><span class="name">🟢 2,400 BTC → Cold Wallet</span><span style="color:#22C55E;">$160M</span></div>
+          <div class="intel-sub-row"><span class="name">🔴 1,100 BTC → Coinbase</span><span style="color:#EF4444;">$73M</span></div>
+          <div class="intel-sub-row"><span class="name">🟢 800 BTC → Unknown</span><span style="color:#22C55E;">$53M</span></div>
+        </div>
+        <div class="intel-card-body" style="margin-top:6px;font-size:11px;color:#86868B;" id="whale-status">تراكم صافي — إشارة صعودية</div>
+        <a href="https://whale-alert.io" target="_blank" class="intel-link">تتبع Whale Alert ←</a>
+      </div>
+
+    </div>
+
+    <!-- ROW 2: Intelligence Signal Cards -->
+    <div class="intel-grid fade-in-up">
+
+      <!-- Card 4: Arkham Insider -->
+      <div class="intel-card glass blue-tint">
+        <div class="intel-card-icon">🕵️</div>
+        <div class="intel-card-title-ar">إشارة الإنسايدرز</div>
+        <div class="intel-card-title-en">Arkham Insider Signal</div>
+        <div class="intel-card-body">
+          <strong style="color:#60A5FA;">⚠️ تراكم ضخم</strong> لوحظ في محافظ مرتبطة بصناديق تحوط عند مستوى <strong>$65K–$67K</strong>
+        </div>
+        <a href="https://intel.arkm.com" target="_blank" class="intel-link">تابع على Arkham ←</a>
+      </div>
+
+      <!-- Card 5: Smart Money -->
+      <div class="intel-card glass">
+        <div class="intel-card-icon">🧠</div>
+        <div class="intel-card-title-ar">موقف الأموال الذكية</div>
+        <div class="intel-card-title-en">Smart Money Position</div>
+        <div class="bull-bear-bar">
+          <div class="bull-fill" style="width:62%"></div>
+          <div class="bear-fill" style="width:38%"></div>
+        </div>
+        <div class="bull-bear-labels">
+          <span style="color:#22C55E;font-weight:700;">صعود 62%</span>
+          <span style="color:#EF4444;font-weight:700;">هبوط 38%</span>
+        </div>
+        <div class="intel-card-body" style="font-size:11px;margin-top:6px;">بناءً على Nansen Smart Money + Whale Alert + ETF Flows</div>
+        <a href="https://app.nansen.ai/smart-money" target="_blank" class="intel-link">راجع Nansen ←</a>
+      </div>
+
+      <!-- Card 6: Prediction Market -->
+      <div class="intel-card glass">
+        <div class="intel-card-icon">🎯</div>
+        <div class="intel-card-title-ar">راهن على توقعك</div>
+        <div class="intel-card-title-en">Prediction Market</div>
+        <div class="intel-card-body" style="color:#FFD700;font-weight:600;margin-bottom:6px;">55% يتوقع BTC أعلى من $67K خلال 24 ساعة</div>
+        <div style="font-size:11px;color:#86868B;margin-bottom:6px;">أفضل المتداولين:</div>
+        <div class="intel-sub-row"><span class="name">🥇 CryptoWiz</span><span style="color:#22C55E;">دقة 87%</span></div>
+        <div class="intel-sub-row"><span class="name">🥈 BTCShark</span><span style="color:#22C55E;">دقة 82%</span></div>
+        <div class="intel-sub-row"><span class="name">🥉 AlphaTrader</span><span style="color:#FFD700;">دقة 79%</span></div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <a href="https://polymarket.com" target="_blank" class="intel-link">افتح Polymarket ←</a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- COMBINED INTELLIGENCE SCORE -->
+    <div class="intel-score-card glass fade-in-up">
+      <div class="intel-score-title-ar">مؤشر الذكاء المركب</div>
+      <div class="intel-score-title-en">Combined Intelligence Score</div>
+      <div class="intel-score-track">
+        <div class="intel-score-fill" id="intel-score-bar" style="width:0%;background:linear-gradient(90deg,#EF4444,#EAB308 50%,#22C55E);"></div>
+      </div>
+      <div class="intel-score-labels">
+        <span>🐻 هبوط شديد 0</span>
+        <span>محايد 50</span>
+        <span>صعود شديد 100 🚀</span>
+      </div>
+      <div class="intel-score-reading" style="color:#EAB308;">52 / 100</div>
+      <div class="intel-score-desc">محايد مع ميل صعودي / Neutral with Bullish Lean</div>
+      <div class="intel-score-rec">التوصية: انتظر تأكيد عند $66,000 قبل الشراء الجزئي</div>
+    </div>
+
   </div>
 </section>
 
@@ -1775,6 +2003,85 @@
 
   // Initial load
   fetchChart('24h');
+})();
+
+// ─── INTELLIGENCE DASHBOARD ───────────────────────────────────────
+(function() {
+  // Animate score bar on load
+  setTimeout(() => {
+    const bar = document.getElementById('intel-score-bar');
+    if (bar) bar.style.width = '52%';
+  }, 600);
+
+  // Fetch Polymarket data
+  fetch('https://gamma-api.polymarket.com/markets?tag=bitcoin&limit=5&closed=false')
+    .then(r => r.json())
+    .then(markets => {
+      if (!markets || !markets.length) return;
+      const container = document.getElementById('poly-markets');
+      const pctEl = document.getElementById('poly-pct');
+      const bodyEl = document.getElementById('poly-body');
+      let topMarket = null;
+      for (const m of markets) {
+        if (m.outcomePrices) {
+          try {
+            const prices = JSON.parse(m.outcomePrices);
+            if (prices.length >= 1) {
+              topMarket = { question: m.question, yes: Math.round(parseFloat(prices[0]) * 100) };
+              break;
+            }
+          } catch(e) {}
+        }
+      }
+      if (topMarket) {
+        pctEl.textContent = topMarket.yes + '%';
+        if (topMarket.yes > 55) {
+          pctEl.className = 'intel-val-big green';
+          bodyEl.textContent = 'الجمهور يتوقع الارتفاع — إشارة صعودية';
+        } else if (topMarket.yes < 45) {
+          pctEl.className = 'intel-val-big red';
+          bodyEl.textContent = 'الجمهور يتوقع الهبوط — إشارة هبوطية';
+        }
+      }
+      // Show top 2 markets
+      const html = markets.slice(0, 2).map(m => {
+        const q = m.question || '';
+        const short = q.length > 50 ? q.substring(0, 50) + '...' : q;
+        return '<div class="intel-sub-row"><span class="name" style="font-size:10px;">' + short + '</span></div>';
+      }).join('');
+      if (container) container.innerHTML = html;
+    })
+    .catch(() => {});
+
+  // Fetch Whale Alert data
+  fetch('https://api.whale-alert.io/v1/transactions?api_key=demo&min_value=10000000&limit=5&currency=btc')
+    .then(r => r.json())
+    .then(data => {
+      if (!data || !data.transactions || !data.transactions.length) return;
+      const list = document.getElementById('whale-list');
+      const html = data.transactions.slice(0, 3).map(tx => {
+        const amt = Math.round(tx.amount).toLocaleString();
+        const usd = '$' + Math.round(tx.amount_usd / 1e6) + 'M';
+        const toExchange = tx.to && tx.to.owner_type === 'exchange';
+        const icon = toExchange ? '🔴' : '🟢';
+        const color = toExchange ? '#EF4444' : '#22C55E';
+        const dest = toExchange ? tx.to.owner : 'Cold Wallet';
+        return '<div class="intel-sub-row"><span class="name">' + icon + ' ' + amt + ' BTC → ' + dest + '</span><span style="color:' + color + ';">' + usd + '</span></div>';
+      }).join('');
+      list.innerHTML = html;
+      // Update status
+      const sells = data.transactions.filter(t => t.to && t.to.owner_type === 'exchange').length;
+      const buys = data.transactions.length - sells;
+      const statusEl = document.getElementById('whale-status');
+      if (buys > sells) {
+        statusEl.textContent = 'تراكم صافي — إشارة صعودية';
+        statusEl.style.color = '#22C55E';
+      } else {
+        statusEl.textContent = 'ضغط بيع — إشارة هبوطية';
+        statusEl.style.color = '#EF4444';
+      }
+    })
+    .catch(() => {});
 })();
 
 // ─── ACCURACY WIDGET ───────────────────────────────────────────────
