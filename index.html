@@ -89,9 +89,7 @@
   }
 
   .fade-in-up {
-    opacity: 1;
-    transform: translateY(0);
-    transition: opacity 0.6s ease, transform 0.6s ease;
+    animation: fadeInUp 0.6s ease both;
   }
 
   /* ── Layout ── */
@@ -103,7 +101,7 @@
     z-index: 1;
   }
 
-  section { padding: 40px 0; }
+  section { padding: 30px 0; }
 
   /* ── Glass Card ── */
   .glass {
@@ -181,7 +179,7 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 80px 24px 40px;
+    padding: 60px 24px 30px;
     position: relative;
   }
 
@@ -933,24 +931,24 @@
     <div class="data-cards">
       <div class="data-card glass gold">
         <div class="data-card-icon">🎯</div>
-        <div class="data-card-label-ar">السعر المتوقع</div>
-        <div class="data-card-label-en">Expected Price</div>
-        <div class="data-card-value" id="dc-expected">$68,500</div>
-        <div class="data-card-sub" id="dc-expected-sub">+2.4% — ارتداد RSI متوقع</div>
+        <div class="data-card-label-ar" style="color:#FFD700;">السعر المتوقع</div>
+        <div class="data-card-label-en" style="color:#A1A1AA;">Expected Price</div>
+        <div class="data-card-value" id="dc-expected" style="color:#FFD700;font-size:22px;">$68,500</div>
+        <div class="data-card-sub" id="dc-expected-sub" style="color:#D4D4D8;">+2.4% خلال 24 ساعة</div>
       </div>
       <div class="data-card glass green">
         <div class="data-card-icon">📈</div>
-        <div class="data-card-label-ar">نقطة الشراء</div>
-        <div class="data-card-label-en">Buy Entry</div>
-        <div class="data-card-value" id="dc-buy">$65,500 – $66,200</div>
-        <div class="data-card-sub" id="dc-buy-sub">RSI 24 = منطقة شراء حالية</div>
+        <div class="data-card-label-ar" style="color:#22C55E;">نقطة الشراء</div>
+        <div class="data-card-label-en" style="color:#A1A1AA;">Buy Entry</div>
+        <div class="data-card-value" id="dc-buy" style="color:#22C55E;font-size:22px;">$65,500 – $66,200</div>
+        <div class="data-card-sub" id="dc-buy-sub" style="color:#D4D4D8;">RSI 24 — منطقة بيع مفرط</div>
       </div>
       <div class="data-card glass orange">
         <div class="data-card-icon">💰</div>
-        <div class="data-card-label-ar">نقطة البيع</div>
-        <div class="data-card-label-en">Sell Target</div>
-        <div class="data-card-value" id="dc-sell">$68,500 – $69,200</div>
-        <div class="data-card-sub" id="dc-sell-sub">مقاومة EMA50</div>
+        <div class="data-card-label-ar" style="color:#F7931A;">نقطة البيع</div>
+        <div class="data-card-label-en" style="color:#A1A1AA;">Sell Target</div>
+        <div class="data-card-value" id="dc-sell" style="color:#EF4444;font-size:22px;">$68,500 – $69,200</div>
+        <div class="data-card-sub" id="dc-sell-sub" style="color:#D4D4D8;">منطقة مقاومة EMA50</div>
       </div>
     </div>
   </div>
@@ -1605,14 +1603,14 @@
   };
   const cardData = {
     '24h': {
-      expected: '$68,500', expectedSub: '+2.4% — ارتداد RSI متوقع',
-      buy: '$65,500 – $66,200', buySub: 'RSI 24 = منطقة شراء حالية',
-      sell: '$68,500 – $69,200', sellSub: 'مقاومة EMA50'
+      expected: '$68,500', expectedSub: '+2.4% خلال 24 ساعة',
+      buy: '$65,500 – $66,200', buySub: 'RSI 24 — منطقة بيع مفرط',
+      sell: '$68,500 – $69,200', sellSub: 'منطقة مقاومة EMA50'
     },
     'week': {
       expected: '$71,200', expectedSub: '+6.4% — اختبار EMA50',
       buy: '$63,500 – $65,000', buySub: 'منطقة دعم HVN',
-      sell: '$70,500 – $72,000', sellSub: 'منطقة EMA200'
+      sell: '$70,500 – $72,000', sellSub: 'منطقة مقاومة EMA200'
     },
     'month': {
       expected: '$76,500', expectedSub: '+14.3% — دورة الهالفينج',
@@ -1960,28 +1958,15 @@ renderAccuracy();
   });
 })();
 
-// ─── SCROLL ANIMATIONS ─────────────────────────────────────────────
-(function() {
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-        // Animate summary bars
-        if (entry.target.classList.contains('summary-bar')) {
-          setTimeout(() => {
-            document.getElementById('bar-bear').style.width = '45%';
-            document.getElementById('bar-bull').style.width = '30%';
-            document.getElementById('bar-neut').style.width = '25%';
-          }, 200);
-        }
-      }
-    });
-  }, { threshold: 0.05, rootMargin: '0px 0px 0px 0px' });
-
-  document.querySelectorAll('.fade-in-up').forEach(el => {
-    observer.observe(el);
-  });
-})();
+// ─── SUMMARY BARS ANIMATION ───────────────────────────────────────
+setTimeout(() => {
+  const bb = document.getElementById('bar-bear');
+  const bl = document.getElementById('bar-bull');
+  const bn = document.getElementById('bar-neut');
+  if (bb) bb.style.width = '45%';
+  if (bl) bl.style.width = '30%';
+  if (bn) bn.style.width = '25%';
+}, 800);
 
 // ─── NUMBER COUNT-UP ───────────────────────────────────────────────
 function countUp(el, target, duration = 1500, prefix = '$', suffix = '') {
