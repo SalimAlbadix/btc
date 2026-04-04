@@ -91,17 +91,7 @@
   .fade-in-up {
     opacity: 1;
     transform: translateY(0);
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .fade-in-up.animate-ready {
-      opacity: 0;
-      transform: translateY(24px);
-      transition: opacity 0.6s ease, transform 0.6s ease;
-    }
-    .fade-in-up.animate-ready.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    transition: opacity 0.6s ease, transform 0.6s ease;
   }
 
   /* ── Layout ── */
@@ -1988,16 +1978,9 @@ renderAccuracy();
     });
   }, { threshold: 0.05, rootMargin: '0px 0px 0px 0px' });
 
-  // Add animate-ready class for progressive enhancement, then observe
   document.querySelectorAll('.fade-in-up').forEach(el => {
-    el.classList.add('animate-ready');
     observer.observe(el);
   });
-
-  // Fallback: make everything visible after 2s in case observer doesn't fire
-  setTimeout(() => {
-    document.querySelectorAll('.fade-in-up').forEach(el => el.classList.add('visible'));
-  }, 2000);
 })();
 
 // ─── NUMBER COUNT-UP ───────────────────────────────────────────────
