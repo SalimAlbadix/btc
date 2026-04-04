@@ -1157,6 +1157,140 @@
 
 </section>
 
+<div class="divider"></div>
+
+<!-- ══ INTELLIGENCE DASHBOARD ══ -->
+<section id="intel">
+  <div class="container">
+    <div class="section-header fade-in-up">
+      <div class="section-tag">Intelligence Dashboard</div>
+      <h2>لوحة الاستخبارات</h2>
+      <p>بيانات مباشرة من 6 مصادر خارجية مرتبطة بالتحليل الفني</p>
+    </div>
+
+    <!-- Quick Links Bar -->
+    <div class="intel-quicklinks fade-in-up">
+      <a href="https://polymarket.com" target="_blank" class="intel-pill">🔮 Polymarket</a>
+      <a href="https://whale-alert.io" target="_blank" class="intel-pill">🐋 Whale Alert</a>
+      <a href="https://www.coinglass.com/bitcoin-etf" target="_blank" class="intel-pill">🏦 CoinGlass ETF</a>
+      <a href="https://intel.arkm.com" target="_blank" class="intel-pill">🕵️ Arkham</a>
+      <a href="https://app.nansen.ai/smart-money" target="_blank" class="intel-pill">🧠 Nansen</a>
+      <a href="https://farside.co.uk/bitcoin-etf-flow-all-data/" target="_blank" class="intel-pill">📋 Farside</a>
+    </div>
+
+    <!-- ROW 1: Live Data Widgets -->
+    <div class="intel-grid fade-in-up">
+
+      <!-- Widget 1: Polymarket Sentiment -->
+      <div class="intel-card glass">
+        <div class="intel-card-icon">🔮</div>
+        <div class="intel-card-title-ar">توقع الجمهور</div>
+        <div class="intel-card-title-en">Polymarket Sentiment</div>
+        <div class="intel-val-big gold" id="poly-pct">55%</div>
+        <div class="intel-card-body" id="poly-body">يتوقع الارتفاع خلال 24 ساعة</div>
+        <div id="poly-markets" style="margin-top:8px;"></div>
+        <a href="https://polymarket.com" target="_blank" class="intel-link">افتح Polymarket ←</a>
+      </div>
+
+      <!-- Widget 2: ETF Flows -->
+      <div class="intel-card glass">
+        <div class="intel-card-icon">🏦</div>
+        <div class="intel-card-title-ar">تدفقات ETF المؤسسية</div>
+        <div class="intel-card-title-en">Bitcoin ETF Flows</div>
+        <div class="intel-val-big red" id="etf-total">-$297M</div>
+        <div class="intel-card-body" id="etf-label" style="color:#EF4444;">تدفقات خارجة اليوم (صدمة الرسوم)</div>
+        <div style="margin-top:8px;">
+          <div class="intel-sub-row"><span class="name">BlackRock IBIT</span><span style="color:#EF4444;">-$180M</span></div>
+          <div class="intel-sub-row"><span class="name">Fidelity FBTC</span><span style="color:#EF4444;">-$85M</span></div>
+          <div class="intel-sub-row"><span class="name">ARK ARKB</span><span style="color:#EF4444;">-$32M</span></div>
+        </div>
+        <a href="https://www.coinglass.com/bitcoin-etf" target="_blank" class="intel-link">تفاصيل CoinGlass ←</a>
+      </div>
+
+      <!-- Widget 3: Whale Alert -->
+      <div class="intel-card glass">
+        <div class="intel-card-icon">🐋</div>
+        <div class="intel-card-title-ar">تحركات الحيتان الكبيرة</div>
+        <div class="intel-card-title-en">Whale Alert</div>
+        <div id="whale-list">
+          <div class="intel-sub-row"><span class="name">🟢 2,400 BTC → Cold Wallet</span><span style="color:#22C55E;">$160M</span></div>
+          <div class="intel-sub-row"><span class="name">🔴 1,100 BTC → Coinbase</span><span style="color:#EF4444;">$73M</span></div>
+          <div class="intel-sub-row"><span class="name">🟢 800 BTC → Unknown</span><span style="color:#22C55E;">$53M</span></div>
+        </div>
+        <div class="intel-card-body" style="margin-top:6px;font-size:11px;color:#86868B;" id="whale-status">تراكم صافي — إشارة صعودية</div>
+        <a href="https://whale-alert.io" target="_blank" class="intel-link">تتبع Whale Alert ←</a>
+      </div>
+
+    </div>
+
+    <!-- ROW 2: Intelligence Signal Cards -->
+    <div class="intel-grid fade-in-up">
+
+      <!-- Card 4: Arkham Insider -->
+      <div class="intel-card glass blue-tint">
+        <div class="intel-card-icon">🕵️</div>
+        <div class="intel-card-title-ar">إشارة الإنسايدرز</div>
+        <div class="intel-card-title-en">Arkham Insider Signal</div>
+        <div class="intel-card-body">
+          <strong style="color:#60A5FA;">⚠️ تراكم ضخم</strong> لوحظ في محافظ مرتبطة بصناديق تحوط عند مستوى <strong>$65K–$67K</strong>
+        </div>
+        <a href="https://intel.arkm.com" target="_blank" class="intel-link">تابع على Arkham ←</a>
+      </div>
+
+      <!-- Card 5: Smart Money -->
+      <div class="intel-card glass">
+        <div class="intel-card-icon">🧠</div>
+        <div class="intel-card-title-ar">موقف الأموال الذكية</div>
+        <div class="intel-card-title-en">Smart Money Position</div>
+        <div class="bull-bear-bar">
+          <div class="bull-fill" style="width:62%"></div>
+          <div class="bear-fill" style="width:38%"></div>
+        </div>
+        <div class="bull-bear-labels">
+          <span style="color:#22C55E;font-weight:700;">صعود 62%</span>
+          <span style="color:#EF4444;font-weight:700;">هبوط 38%</span>
+        </div>
+        <div class="intel-card-body" style="font-size:11px;margin-top:6px;">بناءً على Nansen Smart Money + Whale Alert + ETF Flows</div>
+        <a href="https://app.nansen.ai/smart-money" target="_blank" class="intel-link">راجع Nansen ←</a>
+      </div>
+
+      <!-- Card 6: Prediction Market -->
+      <div class="intel-card glass">
+        <div class="intel-card-icon">🎯</div>
+        <div class="intel-card-title-ar">راهن على توقعك</div>
+        <div class="intel-card-title-en">Prediction Market</div>
+        <div class="intel-card-body" style="color:#FFD700;font-weight:600;margin-bottom:6px;">55% يتوقع BTC أعلى من $67K خلال 24 ساعة</div>
+        <div style="font-size:11px;color:#86868B;margin-bottom:6px;">أفضل المتداولين:</div>
+        <div class="intel-sub-row"><span class="name">🥇 CryptoWiz</span><span style="color:#22C55E;">دقة 87%</span></div>
+        <div class="intel-sub-row"><span class="name">🥈 BTCShark</span><span style="color:#22C55E;">دقة 82%</span></div>
+        <div class="intel-sub-row"><span class="name">🥉 AlphaTrader</span><span style="color:#FFD700;">دقة 79%</span></div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <a href="https://polymarket.com" target="_blank" class="intel-link">افتح Polymarket ←</a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- COMBINED INTELLIGENCE SCORE -->
+    <div class="intel-score-card glass fade-in-up">
+      <div class="intel-score-title-ar">مؤشر الذكاء المركب</div>
+      <div class="intel-score-title-en">Combined Intelligence Score</div>
+      <div class="intel-score-track">
+        <div class="intel-score-fill" id="intel-score-bar" style="width:0%;background:linear-gradient(90deg,#EF4444,#EAB308 50%,#22C55E);"></div>
+      </div>
+      <div class="intel-score-labels">
+        <span>🐻 هبوط شديد 0</span>
+        <span>محايد 50</span>
+        <span>صعود شديد 100 🚀</span>
+      </div>
+      <div class="intel-score-reading" style="color:#EAB308;">52 / 100</div>
+      <div class="intel-score-desc">محايد مع ميل صعودي / Neutral with Bullish Lean</div>
+      <div class="intel-score-rec">التوصية: انتظر تأكيد عند $66,000 قبل الشراء الجزئي</div>
+    </div>
+
+  </div>
+</section>
+
 
 <div class="divider"></div>
 
@@ -1419,140 +1553,6 @@
       </div>
 
     </div>
-  </div>
-</section>
-
-<div class="divider"></div>
-
-<!-- ══ INTELLIGENCE DASHBOARD ══ -->
-<section id="intel">
-  <div class="container">
-    <div class="section-header fade-in-up">
-      <div class="section-tag">Intelligence Dashboard</div>
-      <h2>لوحة الاستخبارات</h2>
-      <p>بيانات مباشرة من 6 مصادر خارجية مرتبطة بالتحليل الفني</p>
-    </div>
-
-    <!-- Quick Links Bar -->
-    <div class="intel-quicklinks fade-in-up">
-      <a href="https://polymarket.com" target="_blank" class="intel-pill">🔮 Polymarket</a>
-      <a href="https://whale-alert.io" target="_blank" class="intel-pill">🐋 Whale Alert</a>
-      <a href="https://www.coinglass.com/bitcoin-etf" target="_blank" class="intel-pill">🏦 CoinGlass ETF</a>
-      <a href="https://intel.arkm.com" target="_blank" class="intel-pill">🕵️ Arkham</a>
-      <a href="https://app.nansen.ai/smart-money" target="_blank" class="intel-pill">🧠 Nansen</a>
-      <a href="https://farside.co.uk/bitcoin-etf-flow-all-data/" target="_blank" class="intel-pill">📋 Farside</a>
-    </div>
-
-    <!-- ROW 1: Live Data Widgets -->
-    <div class="intel-grid fade-in-up">
-
-      <!-- Widget 1: Polymarket Sentiment -->
-      <div class="intel-card glass">
-        <div class="intel-card-icon">🔮</div>
-        <div class="intel-card-title-ar">توقع الجمهور</div>
-        <div class="intel-card-title-en">Polymarket Sentiment</div>
-        <div class="intel-val-big gold" id="poly-pct">55%</div>
-        <div class="intel-card-body" id="poly-body">يتوقع الارتفاع خلال 24 ساعة</div>
-        <div id="poly-markets" style="margin-top:8px;"></div>
-        <a href="https://polymarket.com" target="_blank" class="intel-link">افتح Polymarket ←</a>
-      </div>
-
-      <!-- Widget 2: ETF Flows -->
-      <div class="intel-card glass">
-        <div class="intel-card-icon">🏦</div>
-        <div class="intel-card-title-ar">تدفقات ETF المؤسسية</div>
-        <div class="intel-card-title-en">Bitcoin ETF Flows</div>
-        <div class="intel-val-big red" id="etf-total">-$297M</div>
-        <div class="intel-card-body" id="etf-label" style="color:#EF4444;">تدفقات خارجة اليوم (صدمة الرسوم)</div>
-        <div style="margin-top:8px;">
-          <div class="intel-sub-row"><span class="name">BlackRock IBIT</span><span style="color:#EF4444;">-$180M</span></div>
-          <div class="intel-sub-row"><span class="name">Fidelity FBTC</span><span style="color:#EF4444;">-$85M</span></div>
-          <div class="intel-sub-row"><span class="name">ARK ARKB</span><span style="color:#EF4444;">-$32M</span></div>
-        </div>
-        <a href="https://www.coinglass.com/bitcoin-etf" target="_blank" class="intel-link">تفاصيل CoinGlass ←</a>
-      </div>
-
-      <!-- Widget 3: Whale Alert -->
-      <div class="intel-card glass">
-        <div class="intel-card-icon">🐋</div>
-        <div class="intel-card-title-ar">تحركات الحيتان الكبيرة</div>
-        <div class="intel-card-title-en">Whale Alert</div>
-        <div id="whale-list">
-          <div class="intel-sub-row"><span class="name">🟢 2,400 BTC → Cold Wallet</span><span style="color:#22C55E;">$160M</span></div>
-          <div class="intel-sub-row"><span class="name">🔴 1,100 BTC → Coinbase</span><span style="color:#EF4444;">$73M</span></div>
-          <div class="intel-sub-row"><span class="name">🟢 800 BTC → Unknown</span><span style="color:#22C55E;">$53M</span></div>
-        </div>
-        <div class="intel-card-body" style="margin-top:6px;font-size:11px;color:#86868B;" id="whale-status">تراكم صافي — إشارة صعودية</div>
-        <a href="https://whale-alert.io" target="_blank" class="intel-link">تتبع Whale Alert ←</a>
-      </div>
-
-    </div>
-
-    <!-- ROW 2: Intelligence Signal Cards -->
-    <div class="intel-grid fade-in-up">
-
-      <!-- Card 4: Arkham Insider -->
-      <div class="intel-card glass blue-tint">
-        <div class="intel-card-icon">🕵️</div>
-        <div class="intel-card-title-ar">إشارة الإنسايدرز</div>
-        <div class="intel-card-title-en">Arkham Insider Signal</div>
-        <div class="intel-card-body">
-          <strong style="color:#60A5FA;">⚠️ تراكم ضخم</strong> لوحظ في محافظ مرتبطة بصناديق تحوط عند مستوى <strong>$65K–$67K</strong>
-        </div>
-        <a href="https://intel.arkm.com" target="_blank" class="intel-link">تابع على Arkham ←</a>
-      </div>
-
-      <!-- Card 5: Smart Money -->
-      <div class="intel-card glass">
-        <div class="intel-card-icon">🧠</div>
-        <div class="intel-card-title-ar">موقف الأموال الذكية</div>
-        <div class="intel-card-title-en">Smart Money Position</div>
-        <div class="bull-bear-bar">
-          <div class="bull-fill" style="width:62%"></div>
-          <div class="bear-fill" style="width:38%"></div>
-        </div>
-        <div class="bull-bear-labels">
-          <span style="color:#22C55E;font-weight:700;">صعود 62%</span>
-          <span style="color:#EF4444;font-weight:700;">هبوط 38%</span>
-        </div>
-        <div class="intel-card-body" style="font-size:11px;margin-top:6px;">بناءً على Nansen Smart Money + Whale Alert + ETF Flows</div>
-        <a href="https://app.nansen.ai/smart-money" target="_blank" class="intel-link">راجع Nansen ←</a>
-      </div>
-
-      <!-- Card 6: Prediction Market -->
-      <div class="intel-card glass">
-        <div class="intel-card-icon">🎯</div>
-        <div class="intel-card-title-ar">راهن على توقعك</div>
-        <div class="intel-card-title-en">Prediction Market</div>
-        <div class="intel-card-body" style="color:#FFD700;font-weight:600;margin-bottom:6px;">55% يتوقع BTC أعلى من $67K خلال 24 ساعة</div>
-        <div style="font-size:11px;color:#86868B;margin-bottom:6px;">أفضل المتداولين:</div>
-        <div class="intel-sub-row"><span class="name">🥇 CryptoWiz</span><span style="color:#22C55E;">دقة 87%</span></div>
-        <div class="intel-sub-row"><span class="name">🥈 BTCShark</span><span style="color:#22C55E;">دقة 82%</span></div>
-        <div class="intel-sub-row"><span class="name">🥉 AlphaTrader</span><span style="color:#FFD700;">دقة 79%</span></div>
-        <div style="display:flex;gap:8px;margin-top:10px;">
-          <a href="https://polymarket.com" target="_blank" class="intel-link">افتح Polymarket ←</a>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- COMBINED INTELLIGENCE SCORE -->
-    <div class="intel-score-card glass fade-in-up">
-      <div class="intel-score-title-ar">مؤشر الذكاء المركب</div>
-      <div class="intel-score-title-en">Combined Intelligence Score</div>
-      <div class="intel-score-track">
-        <div class="intel-score-fill" id="intel-score-bar" style="width:0%;background:linear-gradient(90deg,#EF4444,#EAB308 50%,#22C55E);"></div>
-      </div>
-      <div class="intel-score-labels">
-        <span>🐻 هبوط شديد 0</span>
-        <span>محايد 50</span>
-        <span>صعود شديد 100 🚀</span>
-      </div>
-      <div class="intel-score-reading" style="color:#EAB308;">52 / 100</div>
-      <div class="intel-score-desc">محايد مع ميل صعودي / Neutral with Bullish Lean</div>
-      <div class="intel-score-rec">التوصية: انتظر تأكيد عند $66,000 قبل الشراء الجزئي</div>
-    </div>
-
   </div>
 </section>
 
