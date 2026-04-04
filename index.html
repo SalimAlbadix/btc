@@ -782,7 +782,74 @@
 
   /* Number count-up */
   .count-up { font-variant-numeric: tabular-nums; }
+
+  /* ── CHART SECTION ── */
+  .chart-section {
+    width: 100%;
+    max-width: 900px;
+    margin: 48px auto 0;
+    padding: 0 24px;
+  }
+  .chart-wrap {
+    position: relative;
+    padding: 20px;
+    border-radius: var(--radius);
+    height: 280px;
+  }
+  .chart-wrap canvas { width: 100% !important; height: 100% !important; }
+
+  .chart-toggles {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .chart-toggle {
+    padding: 7px 22px;
+    border-radius: 30px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .chart-toggle:hover { border-color: rgba(247,147,26,0.4); color: var(--text); }
+  .chart-toggle.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #000;
+  }
+
+  .data-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-top: 20px;
+  }
+  .data-card {
+    padding: 18px 16px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .data-card-icon { font-size: 22px; margin-bottom: 6px; }
+  .data-card-label-ar { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+  .data-card-label-en { font-size: 10px; color: var(--text-muted); margin-bottom: 8px; }
+  .data-card-value { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; margin-bottom: 2px; }
+  .data-card-sub { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+  .data-card.gold   .data-card-value { color: var(--gold); }
+  .data-card.green  .data-card-value { color: var(--green); }
+  .data-card.orange .data-card-value { color: var(--accent); }
+
+  @media (max-width: 600px) {
+    .chart-wrap { height: 200px; }
+    .data-cards { grid-template-columns: 1fr; }
+  }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -846,6 +913,44 @@
     <span class="sep">|</span>
     <span>⛏️ Hash Rate: <strong style="color:var(--green)">700+ EH/s</strong></span>
   </div>
+
+  <!-- CHART SECTION -->
+  <div class="chart-section fade-in-up">
+    <div class="chart-wrap glass">
+      <canvas id="btc-chart"></canvas>
+    </div>
+
+    <div class="chart-toggles">
+      <button class="chart-toggle active" data-tf="24h" onclick="switchTimeframe('24h')">٢٤ ساعة</button>
+      <button class="chart-toggle" data-tf="week" onclick="switchTimeframe('week')">أسبوع</button>
+      <button class="chart-toggle" data-tf="month" onclick="switchTimeframe('month')">شهر</button>
+    </div>
+
+    <div class="data-cards">
+      <div class="data-card glass gold">
+        <div class="data-card-icon">🎯</div>
+        <div class="data-card-label-ar">السعر المتوقع</div>
+        <div class="data-card-label-en">Expected Price</div>
+        <div class="data-card-value" id="dc-expected">$68,500</div>
+        <div class="data-card-sub" id="dc-expected-sub">+2.4% — ارتداد RSI متوقع</div>
+      </div>
+      <div class="data-card glass green">
+        <div class="data-card-icon">📈</div>
+        <div class="data-card-label-ar">نقطة الشراء</div>
+        <div class="data-card-label-en">Buy Entry</div>
+        <div class="data-card-value" id="dc-buy">$65,500 – $66,200</div>
+        <div class="data-card-sub" id="dc-buy-sub">RSI 24 = منطقة شراء حالية</div>
+      </div>
+      <div class="data-card glass orange">
+        <div class="data-card-icon">💰</div>
+        <div class="data-card-label-ar">نقطة البيع</div>
+        <div class="data-card-label-en">Sell Target</div>
+        <div class="data-card-value" id="dc-sell">$68,500 – $69,200</div>
+        <div class="data-card-sub" id="dc-sell-sub">مقاومة EMA50</div>
+      </div>
+    </div>
+  </div>
+
 </section>
 
 
@@ -1486,6 +1591,191 @@
 
 <!-- ══ JAVASCRIPT ══ -->
 <script>
+// ─── TRADING CHART ────────────────────────────────────────────────
+(function() {
+  let btcChart = null;
+  const timeframeConfig = {
+    '24h':  { interval: '1h',  limit: 24, labelFmt: 'HH:mm' },
+    'week': { interval: '4h',  limit: 42, labelFmt: 'ddd HH:mm' },
+    'month':{ interval: '1d',  limit: 30, labelFmt: 'MMM dd' }
+  };
+  const cardData = {
+    '24h': {
+      expected: '$68,500', expectedSub: '+2.4% — ارتداد RSI متوقع',
+      buy: '$65,500 – $66,200', buySub: 'RSI 24 = منطقة شراء حالية',
+      sell: '$68,500 – $69,200', sellSub: 'مقاومة EMA50'
+    },
+    'week': {
+      expected: '$71,200', expectedSub: '+6.4% — اختبار EMA50',
+      buy: '$63,500 – $65,000', buySub: 'منطقة دعم HVN',
+      sell: '$70,500 – $72,000', sellSub: 'منطقة EMA200'
+    },
+    'month': {
+      expected: '$76,500', expectedSub: '+14.3% — دورة الهالفينج',
+      buy: '$61,000 – $64,000', buySub: 'منطقة التراكم',
+      sell: '$78,000 – $82,000', sellSub: 'هدف دورة الهالفينج'
+    }
+  };
+
+  function formatLabel(ts, tf) {
+    const d = new Date(ts);
+    if (tf === '24h') return d.toLocaleTimeString('ar-SA', {hour:'2-digit', minute:'2-digit', hour12:false});
+    if (tf === 'week') return d.toLocaleDateString('ar-SA', {weekday:'short', hour:'2-digit', minute:'2-digit', hour12:false});
+    return d.toLocaleDateString('ar-SA', {month:'short', day:'numeric'});
+  }
+
+  function fetchChart(tf) {
+    const cfg = timeframeConfig[tf];
+    fetch(`https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=${cfg.interval}&limit=${cfg.limit}`)
+      .then(r => r.json())
+      .then(data => {
+        const labels = data.map(k => formatLabel(k[0], tf));
+        const closes = data.map(k => parseFloat(k[4]));
+        const lastPrice = closes[closes.length - 1];
+
+        // Projected prices (5 future points, slight upward curve)
+        const projLabels = [];
+        const projPrices = [];
+        for (let i = 1; i <= 5; i++) {
+          projLabels.push('');
+          projPrices.push(null);
+        }
+        const projData = closes.slice();
+        for (let i = 1; i <= 5; i++) {
+          projData.push(lastPrice * (1 + 0.004 * i + 0.001 * i * i));
+        }
+
+        // Buy/Sell reference lines
+        const buyLine = tf === '24h' ? 65850 : tf === 'week' ? 64250 : 62500;
+        const sellLine = tf === '24h' ? 68850 : tf === 'week' ? 71250 : 80000;
+
+        const allLabels = labels.concat(projLabels);
+        const realData = closes.concat(Array(5).fill(null));
+        const totalLen = allLabels.length;
+
+        const ctx = document.getElementById('btc-chart').getContext('2d');
+
+        if (btcChart) btcChart.destroy();
+
+        const gradient = ctx.createLinearGradient(0, 0, 0, 280);
+        gradient.addColorStop(0, 'rgba(247,147,26,0.35)');
+        gradient.addColorStop(1, 'rgba(247,147,26,0)');
+
+        btcChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: allLabels,
+            datasets: [
+              {
+                label: 'BTC',
+                data: realData,
+                borderColor: '#F7931A',
+                borderWidth: 2.5,
+                backgroundColor: gradient,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0,
+                pointHitRadius: 12,
+                spanGaps: false
+              },
+              {
+                label: 'السعر المتوقع',
+                data: projData.map((v, i) => i < closes.length - 1 ? null : v),
+                borderColor: 'rgba(255,255,255,0.5)',
+                borderWidth: 1.5,
+                borderDash: [4, 4],
+                pointRadius: 0,
+                fill: false,
+                tension: 0.4,
+                spanGaps: true
+              },
+              {
+                label: 'نقطة الشراء',
+                data: Array(totalLen).fill(buyLine),
+                borderColor: 'rgba(34,197,94,0.5)',
+                borderWidth: 1,
+                borderDash: [6, 4],
+                pointRadius: 0,
+                fill: false
+              },
+              {
+                label: 'هدف البيع',
+                data: Array(totalLen).fill(sellLine),
+                borderColor: 'rgba(239,68,68,0.5)',
+                borderWidth: 1,
+                borderDash: [6, 4],
+                pointRadius: 0,
+                fill: false
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 800, easing: 'easeOutQuart' },
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: 'rgba(0,0,0,0.85)',
+                borderColor: 'rgba(247,147,26,0.3)',
+                borderWidth: 1,
+                titleFont: { size: 12 },
+                bodyFont: { size: 13 },
+                padding: 10,
+                displayColors: false,
+                callbacks: {
+                  title: function(items) { return items[0].label; },
+                  label: function(item) {
+                    if (item.datasetIndex > 1) return null;
+                    return '$' + item.parsed.y.toLocaleString('en-US', {maximumFractionDigits: 0});
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                display: true,
+                grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false },
+                ticks: { color: 'rgba(255,255,255,0.3)', font: { size: 10 }, maxRotation: 0, maxTicksLimit: 8 }
+              },
+              y: {
+                display: true,
+                position: 'left',
+                grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false },
+                ticks: {
+                  color: 'rgba(255,255,255,0.3)',
+                  font: { size: 10 },
+                  callback: function(v) { return '$' + (v/1000).toFixed(0) + 'K'; }
+                }
+              }
+            }
+          }
+        });
+
+        // Update data cards
+        const cd = cardData[tf];
+        document.getElementById('dc-expected').textContent = cd.expected;
+        document.getElementById('dc-expected-sub').textContent = cd.expectedSub;
+        document.getElementById('dc-buy').textContent = cd.buy;
+        document.getElementById('dc-buy-sub').textContent = cd.buySub;
+        document.getElementById('dc-sell').textContent = cd.sell;
+        document.getElementById('dc-sell-sub').textContent = cd.sellSub;
+      })
+      .catch(() => {});
+  }
+
+  window.switchTimeframe = function(tf) {
+    document.querySelectorAll('.chart-toggle').forEach(b => {
+      b.classList.toggle('active', b.dataset.tf === tf);
+    });
+    fetchChart(tf);
+  };
+
+  // Initial load
+  fetchChart('24h');
+})();
+
 // ─── ACCURACY WIDGET ───────────────────────────────────────────────
 const ACC_KEY = 'btc_accuracy_v1';
 
