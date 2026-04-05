@@ -1294,6 +1294,31 @@
 
     </div>
 
+    <!-- ON-CHAIN + DERIVATIVES ROW -->
+    <div class="intel-grid fade-in-up" style="margin-bottom:14px;">
+      <div class="intel-card glass">
+        <div class="intel-card-icon">📊</div>
+        <div class="intel-card-title-ar" style="color:#60A5FA;">MVRV Z-Score</div>
+        <div class="intel-card-title-en">On-Chain Valuation</div>
+        <div class="intel-val-big" id="mvrv-value" style="color:#86868B;">—</div>
+        <div class="intel-card-body" id="mvrv-zone" style="font-size:12px;">جارٍ التحميل...</div>
+      </div>
+      <div class="intel-card glass">
+        <div class="intel-card-icon">💹</div>
+        <div class="intel-card-title-ar" style="color:#A78BFA;">Funding Rate</div>
+        <div class="intel-card-title-en">Perpetual Futures</div>
+        <div class="intel-val-big" id="funding-value" style="color:#86868B;">—</div>
+        <div class="intel-card-body" id="funding-label" style="font-size:12px;">جارٍ التحميل...</div>
+      </div>
+      <div class="intel-card glass">
+        <div class="intel-card-icon">⚖️</div>
+        <div class="intel-card-title-ar" style="color:#F472B6;">Long/Short Ratio</div>
+        <div class="intel-card-title-en">Trader Positioning</div>
+        <div class="intel-val-big" id="ls-value" style="color:#86868B;">—</div>
+        <div class="intel-card-body" id="ls-label" style="font-size:12px;">جارٍ التحميل...</div>
+      </div>
+    </div>
+
     <!-- COMBINED INTELLIGENCE SCORE -->
     <div class="intel-score-card glass fade-in-up">
       <div class="intel-score-title-ar">مؤشر الذكاء المركب</div>
@@ -2022,10 +2047,15 @@ const fmt = v => '$' + Math.round(v).toLocaleString();
 
 async function refreshAllData() {
   try {
-    const [klines4h, ticker, fngRes] = await Promise.all([
+    const [klines4h, ticker, fngRes, mempoolFees, bcStats, fundingData, lsRatioData, mvrvData] = await Promise.all([
       fetch('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=4h&limit=200').then(r=>r.json()),
       fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT').then(r=>r.json()),
-      fetch('https://api.alternative.me/fng/?limit=1').then(r=>r.json()).catch(()=>({data:[{value:'50',value_classification:'Neutral'}]}))
+      fetch('https://api.alternative.me/fng/?limit=1').then(r=>r.json()).catch(()=>({data:[{value:'50',value_classification:'Neutral'}]})),
+      fetch('https://mempool.space/api/v1/fees/recommended').then(r=>r.json()).catch(()=>null),
+      fetch('https://api.blockchain.info/stats').then(r=>r.json()).catch(()=>null),
+      fetch('https://corsproxy.io/?https://fapi.binance.com/fapi/v1/fundingRate?symbol=BTCUSDT&limit=1').then(r=>r.json()).catch(()=>null),
+      fetch('https://corsproxy.io/?https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=BTCUSDT&period=1h&limit=1').then(r=>r.json()).catch(()=>null),
+      fetch('https://charts.bgeometrics.com/api_data/mvrv_zscore.json').then(r=>r.json()).catch(()=>null)
     ]);
     const closes = klines4h.map(k=>+k[4]);
     const highs  = klines4h.map(k=>+k[2]);
@@ -2041,8 +2071,14 @@ async function refreshAllData() {
     const volProf= calcVolumeProfile(klines4h);
     const fngVal = +fngRes.data[0].value;
     const fngLbl = fngRes.data[0].value_classification;
+    // New data sources
+    const fundingRate = fundingData?.[0]?.fundingRate ? parseFloat(fundingData[0].fundingRate) * 100 : null;
+    const lsRatio = lsRatioData?.[0]?.longShortRatio ? parseFloat(lsRatioData[0].longShortRatio) : null;
+    const mvrvZ = mvrvData?.length ? mvrvData[mvrvData.length-1][1] : null;
+    const hashrateTH = bcStats?.hash_rate ? Math.round(bcStats.hash_rate / 1e6) : null;
+    const mempoolFee = mempoolFees?.fastestFee || null;
 
-    window._lastData = { price, ema20, ema50, ema200, rsi, macd, fngVal, fngLbl, chg24, vol24, highs, lows };
+    window._lastData = { price, ema20, ema50, ema200, rsi, macd, fngVal, fngLbl, chg24, vol24, highs, lows, fundingRate, lsRatio, mvrvZ, hashrateTH, mempoolFee };
 
     // ── A. Hero meta ──
     const hd=$('hero-date'); if(hd) hd.textContent=new Date().toLocaleDateString('ar-SA',{day:'numeric',month:'long',year:'numeric'});
@@ -2204,7 +2240,9 @@ async function refreshAllData() {
 
     // ── I. Intelligence Dashboard ──
     const scoreBar=$('intel-score-bar');
-    const score=Math.round(fngVal*0.4+(rsi>50?60:rsi)*0.3+(price>ema20?60:40)*0.3);
+    const mvrvBonus = mvrvZ!==null ? (mvrvZ<0?20:mvrvZ<1?10:mvrvZ>6?-15:mvrvZ>3?-8:0) : 0;
+    const fundBonus = fundingRate!==null ? (fundingRate<-0.02?8:fundingRate>0.05?-8:0) : 0;
+    const score=Math.min(95,Math.max(5,Math.round(fngVal*0.3+(rsi>50?60:rsi)*0.25+(price>ema20?60:40)*0.2+50*0.25)+mvrvBonus+fundBonus));
     if(scoreBar) scoreBar.style.width=score+'%';
     const sR=document.querySelector('.intel-score-reading');
     if(sR){sR.textContent=score+' / 100';sR.style.color=score>60?'#22C55E':score>40?'#EAB308':'#EF4444';}
@@ -2239,6 +2277,23 @@ async function refreshAllData() {
     }catch(e){}
     // Timestamp
     const ts=$('intel-timestamp'); if(ts) ts.textContent='آخر تحديث: '+new Date().toLocaleTimeString('ar-SA');
+
+    // ── On-chain display cards ──
+    if (mvrvZ !== null && mvrvZ !== undefined) {
+      const mvE=$('mvrv-value'),mvZ=$('mvrv-zone');
+      if(mvE){mvE.textContent=(+mvrvZ).toFixed(2);mvE.style.color=mvrvZ<0?'#00ff88':mvrvZ<1?'#00cc66':mvrvZ<3?'#F5F5F7':mvrvZ<6?'#ffbb00':'#ff4444';}
+      if(mvZ) mvZ.textContent=mvrvZ<0?'🟢 قاع تاريخي':mvrvZ<1?'🟢 مقيّم بأقل من قيمته':mvrvZ<3?'⚪ قيمة عادلة':mvrvZ<6?'🟡 السوق ساخن':'🔴 منطقة بيع';
+    }
+    if (fundingRate !== null && fundingRate !== undefined) {
+      const frE=$('funding-value'),frL=$('funding-label');
+      if(frE){frE.textContent=fundingRate.toFixed(4)+'%';frE.style.color=fundingRate<0?'#00ff88':fundingRate>0.05?'#ff4444':'#F5F5F7';}
+      if(frL) frL.textContent=fundingRate<0?'🟢 الشورت مسيطر — ارتداد محتمل':fundingRate>0.05?'🔴 رافعة عالية — مخاطر تصفية':'⚪ محايد';
+    }
+    if (lsRatio !== null && lsRatio !== undefined) {
+      const lsE=$('ls-value'),lsL=$('ls-label');
+      if(lsE){lsE.textContent=lsRatio.toFixed(2);lsE.style.color=lsRatio<0.8?'#00ff88':lsRatio>2?'#ff4444':'#F5F5F7';}
+      if(lsL) lsL.textContent=lsRatio<0.8?'🟢 معظمهم شورت — squeeze محتمل':lsRatio>2?'🔴 معظمهم لونج — خطر':'⚪ متوازن';
+    }
 
     // ── J. 20 Factors ──
     const fRows=document.querySelectorAll('table.factors tbody tr');
@@ -2278,7 +2333,7 @@ function setAITimeframe(tf) {
 
 function getAIDecision(data, tf) {
   tf = tf || 'daily';
-  const { rsi, ema20, ema50, ema200, price, fngVal, chg24, macd } = data;
+  const { rsi, ema20, ema50, ema200, price, fngVal, chg24, macd, fundingRate, lsRatio, mvrvZ } = data;
   let bull = 0, bear = 0;
 
   if (tf === 'daily') {
@@ -2318,6 +2373,17 @@ function getAIDecision(data, tf) {
     data._hold = '2–4 أسابيع';
   }
 
+  // On-chain + derivatives signals (all timeframes)
+  if (mvrvZ !== null && mvrvZ !== undefined) {
+    if (mvrvZ < 0) bull += 25; else if (mvrvZ < 1) bull += 12; else if (mvrvZ > 6) bear += 25; else if (mvrvZ > 3) bear += 12;
+  }
+  if (fundingRate !== null && fundingRate !== undefined) {
+    if (fundingRate < -0.02) bull += 12; else if (fundingRate > 0.05) bear += 12; else if (fundingRate > 0.03) bear += 6;
+  }
+  if (lsRatio !== null && lsRatio !== undefined) {
+    if (lsRatio < 0.8) bull += 10; else if (lsRatio > 2.0) bear += 10;
+  }
+
   const total = bull + bear || 1;
   const bullPct = Math.round(bull / total * 100);
   let decision, confidence, color, emoji, reasons = [];
@@ -2338,24 +2404,32 @@ function getAIDecision(data, tf) {
 
 function buildBullReasons(d, tf) {
   const r = [];
-  if (d.fngVal < 20) r.push('مؤشر الخوف '+d.fngVal+'/100 — ذعر تاريخي = فرصة تراكم');
-  if (d.rsi < 40) r.push('RSI '+d.rsi?.toFixed(1)+' — تشبع بيعي، ارتداد متوقع');
-  if (d.macd?.bullish) r.push('MACD تجاوز خط الإشارة صعوداً');
-  if (d.price < d.ema20) r.push('السعر تحت EMA20 — نقطة دخول ممتازة');
-  if (tf==='monthly'&&d.price<(d.ema200||d.ema50)) r.push('تحت EMA200 — منطقة تراكم طويل المدى');
-  if (tf==='weekly'&&d.price<(d.ema50||d.ema20)) r.push('تحت EMA50 — الأسبوع القادم محتمل صعود');
-  r.push('الهدف: '+(d._target||'—')+' | وقف: '+(d._sl||'—')+' | مدة: '+(d._hold||'—'));
-  return r.slice(0, 4);
+  if (d.mvrvZ!==null&&d.mvrvZ<0) r.push('📊 MVRV Z-Score سلبي ('+d.mvrvZ?.toFixed(2)+') — قاع تاريخي محتمل');
+  else if (d.mvrvZ!==null&&d.mvrvZ<1) r.push('📊 MVRV منخفض ('+d.mvrvZ?.toFixed(2)+') — أقل من القيمة المحققة');
+  if (d.fundingRate!==null&&d.fundingRate<-0.02) r.push('💹 Funding سلبي ('+d.fundingRate?.toFixed(4)+'%) — ضغط على الشورت');
+  if (d.lsRatio!==null&&d.lsRatio<0.8) r.push('📉 غالبية المتداولين شورت — squeeze محتمل');
+  if (d.fngVal < 20) r.push('😨 خوف شديد '+d.fngVal+'/100 — فرصة تراكم');
+  if (d.rsi < 40) r.push('📊 RSI '+d.rsi?.toFixed(1)+' — تشبع بيعي');
+  if (d.macd?.bullish) r.push('📈 MACD صعودي');
+  if (d.price < d.ema20) r.push('⬇️ تحت EMA20 — نقطة دخول');
+  if (tf==='monthly'&&d.price<(d.ema200||d.ema50)) r.push('🏦 تحت EMA200 — تراكم طويل المدى');
+  if (tf==='weekly'&&d.price<(d.ema50||d.ema20)) r.push('📅 تحت EMA50 — صعود أسبوعي متوقع');
+  r.push('🎯 الهدف: '+(d._target||'—')+' | وقف: '+(d._sl||'—')+' | مدة: '+(d._hold||'—'));
+  return r.slice(0, 5);
 }
 
 function buildBearReasons(d, tf) {
   const r = [];
-  if (d.fngVal > 70) r.push('مؤشر الجشع '+d.fngVal+'/100 — وقت الحذر');
-  if (d.rsi > 65) r.push('RSI '+d.rsi?.toFixed(1)+' — تشبع شرائي');
-  if (!d.macd?.bullish) r.push('MACD تحت خط الإشارة — زخم هبوطي');
-  if ((d.price||0) > (d.ema20||0) * 1.03) r.push('السعر بعيد عن EMA20 صعوداً — توقع تصحيح');
-  r.push('الهدف: '+(d._target||'—')+' | وقف: '+(d._sl||'—')+' | مدة: '+(d._hold||'—'));
-  return r.slice(0, 4);
+  if (d.mvrvZ!==null&&d.mvrvZ>6) r.push('📊 MVRV Z-Score مرتفع جداً ('+d.mvrvZ?.toFixed(2)+') — منطقة بيع تاريخية');
+  else if (d.mvrvZ!==null&&d.mvrvZ>3) r.push('📊 MVRV > 3 ('+d.mvrvZ?.toFixed(2)+') — السوق ساخن');
+  if (d.fundingRate!==null&&d.fundingRate>0.05) r.push('💹 Funding مرتفع ('+d.fundingRate?.toFixed(4)+'%) — رافعة مفرطة');
+  if (d.lsRatio!==null&&d.lsRatio>2) r.push('📉 غالبية لونج ('+d.lsRatio?.toFixed(2)+') — مخاطر تصفية');
+  if (d.fngVal > 70) r.push('🤑 جشع '+d.fngVal+'/100 — وقت الحذر');
+  if (d.rsi > 65) r.push('📊 RSI '+d.rsi?.toFixed(1)+' — تشبع شرائي');
+  if (!d.macd?.bullish) r.push('📉 MACD هبوطي');
+  if ((d.price||0) > (d.ema20||0) * 1.03) r.push('⬆️ بعيد عن EMA20 — تصحيح متوقع');
+  r.push('🎯 الهدف: '+(d._target||'—')+' | وقف: '+(d._sl||'—')+' | مدة: '+(d._hold||'—'));
+  return r.slice(0, 5);
 }
 
 function buildNeutralReasons(d, tf) {
