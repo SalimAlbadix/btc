@@ -1166,6 +1166,7 @@
       <div class="section-tag">Intelligence Dashboard</div>
       <h2>لوحة الاستخبارات</h2>
       <p>بيانات مباشرة من 6 مصادر خارجية مرتبطة بالتحليل الفني</p>
+      <p id="intel-timestamp" style="font-size:11px;color:#86868B;margin-top:4px;">آخر تحديث: —</p>
     </div>
 
     <!-- Quick Links Bar -->
@@ -2061,6 +2062,14 @@ async function fetchAISignal() {
       entryEl.style.display = 'none';
     }
 
+    // Update dc-* cards dynamically from live data
+    document.getElementById('dc-expected').textContent = '$' + Math.round(ema * 1.018).toLocaleString();
+    document.getElementById('dc-expected-sub').textContent = '+1.8% خلال 24 ساعة (EMA20 هدف)';
+    document.getElementById('dc-buy').textContent = '$' + Math.round(ema * 0.978).toLocaleString() + ' – $' + Math.round(ema * 0.985).toLocaleString();
+    document.getElementById('dc-buy-sub').textContent = 'RSI ' + Math.round(rsi) + ' — ' + (rsi < 35 ? 'منطقة تشبع بيعي' : 'منطقة دعم');
+    document.getElementById('dc-sell').textContent = '$' + Math.round(ema * 1.025).toLocaleString() + ' – $' + Math.round(ema * 1.035).toLocaleString();
+    document.getElementById('dc-sell-sub').textContent = 'منطقة مقاومة EMA50';
+
     panel.classList.add('open');
   } catch (e) {
     // Fallback
@@ -2260,86 +2269,105 @@ async function fetchAISignal() {
 
   // Initial load
   fetchChart('24h');
+
+  // Auto-refresh chart every 5 minutes
+  setInterval(() => {
+    const active = document.querySelector('.chart-toggle.active');
+    fetchChart(active ? active.dataset.tf : '24h');
+  }, 300000);
 })();
 
-// ─── INTELLIGENCE DASHBOARD ───────────────────────────────────────
-(function() {
-  // Animate score bar on load
-  setTimeout(() => {
-    const bar = document.getElementById('intel-score-bar');
-    if (bar) bar.style.width = '52%';
-  }, 600);
+// ─── INTELLIGENCE DASHBOARD (auto-refresh) ───────────────────────
+async function updateIntelDashboard() {
+  // Animate score bar
+  const bar = document.getElementById('intel-score-bar');
+  if (bar && bar.style.width === '0%') bar.style.width = '52%';
 
-  // Fetch Polymarket data
-  fetch('https://gamma-api.polymarket.com/markets?tag=bitcoin&limit=5&closed=false')
-    .then(r => r.json())
-    .then(markets => {
-      if (!markets || !markets.length) return;
-      const container = document.getElementById('poly-markets');
+  // 1. Polymarket
+  try {
+    const markets = await fetch('https://gamma-api.polymarket.com/markets?tag=bitcoin&limit=5&closed=false').then(r => r.json());
+    if (markets && markets.length) {
       const pctEl = document.getElementById('poly-pct');
       const bodyEl = document.getElementById('poly-body');
-      let topMarket = null;
       for (const m of markets) {
         if (m.outcomePrices) {
           try {
             const prices = JSON.parse(m.outcomePrices);
             if (prices.length >= 1) {
-              topMarket = { question: m.question, yes: Math.round(parseFloat(prices[0]) * 100) };
+              const yes = Math.round(parseFloat(prices[0]) * 100);
+              pctEl.textContent = yes + '%';
+              pctEl.className = 'intel-val-big ' + (yes > 55 ? 'green' : yes < 45 ? 'red' : 'gold');
+              bodyEl.textContent = yes > 55 ? 'الجمهور يتوقع الارتفاع — إشارة صعودية' : yes < 45 ? 'الجمهور يتوقع الهبوط — إشارة هبوطية' : 'توقعات محايدة';
               break;
             }
           } catch(e) {}
         }
       }
-      if (topMarket) {
-        pctEl.textContent = topMarket.yes + '%';
-        if (topMarket.yes > 55) {
-          pctEl.className = 'intel-val-big green';
-          bodyEl.textContent = 'الجمهور يتوقع الارتفاع — إشارة صعودية';
-        } else if (topMarket.yes < 45) {
-          pctEl.className = 'intel-val-big red';
-          bodyEl.textContent = 'الجمهور يتوقع الهبوط — إشارة هبوطية';
-        }
-      }
-      // Show top 2 markets
-      const html = markets.slice(0, 2).map(m => {
+      const container = document.getElementById('poly-markets');
+      if (container) container.innerHTML = markets.slice(0, 2).map(m => {
         const q = m.question || '';
-        const short = q.length > 50 ? q.substring(0, 50) + '...' : q;
-        return '<div class="intel-sub-row"><span class="name" style="font-size:10px;">' + short + '</span></div>';
+        return '<div class="intel-sub-row"><span class="name" style="font-size:10px;">' + (q.length > 50 ? q.substring(0,50)+'...' : q) + '</span></div>';
       }).join('');
-      if (container) container.innerHTML = html;
-    })
-    .catch(() => {});
+    }
+  } catch(e) {}
 
-  // Fetch Whale Alert data
-  fetch('https://api.whale-alert.io/v1/transactions?api_key=demo&min_value=10000000&limit=5&currency=btc')
-    .then(r => r.json())
-    .then(data => {
-      if (!data || !data.transactions || !data.transactions.length) return;
+  // 2. Whale Alert
+  try {
+    const data = await fetch('https://api.whale-alert.io/v1/transactions?api_key=demo&min_value=10000000&limit=5&currency=btc').then(r => r.json());
+    if (data && data.transactions && data.transactions.length) {
       const list = document.getElementById('whale-list');
-      const html = data.transactions.slice(0, 3).map(tx => {
+      list.innerHTML = data.transactions.slice(0, 3).map(tx => {
         const amt = Math.round(tx.amount).toLocaleString();
         const usd = '$' + Math.round(tx.amount_usd / 1e6) + 'M';
-        const toExchange = tx.to && tx.to.owner_type === 'exchange';
-        const icon = toExchange ? '🔴' : '🟢';
-        const color = toExchange ? '#EF4444' : '#22C55E';
-        const dest = toExchange ? tx.to.owner : 'Cold Wallet';
-        return '<div class="intel-sub-row"><span class="name">' + icon + ' ' + amt + ' BTC → ' + dest + '</span><span style="color:' + color + ';">' + usd + '</span></div>';
+        const toEx = tx.to && tx.to.owner_type === 'exchange';
+        return '<div class="intel-sub-row"><span class="name">' + (toEx?'🔴':'🟢') + ' ' + amt + ' BTC → ' + (toEx ? tx.to.owner : 'Cold Wallet') + '</span><span style="color:' + (toEx?'#EF4444':'#22C55E') + ';">' + usd + '</span></div>';
       }).join('');
-      list.innerHTML = html;
-      // Update status
       const sells = data.transactions.filter(t => t.to && t.to.owner_type === 'exchange').length;
-      const buys = data.transactions.length - sells;
       const statusEl = document.getElementById('whale-status');
-      if (buys > sells) {
-        statusEl.textContent = 'تراكم صافي — إشارة صعودية';
-        statusEl.style.color = '#22C55E';
-      } else {
-        statusEl.textContent = 'ضغط بيع — إشارة هبوطية';
-        statusEl.style.color = '#EF4444';
-      }
-    })
-    .catch(() => {});
-})();
+      statusEl.textContent = sells < data.transactions.length - sells ? 'تراكم صافي — إشارة صعودية' : 'ضغط بيع — إشارة هبوطية';
+      statusEl.style.color = sells < data.transactions.length - sells ? '#22C55E' : '#EF4444';
+    }
+  } catch(e) {}
+
+  // 3. Fear & Greed
+  try {
+    const fg = await fetch('https://api.alternative.me/fng/?limit=1').then(r => r.json());
+    const val = parseInt(fg.data[0].value);
+    const label = fg.data[0].value_classification;
+    // Update score bar based on FNG
+    const scoreReading = document.querySelector('.intel-score-reading');
+    if (scoreReading) {
+      const score = Math.round(val * 0.4 + 30); // weighted composite
+      scoreReading.textContent = score + ' / 100';
+      scoreReading.style.color = score > 60 ? '#22C55E' : score > 40 ? '#EAB308' : '#EF4444';
+      if (bar) bar.style.width = score + '%';
+    }
+  } catch(e) {}
+
+  // 4. Binance 24h volume for ETF card
+  try {
+    const ticker = await fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT').then(r => r.json());
+    const vol = parseFloat(ticker.quoteVolume) / 1e9;
+    const etfEl = document.getElementById('etf-total');
+    const etfLabel = document.getElementById('etf-label');
+    if (etfEl) {
+      etfEl.textContent = '$' + vol.toFixed(1) + 'B';
+      etfEl.className = 'intel-val-big gold';
+    }
+    if (etfLabel) {
+      etfLabel.textContent = 'حجم تداول 24 ساعة (Binance)';
+      etfLabel.style.color = '#D4D4D8';
+    }
+  } catch(e) {}
+
+  // 5. Update timestamp
+  const tsEl = document.getElementById('intel-timestamp');
+  if (tsEl) tsEl.textContent = 'آخر تحديث: ' + new Date().toLocaleTimeString('ar-SA');
+}
+
+// Run on load + every 10 minutes
+updateIntelDashboard();
+setInterval(updateIntelDashboard, 600000);
 
 // ─── ACCURACY WIDGET ───────────────────────────────────────────────
 const ACC_KEY = 'btc_accuracy_v1';
