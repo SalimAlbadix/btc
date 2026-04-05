@@ -1028,6 +1028,33 @@
   .tl-rr-value { font-size: 16px; font-weight: 800; }
   .tl-disclaimer { font-size: 10px; color: rgba(255,255,255,0.3); text-align: center; margin-top: 10px; line-height: 1.4; }
 
+  .ai-analyze-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    border: 1.5px solid rgba(255,255,255,0.18);
+    border-radius: 14px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 14px 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    transition: all 0.2s ease;
+    letter-spacing: 0.5px;
+    font-family: var(--font);
+  }
+  .ai-analyze-btn:hover { border-color: rgba(255,255,255,0.35); background: linear-gradient(135deg, #1e1e3f 0%, #1a2a50 50%, #133870 100%); transform: translateY(-1px); }
+  .ai-analyze-btn:active { transform: translateY(0); opacity: 0.85; }
+  .ai-analyze-btn.loading { border-color: rgba(100,200,255,0.4); background: linear-gradient(135deg, #0d1b2a 0%, #0f2540 50%, #0a2d5a 100%); cursor: not-allowed; animation: pulse-border 1.2s ease-in-out infinite; }
+  .ai-analyze-btn.loading #ai-btn-icon { display: inline-block; animation: spin 1s linear infinite; }
+  @keyframes pulse-border { 0%,100% { border-color: rgba(100,200,255,0.3); } 50% { border-color: rgba(100,200,255,0.7); } }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .ai-auto-note { font-size: 10px; color: rgba(255,255,255,0.3); text-align: center; margin-bottom: 12px; margin-top: -6px; }
+
   /* ── S/R TOOLTIP ── */
   .sr-info {
     display: inline-flex;
@@ -1144,6 +1171,11 @@
   <!-- AI SIGNAL BUTTON -->
   <button class="ai-signal-btn fade-in-up" id="ai-signal-btn" onclick="runAutoAI(window._lastData)">🔮 ما أفضل قرار الآن؟</button>
   <div class="ai-panel glass fade-in-up" id="ai-panel">
+    <button id="ai-analyze-btn" onclick="triggerAIAnalysis()" class="ai-analyze-btn">
+      <span id="ai-btn-icon">🔍</span>
+      <span id="ai-btn-text">تحليل الآن</span>
+    </button>
+    <div class="ai-auto-note">🔄 تحديث تلقائي كل 10 دقائق — أو اضغط للتحليل الفوري</div>
     <div id="ai-tf-selector" style="display:flex;gap:12px;margin-bottom:16px;justify-content:center;">
       <button class="tf-btn tf-active" data-tf="daily" onclick="setAITimeframe('daily')">يومي</button>
       <button class="tf-btn" data-tf="weekly" onclick="setAITimeframe('weekly')">أسبوعي</button>
@@ -2579,6 +2611,33 @@ function runAutoAI(data) {
     + '<div class="tl-rr"><span class="tl-rr-label">نسبة مكسب/خسارة (RR):</span><span class="tl-rr-value" style="color:'+rrColor+'">1 : '+rrRatio+' '+rrIcon+'</span></div>'
     + waitNote
     + '<div class="tl-disclaimer">⚠️ هذه مستويات مقترحة بناءً على التحليل التقني — ليست نصيحة مالية. استخدم إدارة المخاطر الخاصة بك.</div>';
+}
+
+// ── ANALYZE NOW BUTTON ──
+async function triggerAIAnalysis() {
+  const btn = $('ai-analyze-btn');
+  const btnText = $('ai-btn-text');
+  const btnIcon = $('ai-btn-icon');
+  if (!btn || btn.classList.contains('loading')) return;
+
+  btn.classList.add('loading');
+  if (btnIcon) btnIcon.textContent = '⏳';
+  if (btnText) btnText.textContent = 'جاري التحليل...';
+
+  const aiD = $('ai-decision');
+  const aiC = $('ai-conf');
+  if (aiD) aiD.style.opacity = '0.3';
+  if (aiC) aiC.style.opacity = '0.3';
+
+  try {
+    await refreshAllData();
+  } catch(e) { console.error('AI analysis error:', e); }
+
+  btn.classList.remove('loading');
+  if (btnIcon) btnIcon.textContent = '🔍';
+  if (btnText) btnText.textContent = 'تحليل الآن';
+  if (aiD) aiD.style.opacity = '1';
+  if (aiC) aiC.style.opacity = '1';
 }
 
 // ── MACRO PULSE ──
