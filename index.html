@@ -2744,34 +2744,44 @@ async function updateMacroPulse() {
 async function fetchTop5News() {
   try {
     const res = await fetch('https://api.coingecko.com/api/v3/news?per_page=20');
-    if (!res.ok) throw new Error('API error');
-    const data = await res.json();
-    const articles = (data.data || data || []).slice(0, 20);
-    const highBull=['etf','blackrock','institutional','fed cut','halving','all-time','ath','approve','adoption','legal tender'];
-    const highBear=['ban','hack','sec','lawsuit','crash','fraud','bubble','regulation','restrict','seized'];
-    const medBull=['buy','rally','surge','jump','soar','bullish','breakout','support','accumulate'];
-    const medBear=['sell','drop','fall','dump','bearish','breakdown','resist','liquidat'];
-    const scored = articles.map(a => {
-      const title = (a.title||'').toLowerCase();
-      const desc = (a.description||'').toLowerCase();
+    const raw = await res.json();
+    const articles = Array.isArray(raw) ? raw : (raw.data || raw.news || raw.items || []);
+    if (!articles.length) throw new Error('empty');
+    const highBull=['etf','blackrock','institutional','fed cut','halving','ath','approve','adoption','sec approve','legal tender'];
+    const highBear=['ban','hack','lawsuit','crash','fraud','regulation','restrict','seized','criminal','collapse'];
+    const medBull=['buy','rally','surge','jump','soar','bullish','breakout','accumulate','pump'];
+    const medBear=['sell','drop','fall','dump','bearish','breakdown','liquidat','fear','panic'];
+    const scored = articles.slice(0, 20).map(a => {
+      // Handle both direct fields and news_article sub-object
+      const na = a.news_article || a;
+      const title = (na.title || a.title || a.headline || '').toLowerCase();
+      const desc = (na.description || a.description || a.summary || '').toLowerCase();
       const text = title + ' ' + desc;
-      let impact = 50, direction = 'neutral';
-      highBull.forEach(k=>{if(text.includes(k)){impact+=20;direction='bull';}});
-      highBear.forEach(k=>{if(text.includes(k)){impact+=20;direction='bear';}});
-      medBull.forEach(k=>{if(text.includes(k)){impact+=8;if(direction==='neutral')direction='bull';}});
-      medBear.forEach(k=>{if(text.includes(k)){impact+=8;if(direction==='neutral')direction='bear';}});
-      impact = Math.min(impact, 98);
+      let impact = 45, direction = 'neutral';
+      highBull.forEach(k=>{if(text.includes(k)){impact+=18;direction='bull';}});
+      highBear.forEach(k=>{if(text.includes(k)){impact+=18;direction='bear';}});
+      medBull.forEach(k=>{if(text.includes(k)){impact+=7;if(direction==='neutral')direction='bull';}});
+      medBear.forEach(k=>{if(text.includes(k)){impact+=7;if(direction==='neutral')direction='bear';}});
+      impact = Math.min(impact, 97);
       const impactLabel = impact>=80?'عالي جداً':impact>=65?'عالي':impact>=50?'متوسط':'منخفض';
-      return {title:a.title||'خبر',description:a.description||'',url:a.url||'#',source:a.author||'Crypto News',publishedAt:a.created_at||'',impact,impactLabel,direction};
+      return {
+        title: na.title||a.title||a.headline||'خبر',
+        description: na.description||a.description||a.summary||'',
+        url: na.url||a.url||a.link||'#',
+        source: na.author||a.author||a.source||'Crypto News',
+        publishedAt: a.created_at||na.published_at||a.updated_at||a.published_at||'',
+        impact, impactLabel, direction
+      };
     });
     return scored.sort((a,b)=>b.impact-a.impact).slice(0,5);
   } catch(e) {
-    // Fallback
+    // Fallback — indicator-based news
     const d=window._lastData||{};
     const items=[];
-    if(d.fngVal<20) items.push({title:'مؤشر الخوف عند '+d.fngVal+' — المؤسسات تتراكم تاريخياً',description:'',url:'#',source:'AI Signal',publishedAt:'',impact:85,impactLabel:'عالي جداً',direction:'bull'});
-    if(d.macd?.bullish) items.push({title:'MACD تجاوز خط الإشارة صعوداً على الإطار 4 ساعات',description:'',url:'#',source:'Technical',publishedAt:'',impact:70,impactLabel:'عالي',direction:'bull'});
-    items.push({title:'تابع تصريحات ترامب والفيدرالي على Twitter/X',description:'',url:'https://x.com',source:'External',publishedAt:'',impact:60,impactLabel:'متوسط',direction:'neutral'});
+    if(d.fngVal<25) items.push({title:'مؤشر الخوف عند '+d.fngVal+'/100 — المؤسسات تتراكم تاريخياً عند هذه المستويات',description:'مؤشر الخوف والطمع في منطقة الخوف الشديد — تاريخياً هذا أفضل وقت للشراء.',url:'https://alternative.me/crypto/fear-and-greed-index/',source:'Fear & Greed',publishedAt:'',impact:85,impactLabel:'عالي جداً',direction:'bull'});
+    if(d.macd?.bullish) items.push({title:'MACD تجاوز خط الإشارة صعوداً — زخم إيجابي على الإطار 4 ساعات',description:'',url:'#',source:'Technical',publishedAt:'',impact:70,impactLabel:'عالي',direction:'bull'});
+    if(d.rsi<35) items.push({title:'RSI عند '+d.rsi?.toFixed(1)+' — منطقة تشبع بيعي شديد',description:'',url:'#',source:'Technical',publishedAt:'',impact:75,impactLabel:'عالي',direction:'bull'});
+    items.push({title:'تابع أحدث تصريحات ترامب والفيدرالي حول البيتكوين',description:'',url:'https://x.com/search?q=bitcoin%20trump&src=typed_query',source:'External',publishedAt:'',impact:55,impactLabel:'متوسط',direction:'neutral'});
     return items;
   }
 }
@@ -2792,7 +2802,7 @@ async function renderTop5News() {
 
 function toggleNewsCard(i){const b=$('news-body-'+i),c=$('news-card-'+i);if(!b)return;const o=b.style.display!=='none';b.style.display=o?'none':'block';if(c)c.classList.toggle('expanded',!o);}
 
-function getTimeAgo(s){try{const d=Date.now()-new Date(s).getTime(),m=Math.floor(d/60000);if(m<60)return 'منذ '+m+' دقيقة';const h=Math.floor(m/60);if(h<24)return 'منذ '+h+' ساعة';return 'منذ '+Math.floor(h/24)+' يوم';}catch{return '';}}
+function getTimeAgo(s){try{if(!s)return '';const ts=typeof s==='number'?(s<1e12?s*1000:s):new Date(s).getTime();const d=Date.now()-ts,m=Math.floor(d/60000);if(m<1)return 'الآن';if(m<60)return 'منذ '+m+' دقيقة';const h=Math.floor(m/60);if(h<24)return 'منذ '+h+' ساعة';return 'منذ '+Math.floor(h/24)+' يوم';}catch{return '';}}
 
 // ── RUN ──
 refreshAllData();
