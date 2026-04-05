@@ -1063,6 +1063,26 @@
   .info-tooltip-impact { margin-top:8px;font-size:11px;color:#ffbb00;font-weight:600; }
   .info-tooltip-close { position:absolute;top:8px;left:10px;background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;font-size:14px;padding:0; }
 
+  .news-section-title { font-size:13px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;text-align:right; }
+  .news-card { background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;margin-bottom:8px;overflow:hidden;transition:border-color 0.2s; }
+  .news-card.expanded { border-color:rgba(255,255,255,0.18); }
+  .news-card-header { display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;direction:rtl; }
+  .news-card-header:hover { background:rgba(255,255,255,0.03); }
+  .news-rank { width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);flex-shrink:0; }
+  .news-content { flex:1;min-width:0; }
+  .news-title { font-size:12px;font-weight:600;color:rgba(255,255,255,0.85);line-height:1.4;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden; }
+  .news-meta { display:flex;gap:8px;align-items:center; }
+  .news-source { font-size:10px;color:rgba(255,255,255,0.35); }
+  .news-time { font-size:10px;color:rgba(255,255,255,0.25); }
+  .news-impact-badge { flex-shrink:0;border:1.5px solid;border-radius:8px;padding:4px 8px;text-align:center;min-width:52px; }
+  .news-impact-num { font-size:14px;font-weight:800;line-height:1; }
+  .news-impact-label { font-size:9px;opacity:0.8;margin-top:1px; }
+  .news-card-body { padding:12px 14px;border-top:1px solid rgba(255,255,255,0.06);direction:rtl; }
+  .news-direction { font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:8px; }
+  .news-description { font-size:12px;color:rgba(255,255,255,0.5);line-height:1.5;margin-bottom:10px; }
+  .news-read-more { display:inline-block;font-size:11px;color:#4a9eff;text-decoration:none;border-bottom:1px solid rgba(74,158,255,0.3);padding-bottom:1px; }
+  .news-read-more:hover { color:#7ab8ff; }
+
   /* ── S/R TOOLTIP ── */
   .sr-info {
     display: inline-flex;
@@ -1675,9 +1695,8 @@
     </div>
 
     <div class="glass fade-in-up" style="padding:20px;border-radius:var(--radius);">
-      <div style="font-size:15px;font-weight:700;color:var(--text-muted);margin-bottom:14px;">📰 أحدث الأخبار المؤثرة</div>
-      <div id="macro-news" style="display:flex;flex-direction:column;gap:10px">
-      </div>
+      <div class="news-section-title">📰 TOP 5 — أكثر الأخبار تأثيراً على البيتكوين</div>
+      <div id="macro-news"></div>
       <div id="macro-ts" style="font-size:11px;color:var(--text-muted);margin-top:12px;">آخر تحديث: —</div>
     </div>
   </div>
@@ -2716,36 +2735,64 @@ async function updateMacroPulse() {
       grid.innerHTML=items.map(it=>'<div style="background:rgba(255,255,255,0.03);border:1px solid rgba('+(it.bull?'34,197,94':'239,68,68')+',0.15);border-radius:16px;padding:16px;display:flex;align-items:center;gap:12px"><span style="font-size:24px">'+it.icon+'</span><div><div style="font-size:12px;color:var(--text-muted)">'+it.label+'</div><div style="font-size:20px;font-weight:800;color:'+(it.bull?'#22C55E':'#EF4444')+'">'+it.value+'</div></div></div>').join('');
     }
 
-    // News
-    const newsItems = await fetchMacroNews();
-    const newsEl=$('macro-news');
-    if(newsEl&&newsItems.length){
-      newsEl.innerHTML=newsItems.slice(0,5).map(n=>'<div style="display:flex;align-items:flex-start;gap:10px;padding:12px;background:rgba(255,255,255,0.02);border-radius:10px;border-right:3px solid '+(n.bull?'#22C55E':'#EF4444')+'"><span style="font-size:16px;flex-shrink:0">'+(n.bull?'🟢':'🔴')+'</span><div><div style="font-size:13px;font-weight:600;color:#D4D4D8;line-height:1.5">'+n.title+'</div><div style="font-size:11px;color:var(--text-muted);margin-top:3px">'+n.impact+' — '+n.time+'</div></div></div>').join('');
-    }
+    // News — Top 5 scored
+    renderTop5News();
     const mts=$('macro-ts'); if(mts) mts.textContent='آخر تحديث: '+new Date().toLocaleTimeString('en-US');
   } catch(e) { console.warn('Macro:', e); }
 }
 
-async function fetchMacroNews() {
+async function fetchTop5News() {
   try {
-    const res = await fetch('https://api.coingecko.com/api/v3/news');
-    if (res.ok) {
-      const data = await res.json();
-      return (data.data||[]).slice(0,8).map(n=>{
-        const t=n.title||'';
-        const isBull=/bitcoin|etf|institutional|buy|rally|surge|trump.*crypto|reserve/i.test(t)&&!/ban|crash|sell|fear|drop|fall/i.test(t);
-        return {title:t.substring(0,100),bull:isBull,impact:isBull?'تأثير صعودي محتمل':'تأثير هبوطي محتمل',time:n.updated_at?new Date(n.updated_at*1000).toLocaleTimeString('en-US'):'—'};
-      }).filter(n=>n.title.length>20);
-    }
-  } catch(e) {}
-  // Fallback
-  const d=window._lastData||{};
-  const items=[];
-  if(d.fngVal<20) items.push({title:'مؤشر الخوف عند '+d.fngVal+' — المؤسسات تتراكم تاريخياً',bull:true,impact:'تأثير صعودي قوي',time:'الآن'});
-  if(d.macd?.bullish) items.push({title:'MACD تجاوز خط الإشارة صعوداً على 4 ساعات',bull:true,impact:'إشارة تقنية صعودية',time:'الآن'});
-  items.push({title:'تابع تصريحات ترامب والفيدرالي على Twitter/X',bull:true,impact:'بيانات خارجية',time:'مباشر'});
-  return items;
+    const res = await fetch('https://api.coingecko.com/api/v3/news?per_page=20');
+    if (!res.ok) throw new Error('API error');
+    const data = await res.json();
+    const articles = (data.data || data || []).slice(0, 20);
+    const highBull=['etf','blackrock','institutional','fed cut','halving','all-time','ath','approve','adoption','legal tender'];
+    const highBear=['ban','hack','sec','lawsuit','crash','fraud','bubble','regulation','restrict','seized'];
+    const medBull=['buy','rally','surge','jump','soar','bullish','breakout','support','accumulate'];
+    const medBear=['sell','drop','fall','dump','bearish','breakdown','resist','liquidat'];
+    const scored = articles.map(a => {
+      const title = (a.title||'').toLowerCase();
+      const desc = (a.description||'').toLowerCase();
+      const text = title + ' ' + desc;
+      let impact = 50, direction = 'neutral';
+      highBull.forEach(k=>{if(text.includes(k)){impact+=20;direction='bull';}});
+      highBear.forEach(k=>{if(text.includes(k)){impact+=20;direction='bear';}});
+      medBull.forEach(k=>{if(text.includes(k)){impact+=8;if(direction==='neutral')direction='bull';}});
+      medBear.forEach(k=>{if(text.includes(k)){impact+=8;if(direction==='neutral')direction='bear';}});
+      impact = Math.min(impact, 98);
+      const impactLabel = impact>=80?'عالي جداً':impact>=65?'عالي':impact>=50?'متوسط':'منخفض';
+      return {title:a.title||'خبر',description:a.description||'',url:a.url||'#',source:a.author||'Crypto News',publishedAt:a.created_at||'',impact,impactLabel,direction};
+    });
+    return scored.sort((a,b)=>b.impact-a.impact).slice(0,5);
+  } catch(e) {
+    // Fallback
+    const d=window._lastData||{};
+    const items=[];
+    if(d.fngVal<20) items.push({title:'مؤشر الخوف عند '+d.fngVal+' — المؤسسات تتراكم تاريخياً',description:'',url:'#',source:'AI Signal',publishedAt:'',impact:85,impactLabel:'عالي جداً',direction:'bull'});
+    if(d.macd?.bullish) items.push({title:'MACD تجاوز خط الإشارة صعوداً على الإطار 4 ساعات',description:'',url:'#',source:'Technical',publishedAt:'',impact:70,impactLabel:'عالي',direction:'bull'});
+    items.push({title:'تابع تصريحات ترامب والفيدرالي على Twitter/X',description:'',url:'https://x.com',source:'External',publishedAt:'',impact:60,impactLabel:'متوسط',direction:'neutral'});
+    return items;
+  }
 }
+
+async function renderTop5News() {
+  const newsEl=$('macro-news'); if(!newsEl) return;
+  newsEl.innerHTML='<div style="color:rgba(255,255,255,0.4);font-size:12px;padding:12px;text-align:center">⏳ جاري تحميل الأخبار...</div>';
+  const articles = await fetchTop5News();
+  if(!articles.length){newsEl.innerHTML='<div style="color:rgba(255,255,255,0.3);font-size:12px;padding:12px;text-align:center">لا توجد أخبار متاحة حالياً</div>';return;}
+  newsEl.innerHTML=articles.map((a,i)=>{
+    const ic=a.impact>=80?'#ff4444':a.impact>=65?'#ffbb00':'#00ff88';
+    const di=a.direction==='bull'?'🟢':a.direction==='bear'?'🔴':'⚪';
+    const dt=a.direction==='bull'?'صاعد':a.direction==='bear'?'هابط':'محايد';
+    const ta=a.publishedAt?getTimeAgo(a.publishedAt):'';
+    return '<div class="news-card" id="news-card-'+i+'"><div class="news-card-header" onclick="toggleNewsCard('+i+')"><div class="news-rank">'+(i+1)+'</div><div class="news-content"><div class="news-title">'+a.title+'</div><div class="news-meta"><span class="news-source">'+a.source+'</span>'+(ta?'<span class="news-time">'+ta+'</span>':'')+'</div></div><div class="news-impact-badge" style="border-color:'+ic+';color:'+ic+'"><div class="news-impact-num">'+a.impact+'%</div><div class="news-impact-label">'+a.impactLabel+'</div></div></div><div class="news-card-body" id="news-body-'+i+'" style="display:none"><div class="news-direction">'+di+' توجه الخبر: <strong>'+dt+'</strong></div>'+(a.description?'<div class="news-description">'+a.description.slice(0,250)+(a.description.length>250?'...':'')+'</div>':'')+'<a href="'+a.url+'" target="_blank" class="news-read-more">اقرأ الخبر كاملاً ↗</a></div></div>';
+  }).join('');
+}
+
+function toggleNewsCard(i){const b=$('news-body-'+i),c=$('news-card-'+i);if(!b)return;const o=b.style.display!=='none';b.style.display=o?'none':'block';if(c)c.classList.toggle('expanded',!o);}
+
+function getTimeAgo(s){try{const d=Date.now()-new Date(s).getTime(),m=Math.floor(d/60000);if(m<60)return 'منذ '+m+' دقيقة';const h=Math.floor(m/60);if(h<24)return 'منذ '+h+' ساعة';return 'منذ '+Math.floor(h/24)+' يوم';}catch{return '';}}
 
 // ── RUN ──
 refreshAllData();
