@@ -2743,19 +2743,17 @@ async function updateMacroPulse() {
 
 async function fetchTop5News() {
   try {
-    const res = await fetch('https://api.coingecko.com/api/v3/news?per_page=20');
+    const res = await fetch('https://api.coingecko.com/api/v3/news?page=1');
     const raw = await res.json();
-    const articles = Array.isArray(raw) ? raw : (raw.data || raw.news || raw.items || []);
+    const articles = raw.data || (Array.isArray(raw) ? raw : []);
     if (!articles.length) throw new Error('empty');
     const highBull=['etf','blackrock','institutional','fed cut','halving','ath','approve','adoption','sec approve','legal tender'];
     const highBear=['ban','hack','lawsuit','crash','fraud','regulation','restrict','seized','criminal','collapse'];
     const medBull=['buy','rally','surge','jump','soar','bullish','breakout','accumulate','pump'];
     const medBear=['sell','drop','fall','dump','bearish','breakdown','liquidat','fear','panic'];
     const scored = articles.slice(0, 20).map(a => {
-      // Handle both direct fields and news_article sub-object
-      const na = a.news_article || a;
-      const title = (na.title || a.title || a.headline || '').toLowerCase();
-      const desc = (na.description || a.description || a.summary || '').toLowerCase();
+      const title = (a.title || '').toLowerCase();
+      const desc = (a.description || '').toLowerCase();
       const text = title + ' ' + desc;
       let impact = 45, direction = 'neutral';
       highBull.forEach(k=>{if(text.includes(k)){impact+=18;direction='bull';}});
@@ -2765,11 +2763,11 @@ async function fetchTop5News() {
       impact = Math.min(impact, 97);
       const impactLabel = impact>=80?'عالي جداً':impact>=65?'عالي':impact>=50?'متوسط':'منخفض';
       return {
-        title: na.title||a.title||a.headline||'خبر',
-        description: na.description||a.description||a.summary||'',
-        url: na.url||a.url||a.link||'#',
-        source: na.author||a.author||a.source||'Crypto News',
-        publishedAt: a.created_at||na.published_at||a.updated_at||a.published_at||'',
+        title: a.title||'خبر',
+        description: a.description||'',
+        url: a.url||'#',
+        source: a.news_site||a.author||'Crypto News',
+        publishedAt: a.created_at||a.updated_at||'',
         impact, impactLabel, direction
       };
     });
