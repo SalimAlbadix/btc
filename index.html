@@ -1175,7 +1175,7 @@
       <span id="ai-btn-icon">🔍</span>
       <span id="ai-btn-text">تحليل الآن</span>
     </button>
-    <div class="ai-auto-note">🔄 تحديث تلقائي كل 10 دقائق — أو اضغط للتحليل الفوري</div>
+    <div class="ai-auto-note">🔄 تحديث تلقائي كل دقيقة — أو اضغط للتحليل الفوري</div>
     <div id="ai-tf-selector" style="display:flex;gap:12px;margin-bottom:16px;justify-content:center;">
       <button class="tf-btn tf-active" data-tf="daily" onclick="setAITimeframe('daily')">يومي</button>
       <button class="tf-btn" data-tf="weekly" onclick="setAITimeframe('weekly')">أسبوعي</button>
@@ -1346,10 +1346,10 @@
     <div class="intel-grid fade-in-up" style="margin-bottom:14px;">
       <div class="intel-card glass">
         <div class="intel-card-icon">📊</div>
-        <div class="intel-card-title-ar" style="color:#60A5FA;">MVRV Z-Score</div>
-        <div class="intel-card-title-en">On-Chain Valuation</div>
-        <div class="intel-val-big" id="mvrv-value" style="color:#86868B;">—</div>
-        <div class="intel-card-body" id="mvrv-zone" style="font-size:12px;">جارٍ التحميل...</div>
+        <div class="intel-card-title-ar" style="color:#60A5FA;">Open Interest</div>
+        <div class="intel-card-title-en">BTC Futures OI</div>
+        <div class="intel-val-big" id="oi-value" style="color:#86868B;">—</div>
+        <div class="intel-card-body" id="oi-label" style="font-size:12px;">جارٍ التحميل...</div>
       </div>
       <div class="intel-card glass">
         <div class="intel-card-icon">💹</div>
@@ -2105,15 +2105,15 @@ const fmt = v => '$' + Math.round(v).toLocaleString();
 
 async function refreshAllData() {
   try {
-    const [klines4h, ticker, fngRes, mempoolFees, bcStats, fundingData, lsRatioData, mvrvData] = await Promise.all([
+    const [klines4h, ticker, fngRes, mempoolFees, bcStats, premiumData, lsData, oiData] = await Promise.all([
       fetch('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=4h&limit=200').then(r=>r.json()),
       fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT').then(r=>r.json()),
       fetch('https://api.alternative.me/fng/?limit=1').then(r=>r.json()).catch(()=>({data:[{value:'50',value_classification:'Neutral'}]})),
       fetch('https://mempool.space/api/v1/fees/recommended').then(r=>r.json()).catch(()=>null),
       fetch('https://api.blockchain.info/stats').then(r=>r.json()).catch(()=>null),
-      fetch('https://corsproxy.io/?https://fapi.binance.com/fapi/v1/fundingRate?symbol=BTCUSDT&limit=1').then(r=>r.json()).catch(()=>null),
-      fetch('https://corsproxy.io/?https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=BTCUSDT&period=1h&limit=1').then(r=>r.json()).catch(()=>null),
-      fetch('https://charts.bgeometrics.com/api_data/mvrv_zscore.json').then(r=>r.json()).catch(()=>null)
+      fetch('https://fapi.binance.com/fapi/v1/premiumIndex?symbol=BTCUSDT').then(r=>r.json()).catch(()=>null),
+      fetch('https://fapi.binance.com/futures/data/globalLongShortAccountRatio?symbol=BTCUSDT&period=1h&limit=1').then(r=>r.json()).catch(()=>null),
+      fetch('https://fapi.binance.com/fapi/v1/openInterest?symbol=BTCUSDT').then(r=>r.json()).catch(()=>null)
     ]);
     const closes = klines4h.map(k=>+k[4]);
     const highs  = klines4h.map(k=>+k[2]);
@@ -2129,14 +2129,15 @@ async function refreshAllData() {
     const volProf= calcVolumeProfile(klines4h);
     const fngVal = +fngRes.data[0].value;
     const fngLbl = fngRes.data[0].value_classification;
-    // New data sources
-    const fundingRate = fundingData?.[0]?.fundingRate ? parseFloat(fundingData[0].fundingRate) * 100 : null;
-    const lsRatio = lsRatioData?.[0]?.longShortRatio ? parseFloat(lsRatioData[0].longShortRatio) : null;
-    const mvrvZ = mvrvData?.length ? mvrvData[mvrvData.length-1][1] : null;
+    // Derivatives + on-chain data
+    const fundingRate = premiumData?.lastFundingRate ? parseFloat(premiumData.lastFundingRate) * 100 : null;
+    const lsRatio = lsData?.[0]?.longShortRatio ? parseFloat(lsData[0].longShortRatio) : null;
+    const openInterest = oiData?.openInterest ? parseFloat(oiData.openInterest) : null;
+    const oiUSD = openInterest && premiumData?.markPrice ? Math.round(openInterest * parseFloat(premiumData.markPrice) / 1e9 * 10) / 10 : null;
     const hashrateTH = bcStats?.hash_rate ? Math.round(bcStats.hash_rate / 1e6) : null;
     const mempoolFee = mempoolFees?.fastestFee || null;
 
-    window._lastData = { price, ema20, ema50, ema200, rsi, macd, fngVal, fngLbl, chg24, vol24, highs, lows, fundingRate, lsRatio, mvrvZ, hashrateTH, mempoolFee };
+    window._lastData = { price, ema20, ema50, ema200, rsi, macd, fngVal, fngLbl, chg24, vol24, highs, lows, fundingRate, lsRatio, openInterest, oiUSD, hashrateTH, mempoolFee };
     // Store for ATR + SR calculations in runAutoAI
     window._lastKlines4h = klines4h;
     const k50h = highs.slice(-50).sort((a,b)=>b-a).slice(0,3);
@@ -2303,9 +2304,9 @@ async function refreshAllData() {
 
     // ── I. Intelligence Dashboard ──
     const scoreBar=$('intel-score-bar');
-    const mvrvBonus = mvrvZ!==null ? (mvrvZ<0?20:mvrvZ<1?10:mvrvZ>6?-15:mvrvZ>3?-8:0) : 0;
+    const oiBonus = oiUSD!==null ? (oiUSD>30?-10:oiUSD<15?8:0) : 0;
     const fundBonus = fundingRate!==null ? (fundingRate<-0.02?8:fundingRate>0.05?-8:0) : 0;
-    const score=Math.min(95,Math.max(5,Math.round(fngVal*0.3+(rsi>50?60:rsi)*0.25+(price>ema20?60:40)*0.2+50*0.25)+mvrvBonus+fundBonus));
+    const score=Math.min(95,Math.max(5,Math.round(fngVal*0.3+(rsi>50?60:rsi)*0.25+(price>ema20?60:40)*0.2+50*0.25)+oiBonus+fundBonus));
     if(scoreBar) scoreBar.style.width=score+'%';
     const sR=document.querySelector('.intel-score-reading');
     if(sR){sR.textContent=score+' / 100';sR.style.color=score>60?'#22C55E':score>40?'#EAB308':'#EF4444';}
@@ -2341,22 +2342,25 @@ async function refreshAllData() {
     // Timestamp
     const ts=$('intel-timestamp'); if(ts) ts.textContent='آخر تحديث: '+new Date().toLocaleTimeString('ar-SA');
 
-    // ── On-chain display cards ──
-    if (mvrvZ !== null && mvrvZ !== undefined) {
-      const mvE=$('mvrv-value'),mvZ=$('mvrv-zone');
-      if(mvE){mvE.textContent=(+mvrvZ).toFixed(2);mvE.style.color=mvrvZ<0?'#00ff88':mvrvZ<1?'#00cc66':mvrvZ<3?'#F5F5F7':mvrvZ<6?'#ffbb00':'#ff4444';}
-      if(mvZ) mvZ.textContent=mvrvZ<0?'🟢 قاع تاريخي':mvrvZ<1?'🟢 مقيّم بأقل من قيمته':mvrvZ<3?'⚪ قيمة عادلة':mvrvZ<6?'🟡 السوق ساخن':'🔴 منطقة بيع';
-    }
-    if (fundingRate !== null && fundingRate !== undefined) {
-      const frE=$('funding-value'),frL=$('funding-label');
-      if(frE){frE.textContent=fundingRate.toFixed(4)+'%';frE.style.color=fundingRate<0?'#00ff88':fundingRate>0.05?'#ff4444':'#F5F5F7';}
+    // ── Derivatives display cards (with fallback) ──
+    // Open Interest
+    const oiEl=$('oi-value'), oiLbl=$('oi-label');
+    if (oiUSD !== null) {
+      if(oiEl){oiEl.textContent='$'+oiUSD+'B'; oiEl.style.color=oiUSD>30?'#ff6666':oiUSD>20?'#ffbb00':'#00ff88';}
+      if(oiLbl) oiLbl.textContent=oiUSD>30?'🔴 رافعة عالية':oiUSD>20?'🟡 رافعة متوسطة':'🟢 رافعة منخفضة';
+    } else { if(oiEl){oiEl.textContent='غير متاح';oiEl.style.color='rgba(255,255,255,0.3)';} if(oiLbl) oiLbl.textContent='—'; }
+    // Funding Rate
+    const frE=$('funding-value'), frL=$('funding-label');
+    if (fundingRate !== null) {
+      if(frE){frE.textContent=(fundingRate>=0?'+':'')+fundingRate.toFixed(4)+'%'; frE.style.color=fundingRate<0?'#00ff88':fundingRate>0.05?'#ff4444':'#F5F5F7';}
       if(frL) frL.textContent=fundingRate<0?'🟢 الشورت مسيطر — ارتداد محتمل':fundingRate>0.05?'🔴 رافعة عالية — مخاطر تصفية':'⚪ محايد';
-    }
-    if (lsRatio !== null && lsRatio !== undefined) {
-      const lsE=$('ls-value'),lsL=$('ls-label');
-      if(lsE){lsE.textContent=lsRatio.toFixed(2);lsE.style.color=lsRatio<0.8?'#00ff88':lsRatio>2?'#ff4444':'#F5F5F7';}
+    } else { if(frE){frE.textContent='غير متاح';frE.style.color='rgba(255,255,255,0.3)';} if(frL) frL.textContent='—'; }
+    // Long/Short Ratio
+    const lsE=$('ls-value'), lsL=$('ls-label');
+    if (lsRatio !== null) {
+      if(lsE){lsE.textContent=lsRatio.toFixed(2); lsE.style.color=lsRatio<0.8?'#00ff88':lsRatio>2?'#ff4444':'#F5F5F7';}
       if(lsL) lsL.textContent=lsRatio<0.8?'🟢 معظمهم شورت — squeeze محتمل':lsRatio>2?'🔴 معظمهم لونج — خطر':'⚪ متوازن';
-    }
+    } else { if(lsE){lsE.textContent='غير متاح';lsE.style.color='rgba(255,255,255,0.3)';} if(lsL) lsL.textContent='—'; }
 
     // ── J. 20 Factors ──
     const fRows=document.querySelectorAll('table.factors tbody tr');
@@ -2396,7 +2400,7 @@ function setAITimeframe(tf) {
 
 function getAIDecision(data, tf) {
   tf = tf || 'daily';
-  const { rsi, ema20, ema50, ema200, price, fngVal, chg24, macd, fundingRate, lsRatio, mvrvZ } = data;
+  const { rsi, ema20, ema50, ema200, price, fngVal, chg24, macd, fundingRate, lsRatio, openInterest } = data;
   let bull = 0, bear = 0;
 
   if (tf === 'daily') {
@@ -2437,8 +2441,9 @@ function getAIDecision(data, tf) {
   }
 
   // On-chain + derivatives signals (all timeframes)
-  if (mvrvZ !== null && mvrvZ !== undefined) {
-    if (mvrvZ < 0) bull += 25; else if (mvrvZ < 1) bull += 12; else if (mvrvZ > 6) bear += 25; else if (mvrvZ > 3) bear += 12;
+  if (openInterest !== null && openInterest !== undefined) {
+    if (openInterest > 90000) bear += 8; // overleveraged
+    else if (openInterest < 50000) bull += 8; // healthy
   }
   if (fundingRate !== null && fundingRate !== undefined) {
     if (fundingRate < -0.02) bull += 12; else if (fundingRate > 0.05) bear += 12; else if (fundingRate > 0.03) bear += 6;
@@ -2473,8 +2478,7 @@ function getAIDecision(data, tf) {
 
 function buildBullReasons(d, tf) {
   const r = [];
-  if (d.mvrvZ!==null&&d.mvrvZ<0) r.push('📊 MVRV Z-Score سلبي ('+d.mvrvZ?.toFixed(2)+') — قاع تاريخي محتمل');
-  else if (d.mvrvZ!==null&&d.mvrvZ<1) r.push('📊 MVRV منخفض ('+d.mvrvZ?.toFixed(2)+') — أقل من القيمة المحققة');
+  if (d.openInterest&&d.openInterest<50000) r.push('📊 Open Interest منخفض — سوق صحي، مجال للصعود');
   if (d.fundingRate!==null&&d.fundingRate<-0.02) r.push('💹 Funding سلبي ('+d.fundingRate?.toFixed(4)+'%) — ضغط على الشورت');
   if (d.lsRatio!==null&&d.lsRatio<0.8) r.push('📉 غالبية المتداولين شورت — squeeze محتمل');
   if (d.fngVal < 20) r.push('😨 خوف شديد '+d.fngVal+'/100 — فرصة تراكم');
@@ -2489,8 +2493,7 @@ function buildBullReasons(d, tf) {
 
 function buildBearReasons(d, tf) {
   const r = [];
-  if (d.mvrvZ!==null&&d.mvrvZ>6) r.push('📊 MVRV Z-Score مرتفع جداً ('+d.mvrvZ?.toFixed(2)+') — منطقة بيع تاريخية');
-  else if (d.mvrvZ!==null&&d.mvrvZ>3) r.push('📊 MVRV > 3 ('+d.mvrvZ?.toFixed(2)+') — السوق ساخن');
+  if (d.openInterest&&d.openInterest>90000) r.push('📊 Open Interest مرتفع جداً — احتمال تصفيات');
   if (d.fundingRate!==null&&d.fundingRate>0.05) r.push('💹 Funding مرتفع ('+d.fundingRate?.toFixed(4)+'%) — رافعة مفرطة');
   if (d.lsRatio!==null&&d.lsRatio>2) r.push('📉 غالبية لونج ('+d.lsRatio?.toFixed(2)+') — مخاطر تصفية');
   if (d.fngVal > 70) r.push('🤑 جشع '+d.fngVal+'/100 — وقت الحذر');
@@ -2687,7 +2690,7 @@ async function fetchMacroNews() {
 
 // ── RUN ──
 refreshAllData();
-setInterval(refreshAllData, 600000);
+setInterval(refreshAllData, 60000);
 
 // ─── TRADING CHART ────────────────────────────────────────────────
 (function() {
