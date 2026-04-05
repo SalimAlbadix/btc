@@ -1083,6 +1083,18 @@
   .news-read-more { display:inline-block;font-size:11px;color:#4a9eff;text-decoration:none;border-bottom:1px solid rgba(74,158,255,0.3);padding-bottom:1px; }
   .news-read-more:hover { color:#7ab8ff; }
 
+  /* ── LIVE CHART ── */
+  .chart-header { display:flex;justify-content:space-between;align-items:center;padding:12px 4px 10px;direction:rtl; }
+  .chart-title { font-size:15px;font-weight:700;color:rgba(255,255,255,0.85);display:flex;align-items:center;gap:10px; }
+  .chart-live-price { font-size:16px;font-weight:800;color:#00ff88;font-variant-numeric:tabular-nums;transition:color 0.3s; }
+  .chart-tf-btns { display:flex;gap:6px; }
+  .chart-tf-btn { background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:rgba(255,255,255,0.55);font-size:12px;font-weight:600;padding:5px 12px;cursor:pointer;transition:all 0.15s;font-family:inherit; }
+  .chart-tf-btn:hover { background:rgba(255,255,255,0.1);color:#fff; }
+  .chart-tf-btn.active { background:rgba(247,147,26,0.15);border-color:rgba(247,147,26,0.5);color:#f7931a; }
+  .chart-legend { display:flex;gap:16px;justify-content:center;padding:8px 0 4px;direction:rtl; }
+  .legend-item { font-size:11px;color:rgba(255,255,255,0.4);display:flex;align-items:center;gap:4px; }
+  @media (min-width:768px) { #btc-lw-chart { height:420px !important; } }
+
   /* ── S/R TOOLTIP ── */
   .sr-info {
     display: inline-flex;
@@ -1132,6 +1144,7 @@
   }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
 
@@ -1253,6 +1266,25 @@
     </div>
   </div>
 
+</section>
+
+<!-- ══ LIVE CHART ══ -->
+<section id="chart-section" style="padding:0 16px 20px;">
+  <div class="chart-header">
+    <div class="chart-title">📈 BTC / USDT <span id="chart-price-live" class="chart-live-price">$—</span></div>
+    <div class="chart-tf-btns">
+      <button class="chart-tf-btn active" onclick="setChartTF('1h')">1H</button>
+      <button class="chart-tf-btn" onclick="setChartTF('4h')">4H</button>
+      <button class="chart-tf-btn" onclick="setChartTF('1d')">1D</button>
+    </div>
+  </div>
+  <div id="btc-lw-chart" style="width:100%;height:320px;border-radius:14px;overflow:hidden;"></div>
+  <div class="chart-legend">
+    <span class="legend-item"><span style="background:#4a9eff;width:16px;height:2px;display:inline-block;border-radius:2px;vertical-align:middle;margin-left:4px"></span>EMA 50</span>
+    <span class="legend-item"><span style="background:#f7931a;width:16px;height:2px;display:inline-block;border-radius:2px;vertical-align:middle;margin-left:4px"></span>EMA 200</span>
+    <span class="legend-item"><span style="background:rgba(0,255,136,0.6);width:16px;height:2px;display:inline-block;border-radius:2px;vertical-align:middle;margin-left:4px"></span>دعم</span>
+    <span class="legend-item"><span style="background:rgba(255,68,68,0.6);width:16px;height:2px;display:inline-block;border-radius:2px;vertical-align:middle;margin-left:4px"></span>مقاومة</span>
+  </div>
 </section>
 
 <div class="divider"></div>
@@ -2134,6 +2166,71 @@ function calcVolumeProfile(klines) {
   return bk.map(b=>({...b, pct:Math.round(b.vol/maxV*100)})).reverse();
 }
 
+// ─── LIVE CHART MODULE (Lightweight Charts) ─────────────────────
+let _lwChart=null,_candleSeries=null,_ema50S=null,_ema200S=null,_srLines=[],_currentChartTF='1h',_chartReady=false;
+
+function calcEMAArray(closes,period){
+  const k=2/(period+1),out=[];let e=closes[0];
+  for(let i=0;i<closes.length;i++){e=closes[i]*k+e*(1-k);out.push(i>=period-1?e:null);}
+  return out;
+}
+
+function initLWChart(){
+  const c=document.getElementById('btc-lw-chart');
+  if(!c||typeof LightweightCharts==='undefined')return;
+  _lwChart=LightweightCharts.createChart(c,{
+    layout:{background:{type:'solid',color:'#0a0a0f'},textColor:'rgba(255,255,255,0.5)'},
+    grid:{vertLines:{color:'rgba(255,255,255,0.04)'},horzLines:{color:'rgba(255,255,255,0.04)'}},
+    crosshair:{mode:LightweightCharts.CrosshairMode.Normal},
+    rightPriceScale:{borderColor:'rgba(255,255,255,0.08)'},
+    timeScale:{borderColor:'rgba(255,255,255,0.08)',timeVisible:true,secondsVisible:false},
+    handleScroll:true,handleScale:true,width:c.clientWidth,height:c.clientHeight
+  });
+  _candleSeries=_lwChart.addCandlestickSeries({upColor:'#00cc66',downColor:'#ff4444',borderUpColor:'#00cc66',borderDownColor:'#ff4444',wickUpColor:'#00cc66',wickDownColor:'#ff4444'});
+  _ema50S=_lwChart.addLineSeries({color:'#4a9eff',lineWidth:1.5,priceLineVisible:false,lastValueVisible:false,crosshairMarkerVisible:false});
+  _ema200S=_lwChart.addLineSeries({color:'#f7931a',lineWidth:2,priceLineVisible:false,lastValueVisible:false,crosshairMarkerVisible:false});
+  new ResizeObserver(()=>{if(_lwChart&&c)_lwChart.applyOptions({width:c.clientWidth});}).observe(c);
+  _chartReady=true;
+}
+
+async function loadLWChartData(tf){
+  tf=tf||'1h';
+  if(!_chartReady)initLWChart();
+  if(!_lwChart)return;
+  const limit=tf==='1d'?200:300;
+  try{
+    const klines=await fetch('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval='+tf+'&limit='+limit).then(r=>r.json());
+    const candles=klines.map(k=>({time:Math.floor(k[0]/1000),open:+k[1],high:+k[2],low:+k[3],close:+k[4]}));
+    _candleSeries.setData(candles);
+    // EMA arrays
+    const closes=klines.map(k=>+k[4]);
+    const e50=calcEMAArray(closes,50),e200=calcEMAArray(closes,200);
+    _ema50S.setData(e50.map((v,i)=>v?{time:candles[i].time,value:v}:null).filter(Boolean));
+    _ema200S.setData(e200.map((v,i)=>v?{time:candles[i].time,value:v}:null).filter(Boolean));
+    // S/R lines
+    _srLines.forEach(pl=>{try{_candleSeries.removePriceLine(pl);}catch(e){}});_srLines=[];
+    const recent=klines.slice(-50),curP=+klines[klines.length-1][4];
+    const highs=[...new Set(recent.map(k=>+k[2]).sort((a,b)=>b-a).filter(h=>h>curP*1.005))].slice(0,2);
+    const lows=[...new Set(recent.map(k=>+k[3]).sort((a,b)=>a-b).filter(l=>l<curP*0.995))].slice(0,2);
+    highs.forEach(p=>{_srLines.push(_candleSeries.createPriceLine({price:p,color:'rgba(255,68,68,0.6)',lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dashed,axisLabelVisible:true,title:'مقاومة'}));});
+    lows.forEach(p=>{_srLines.push(_candleSeries.createPriceLine({price:p,color:'rgba(0,255,136,0.55)',lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dashed,axisLabelVisible:true,title:'دعم'}));});
+    _lwChart.timeScale().fitContent();
+  }catch(e){console.error('LW Chart error:',e);}
+}
+
+function setChartTF(tf){
+  _currentChartTF=tf;
+  document.querySelectorAll('.chart-tf-btn').forEach(b=>b.classList.toggle('active',b.textContent.trim()===tf.toUpperCase()));
+  loadLWChartData(tf);
+}
+
+function updateChartLivePrice(price){
+  const el=document.getElementById('chart-price-live');
+  if(el){const prev=+(el.dataset.prev||price);el.textContent='$'+Math.round(price).toLocaleString();el.style.color=price>=prev?'#00ff88':'#ff4444';el.dataset.prev=price;}
+}
+
+document.addEventListener('DOMContentLoaded',()=>{setTimeout(()=>{initLWChart();loadLWChartData('1h');},500);});
+
 // ─── MASTER REFRESH ENGINE ───────────────────────────────────────
 window._lastData = {};
 const $ = id => document.getElementById(id);
@@ -2179,6 +2276,7 @@ async function refreshAllData() {
     const k50h = highs.slice(-50).sort((a,b)=>b-a).slice(0,3);
     const k50l = lows.slice(-50).sort((a,b)=>a-b).slice(0,3);
     window._srLevels = [...k50h, ...k50l].sort((a,b)=>a-b);
+    updateChartLivePrice(price);
 
     // ── A. Hero meta ──
     const hd=$('hero-date'); if(hd) hd.textContent=new Date().toLocaleDateString('en-US',{calendar:'gregory',weekday:'short',day:'numeric',month:'long',year:'numeric'});
@@ -3098,6 +3196,7 @@ renderAccuracy();
       const data = JSON.parse(event.data);
       const price = parseFloat(data.p);
       updatePrice(price);
+      updateChartLivePrice(price);
     };
 
     ws.onerror = function() {
