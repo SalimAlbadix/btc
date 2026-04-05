@@ -1009,6 +1009,24 @@
   .ai-entry-price.red { color: #EF4444; }
   .ai-entry-price.orange { color: #EAB308; }
 
+  .trade-levels-box {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 16px;
+  }
+  .tl-header { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.6); text-align: center; margin-bottom: 12px; letter-spacing: 1px; }
+  .tl-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .tl-sl-row { border-bottom: none; }
+  .tl-label { font-size: 13px; color: rgba(255,255,255,0.65); font-weight: 500; }
+  .tl-value { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .tl-pct { font-size: 11px; font-weight: 500; opacity: 0.75; margin-right: 4px; }
+  .tl-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 12px 0 10px; }
+  .tl-rr { display: flex; justify-content: space-between; align-items: center; }
+  .tl-rr-label { font-size: 12px; color: rgba(255,255,255,0.5); }
+  .tl-rr-value { font-size: 16px; font-weight: 800; }
+
   /* ── S/R TOOLTIP ── */
   .sr-info {
     display: inline-flex;
@@ -2031,6 +2049,16 @@ function calcMACD(closes) {
   for (let i = 0; i < ml.length; i++) { sig = ml[i]*k9 + sig*(1-k9); hist.push(ml[i] - sig); }
   return { macdValue: Math.round(ml[ml.length-1]), signalValue: Math.round(sig), histogram: hist.slice(-10), bullish: ml[ml.length-1] > sig };
 }
+function calcATR(klines, period) {
+  period = period || 14;
+  const trs = [];
+  for (let i = 1; i < klines.length; i++) {
+    const h = +klines[i][2], l = +klines[i][3], pc = +klines[i-1][4];
+    trs.push(Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc)));
+  }
+  const recent = trs.slice(-period);
+  return recent.length ? recent.reduce((a, b) => a + b, 0) / recent.length : 0;
+}
 function calcVolumeProfile(klines) {
   const prices = klines.map(k=>+k[4]), vols = klines.map(k=>+k[5]);
   const mn = Math.min(...prices), mx = Math.max(...prices), step = (mx-mn)/7 || 1;
@@ -2079,6 +2107,11 @@ async function refreshAllData() {
     const mempoolFee = mempoolFees?.fastestFee || null;
 
     window._lastData = { price, ema20, ema50, ema200, rsi, macd, fngVal, fngLbl, chg24, vol24, highs, lows, fundingRate, lsRatio, mvrvZ, hashrateTH, mempoolFee };
+    // Store for ATR + SR calculations in runAutoAI
+    window._lastKlines4h = klines4h;
+    const k50h = highs.slice(-50).sort((a,b)=>b-a).slice(0,3);
+    const k50l = lows.slice(-50).sort((a,b)=>a-b).slice(0,3);
+    window._srLevels = [...k50h, ...k50l].sort((a,b)=>a-b);
 
     // ── A. Hero meta ──
     const hd=$('hero-date'); if(hd) hd.textContent=new Date().toLocaleDateString('ar-SA',{day:'numeric',month:'long',year:'numeric'});
@@ -2440,7 +2473,7 @@ function buildNeutralReasons(d, tf) {
   return r;
 }
 
-// ── runAutoAI — renders AI panel from data ──
+// ── runAutoAI — renders AI panel + trade levels from data ──
 function runAutoAI(data) {
   if (!data || !data.price) return;
   const r = getAIDecision(data, _currentTF);
@@ -2458,6 +2491,59 @@ function runAutoAI(data) {
   } else if(aiE) aiE.style.display='none';
   const btn=$('ai-signal-btn');
   if(btn){btn.innerHTML=r.emoji+' '+r.decision+' — '+r.confidence+'% ثقة';btn.style.cssText+=';background:'+r.color+'22;border-color:'+r.color+';color:'+r.color;}
+
+  // ── Trade Levels ──
+  const atr = calcATR(window._lastKlines4h || [], 14);
+  const price = data.price;
+  const dec = r.decision;
+  const srLevels = (window._srLevels || []).sort((a,b)=>a-b);
+  const supports = srLevels.filter(s => s < price);
+  const resistances = srLevels.filter(rv => rv > price);
+  const isBull = dec.includes('شراء') || !dec.includes('بيع');
+
+  let entry = Math.round(price), tp1, tp2, sl;
+  if (dec.includes('شراء')) {
+    const slBuf = atr * 1.2;
+    sl = Math.round(supports.length ? Math.min(supports[supports.length-1], price - slBuf) : price - slBuf);
+    tp1 = resistances.length ? Math.round(resistances[0]) : Math.round(price + (price - sl) * 2);
+    tp2 = resistances.length > 1 ? Math.round(resistances[1]) : Math.round(price + (price - sl) * 3);
+  } else if (dec.includes('بيع')) {
+    const slBuf = atr * 1.2;
+    sl = Math.round(resistances.length ? Math.max(resistances[0], price + slBuf) : price + slBuf);
+    tp1 = supports.length ? Math.round(supports[supports.length-1]) : Math.round(price - (sl - price) * 2);
+    tp2 = supports.length > 1 ? Math.round(supports[supports.length-2]) : Math.round(price - (sl - price) * 3);
+  } else {
+    sl = Math.round(price - atr * 2);
+    tp1 = Math.round(price + atr * 2);
+    tp2 = Math.round(price + atr * 3.5);
+  }
+
+  const slPct = (Math.abs(price - sl) / price * 100).toFixed(1);
+  const tp1Pct = dec.includes('بيع') ? ((price - tp1) / price * 100).toFixed(1) : ((tp1 - price) / price * 100).toFixed(1);
+  const tp2Pct = dec.includes('بيع') ? ((price - tp2) / price * 100).toFixed(1) : ((tp2 - price) / price * 100).toFixed(1);
+  const rrRatio = (Math.abs((isBull ? tp1 : tp1) - price) / Math.max(1, Math.abs(price - sl))).toFixed(1);
+  const rrColor = +rrRatio >= 2 ? '#00ff88' : +rrRatio >= 1.5 ? '#ffbb00' : '#ff6666';
+  const rrIcon = +rrRatio >= 2 ? '✅' : +rrRatio >= 1.5 ? '⚠️' : '❌';
+  const tpSign = dec.includes('بيع') ? '-' : '+';
+  const entryLbl = isBull ? '🟢 نقطة الدخول' : '🔴 نقطة البيع';
+  const waitNote = dec.includes('انتظار') ? '<div style="text-align:center;font-size:12px;color:#f59e0b;margin-top:8px">⚠️ السوق في منطقة حيادية — تأكد من الاتجاه قبل الدخول</div>' : '';
+
+  let lb = $('trade-levels-box');
+  if (!lb) {
+    lb = document.createElement('div');
+    lb.id = 'trade-levels-box';
+    lb.className = 'trade-levels-box';
+    const rEl = $('ai-reasons');
+    if (rEl && rEl.parentNode) rEl.parentNode.insertBefore(lb, rEl.nextSibling);
+  }
+  lb.innerHTML = '<div class="tl-header">📊 مستويات التداول</div>'
+    + '<div class="tl-row"><span class="tl-label">'+entryLbl+'</span><span class="tl-value" style="color:#fff">$'+entry.toLocaleString()+'</span></div>'
+    + '<div class="tl-row"><span class="tl-label">🎯 الهدف الأول</span><span class="tl-value" style="color:#00ff88">$'+tp1.toLocaleString()+' <span class="tl-pct">'+tpSign+tp1Pct+'%</span></span></div>'
+    + '<div class="tl-row"><span class="tl-label">🏆 الهدف الثاني</span><span class="tl-value" style="color:#00ff88">$'+tp2.toLocaleString()+' <span class="tl-pct">'+tpSign+tp2Pct+'%</span></span></div>'
+    + '<div class="tl-row tl-sl-row"><span class="tl-label">🛑 وقف الخسارة</span><span class="tl-value" style="color:#ff4444">$'+sl.toLocaleString()+' <span class="tl-pct">-'+slPct+'%</span></span></div>'
+    + '<div class="tl-divider"></div>'
+    + '<div class="tl-rr"><span class="tl-rr-label">نسبة مكسب/خسارة (RR):</span><span class="tl-rr-value" style="color:'+rrColor+'">1 : '+rrRatio+' '+rrIcon+'</span></div>'
+    + waitNote;
 }
 
 // ── MACRO PULSE ──
