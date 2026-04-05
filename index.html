@@ -2215,29 +2215,104 @@ async function refreshAllData() {
       const lbs=document.querySelectorAll('.summary-count');if(lbs[0])lbs[0].textContent=bc;if(lbs[1])lbs[1].textContent=blc;if(lbs[2])lbs[2].textContent=nc;
     }
 
+    // ── Auto-run AI Signal ──
+    const aiR = getAIDecision(window._lastData);
+    const aiD=$('ai-decision'); if(aiD){aiD.textContent=aiR.emoji+' '+aiR.decision; aiD.style.color=aiR.color; aiD.className='ai-decision';}
+    const aiC=$('ai-conf'); if(aiC) aiC.textContent='ثقة: '+aiR.confidence+'%';
+    const aiT=$('ai-tf'); if(aiT) aiT.textContent='الإطار الزمني: 4 ساعات | آخر تحديث: '+new Date().toLocaleTimeString('ar-SA');
+    const aiRs=$('ai-reasons'); if(aiRs) aiRs.innerHTML=aiR.reasons.map(r=>'<li>'+r+'</li>').join('');
+    const aiP=$('ai-panel'); if(aiP) aiP.style.display='block';
+    const aiEL=$('ai-entry-label'),aiEP=$('ai-entry-price'),aiE=$('ai-entry');
+    if(aiR.decision.includes('شراء')&&aiEL&&aiEP){aiEL.textContent='نقطة الدخول المقترحة';aiEP.textContent=fmt(price);aiEP.style.color=aiR.color;if(aiE)aiE.style.display='block';}
+    else if(aiE) aiE.style.display='none';
+    const aiBtn=$('ai-signal-btn');
+    if(aiBtn){aiBtn.innerHTML=aiR.emoji+' '+aiR.decision+' — '+aiR.confidence+'% ثقة';aiBtn.style.background=aiR.color+'22';aiBtn.style.borderColor=aiR.color;aiBtn.style.color=aiR.color;}
+
   } catch(e) { console.warn('refreshAllData:', e); }
 }
 
-// ── AI SIGNAL (uses shared _lastData) ──
+// ── AI DECISION ENGINE (score-based) ──
+function getAIDecision(data) {
+  const { rsi, ema20, price, fngVal, chg24, macd, vol24 } = data;
+  let bull = 0, bear = 0;
+  // RSI
+  if (rsi < 25) bull += 30; else if (rsi < 35) bull += 20; else if (rsi < 45) bull += 10;
+  else if (rsi > 75) bear += 30; else if (rsi > 65) bear += 20; else if (rsi > 55) bear += 10;
+  // Fear & Greed (contrarian)
+  if (fngVal < 15) bull += 25; else if (fngVal < 30) bull += 15;
+  else if (fngVal > 75) bear += 25; else if (fngVal > 60) bear += 15;
+  // MACD
+  if (macd && macd.bullish) bull += 15; else bear += 15;
+  // Price vs EMA20
+  const pctEMA = ((price||0) - (ema20||1)) / (ema20||1) * 100;
+  if (pctEMA < -3) bull += 20; else if (pctEMA < -1) bull += 10;
+  else if (pctEMA > 3) bear += 20; else if (pctEMA > 1) bear += 10;
+  // 24h momentum
+  if (chg24 < -5) bull += 10; else if (chg24 > 5) bear += 10;
+
+  const total = bull + bear || 1;
+  const bullPct = Math.round(bull / total * 100);
+  let decision, confidence, color, emoji, reasons = [];
+
+  if (bull >= 55 && bull > bear * 1.8) {
+    decision='شراء قوي'; confidence=bullPct; color='#10b981'; emoji='🟢';
+    reasons=buildBullReasons(data);
+  } else if (bull >= 35 && bull > bear * 1.3) {
+    decision='شراء تدريجي'; confidence=bullPct; color='#34d399'; emoji='🟡';
+    reasons=buildBullReasons(data);
+  } else if (bear >= 55 && bear > bull * 1.8) {
+    decision='بيع / خروج'; confidence=Math.round(bear/total*100); color='#ef4444'; emoji='🔴';
+    reasons=buildBearReasons(data);
+  } else if (bear >= 35 && bear > bull * 1.3) {
+    decision='تخفيف مراكز'; confidence=Math.round(bear/total*100); color='#f87171'; emoji='🟠';
+    reasons=buildBearReasons(data);
+  } else {
+    decision='انتظار'; confidence=50; color='#f59e0b'; emoji='🟡';
+    reasons=['الإشارات متضاربة — لا يوجد تفوق واضح','RSI عند '+(rsi||0).toFixed(1)+' في المنطقة المحايدة','انتظر كسر مستوى رئيسي'];
+  }
+  return { decision, confidence, color, emoji, reasons, bullScore:bull, bearScore:bear };
+}
+
+function buildBullReasons(d) {
+  const r = [];
+  if (d.fngVal < 20) r.push('خوف شديد ('+d.fngVal+'/100) — فرصة تاريخية للتراكم');
+  if (d.rsi < 40) r.push('RSI '+d.rsi?.toFixed(1)+' — تشبع بيعي، استرداد متوقع');
+  if (d.macd?.bullish) r.push('MACD تجاوز خط الإشارة صعوداً');
+  if (d.price < d.ema20) r.push('السعر تحت EMA20 بـ'+Math.abs(((d.price||0)/(d.ema20||1)-1)*100).toFixed(1)+'% — فرصة دخول');
+  if (r.length < 2) r.push('مؤشرات متعددة تدعم الاتجاه الصعودي');
+  return r.slice(0, 3);
+}
+
+function buildBearReasons(d) {
+  const r = [];
+  if (d.fngVal > 65) r.push('جشع ('+d.fngVal+'/100) — احتمال تصحيح');
+  if (d.rsi > 65) r.push('RSI '+d.rsi?.toFixed(1)+' — تشبع شرائي');
+  if (!d.macd?.bullish) r.push('MACD تحت خط الإشارة — زخم هبوطي');
+  if ((d.price||0) > (d.ema20||0) * 1.03) r.push('السعر بعيد جداً عن EMA20 صعوداً');
+  if (r.length < 2) r.push('مؤشرات متعددة تدعم الاتجاه الهبوطي');
+  return r.slice(0, 3);
+}
+
+// ── Button click handler (reuses getAIDecision) ──
 async function fetchAISignal() {
-  const btn=$('ai-signal-btn'),panel=$('ai-panel');
+  const btn=$('ai-signal-btn');
   btn.classList.add('loading'); btn.textContent='🔮 جارٍ التحليل...';
-  try {
-    if(!window._lastData.price) await refreshAllData();
-    const{price,ema20,rsi,chg24,fngVal}=window._lastData;
-    let dec,conf,reasons=[],eL='',eP='',eC='orange';
-    if(rsi<35&&price>ema20){dec='شراء قوي';conf=Math.min(92,70+Math.round((35-rsi)*1.5));eL='سعر الدخول المقترح';eP=fmt(price*0.995);eC='green';reasons=['📊 RSI '+rsi.toFixed(1)+' — بيع مفرط','📈 فوق EMA20 — صاعد',fngVal<35?'😨 خوف = فرصة':'📉 ارتداد متوقع','💰 مخاطرة منخفضة'];}
-    else if(rsi<45&&chg24>-3){dec='شراء';conf=Math.min(82,55+Math.round((45-rsi)*0.8));eL='سعر الدخول';eP=fmt(price*0.998);eC='green';reasons=['📊 RSI '+rsi.toFixed(1),'💹 EMA20: '+fmt(ema20),chg24>=0?'🟢 +'+chg24.toFixed(2)+'%':'🟡 هبوط محدود',fngVal<40?'😨 خوف':'📊 معتدل'];}
-    else if(rsi>70&&price<ema20){dec='بيع قوي';conf=Math.min(90,65+Math.round((rsi-70)*1.5));eL='سعر الخروج';eP=fmt(price*1.005);eC='red';reasons=['📊 RSI '+rsi.toFixed(1)+' — شراء مفرط','📉 تحت EMA20','🔴 تصحيح وشيك','⚠️ جني أرباح'];}
-    else if(rsi>60&&chg24>5){dec='بيع';conf=Math.min(78,50+Math.round(chg24*3));eL='سعر الخروج';eP=fmt(price*1.003);eC='red';reasons=['📊 RSI '+rsi.toFixed(1),'🚀 +'+chg24.toFixed(2)+'% مبالغ','⚠️ جني أرباح','📉 تأمين أرباح'];}
-    else{dec='انتظار';conf=Math.min(70,40+Math.round(Math.abs(50-rsi)*0.5));reasons=['📊 RSI '+rsi.toFixed(1)+' — محايد','📈 EMA20: '+fmt(ema20),'🔄 '+chg24.toFixed(2)+'%','⏳ انتظر كسر مستوى'];}
-    const dE=$('ai-decision');dE.textContent=dec;dE.className='ai-decision '+(dec.includes('شراء')?'buy':dec.includes('بيع')?'sell':'wait');
-    $('ai-conf').textContent=conf+'% ثقة';$('ai-tf').textContent='خلال 12 ساعة — بيانات حية';
-    $('ai-reasons').innerHTML=reasons.map(r=>'<li>'+r+'</li>').join('');
-    const aE=$('ai-entry');if(eL){aE.style.display='block';$('ai-entry-label').textContent=eL;const ep=$('ai-entry-price');ep.textContent=eP;ep.className='ai-entry-price '+eC;}else aE.style.display='none';
-    panel.classList.add('open');
-  }catch(e){$('ai-decision').textContent='انتظار';$('ai-decision').className='ai-decision wait';$('ai-conf').textContent='— خطأ';$('ai-reasons').innerHTML='<li>⚠️ حاول مرة أخرى</li>';panel.classList.add('open');}
-  btn.classList.remove('loading');btn.textContent='🔮 ما أفضل قرار الآن؟';
+  if(!window._lastData.price) await refreshAllData();
+  else {
+    const r = getAIDecision(window._lastData);
+    const d=$('ai-decision'); if(d){d.textContent=r.emoji+' '+r.decision; d.style.color=r.color;}
+    $('ai-conf').textContent='ثقة: '+r.confidence+'%';
+    $('ai-tf').textContent='الإطار الزمني: 4 ساعات | '+new Date().toLocaleTimeString('ar-SA');
+    $('ai-reasons').innerHTML=r.reasons.map(x=>'<li>'+x+'</li>').join('');
+    const p=$('ai-panel'); if(p) p.classList.add('open');
+    const eL=$('ai-entry-label'),eP=$('ai-entry-price'),eE=$('ai-entry');
+    if(r.decision.includes('شراء')&&eL){eL.textContent='نقطة الدخول';eP.textContent=fmt(window._lastData.price);eP.style.color=r.color;if(eE)eE.style.display='block';}
+    else if(eE) eE.style.display='none';
+  }
+  btn.classList.remove('loading');
+  const r2=getAIDecision(window._lastData);
+  btn.innerHTML=r2.emoji+' '+r2.decision+' — '+r2.confidence+'% ثقة';
+  btn.style.background=r2.color+'22'; btn.style.borderColor=r2.color; btn.style.color=r2.color;
 }
 
 // ── RUN ──
