@@ -2167,69 +2167,74 @@ function calcVolumeProfile(klines) {
 }
 
 // ─── LIVE CHART MODULE (Lightweight Charts) ─────────────────────
-let _lwChart=null,_candleSeries=null,_ema50S=null,_ema200S=null,_srLines=[],_currentChartTF='1h',_chartReady=false;
+var _chart=null, _candleSeries=null, _ema50Series=null, _ema200Series=null, _srLines=[], _currentChartTF='1h', _chartInitialized=false;
 
 function calcEMAArray(closes,period){
-  const k=2/(period+1),out=[];let e=closes[0];
-  for(let i=0;i<closes.length;i++){e=closes[i]*k+e*(1-k);out.push(i>=period-1?e:null);}
+  var k=2/(period+1),out=[],e=closes[0];
+  for(var i=0;i<closes.length;i++){e=closes[i]*k+e*(1-k);out.push(i>=period-1?e:null);}
   return out;
 }
 
-function initLWChart(){
-  const c=document.getElementById('btc-lw-chart');
-  if(!c||typeof LightweightCharts==='undefined')return;
-  _lwChart=LightweightCharts.createChart(c,{
-    layout:{background:{type:'solid',color:'#0a0a0f'},textColor:'rgba(255,255,255,0.5)'},
-    grid:{vertLines:{color:'rgba(255,255,255,0.04)'},horzLines:{color:'rgba(255,255,255,0.04)'}},
-    crosshair:{mode:LightweightCharts.CrosshairMode.Normal},
-    rightPriceScale:{borderColor:'rgba(255,255,255,0.08)'},
-    timeScale:{borderColor:'rgba(255,255,255,0.08)',timeVisible:true,secondsVisible:false},
-    handleScroll:true,handleScale:true,width:c.clientWidth,height:c.clientHeight
+function initChart() {
+  var container = document.getElementById('btc-lw-chart');
+  if (!container || typeof LightweightCharts === 'undefined') return;
+  if (_chart) { try { _chart.remove(); } catch(e) {} _chart = null; }
+  _chart = LightweightCharts.createChart(container, {
+    layout: { background: { type: 'solid', color: '#0a0a0f' }, textColor: 'rgba(255,255,255,0.45)' },
+    grid: { vertLines: { color: 'rgba(255,255,255,0.04)' }, horzLines: { color: 'rgba(255,255,255,0.04)' } },
+    crosshair: { mode: 1 },
+    rightPriceScale: { borderColor: 'rgba(255,255,255,0.08)' },
+    timeScale: { borderColor: 'rgba(255,255,255,0.08)', timeVisible: true, secondsVisible: false },
+    handleScroll: true, handleScale: true,
+    width: container.clientWidth, height: container.clientHeight || 320
   });
-  _candleSeries=_lwChart.addCandlestickSeries({upColor:'#00cc66',downColor:'#ff4444',borderUpColor:'#00cc66',borderDownColor:'#ff4444',wickUpColor:'#00cc66',wickDownColor:'#ff4444'});
-  _ema50S=_lwChart.addLineSeries({color:'#4a9eff',lineWidth:1.5,priceLineVisible:false,lastValueVisible:false,crosshairMarkerVisible:false});
-  _ema200S=_lwChart.addLineSeries({color:'#f7931a',lineWidth:2,priceLineVisible:false,lastValueVisible:false,crosshairMarkerVisible:false});
-  new ResizeObserver(()=>{if(_lwChart&&c)_lwChart.applyOptions({width:c.clientWidth});}).observe(c);
-  _chartReady=true;
+  _candleSeries = _chart.addCandlestickSeries({ upColor:'#00cc66', downColor:'#ff4444', borderUpColor:'#00cc66', borderDownColor:'#ff4444', wickUpColor:'#00cc66', wickDownColor:'#ff4444' });
+  _ema50Series = _chart.addLineSeries({ color:'#4a9eff', lineWidth:1.5, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false });
+  _ema200Series = _chart.addLineSeries({ color:'#f7931a', lineWidth:2, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false });
+  new ResizeObserver(function(){ if(_chart&&container) _chart.applyOptions({width:container.clientWidth}); }).observe(container);
+  _chartInitialized = true;
 }
 
-async function loadLWChartData(tf){
-  tf=tf||'1h';
-  if(!_chartReady)initLWChart();
-  if(!_lwChart)return;
-  const limit=tf==='1d'?200:300;
-  try{
-    const klines=await fetch('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval='+tf+'&limit='+limit).then(r=>r.json());
-    const candles=klines.map(k=>({time:Math.floor(k[0]/1000),open:+k[1],high:+k[2],low:+k[3],close:+k[4]}));
+async function loadChartData(tf) {
+  tf = tf || _currentChartTF || '1h';
+  _currentChartTF = tf;
+  if (!_chartInitialized) initChart();
+  if (!_chart || !_candleSeries) return;
+  try {
+    var klines = await fetch('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval='+tf+'&limit=300').then(function(r){return r.json();});
+    var candles = klines.map(function(k){return {time:Math.floor(k[0]/1000),open:+k[1],high:+k[2],low:+k[3],close:+k[4]};});
     _candleSeries.setData(candles);
-    // EMA arrays
-    const closes=klines.map(k=>+k[4]);
-    const e50=calcEMAArray(closes,50),e200=calcEMAArray(closes,200);
-    _ema50S.setData(e50.map((v,i)=>v?{time:candles[i].time,value:v}:null).filter(Boolean));
-    _ema200S.setData(e200.map((v,i)=>v?{time:candles[i].time,value:v}:null).filter(Boolean));
-    // S/R lines
-    _srLines.forEach(pl=>{try{_candleSeries.removePriceLine(pl);}catch(e){}});_srLines=[];
-    const recent=klines.slice(-50),curP=+klines[klines.length-1][4];
-    const highs=[...new Set(recent.map(k=>+k[2]).sort((a,b)=>b-a).filter(h=>h>curP*1.005))].slice(0,2);
-    const lows=[...new Set(recent.map(k=>+k[3]).sort((a,b)=>a-b).filter(l=>l<curP*0.995))].slice(0,2);
-    highs.forEach(p=>{_srLines.push(_candleSeries.createPriceLine({price:p,color:'rgba(255,68,68,0.6)',lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dashed,axisLabelVisible:true,title:'مقاومة'}));});
-    lows.forEach(p=>{_srLines.push(_candleSeries.createPriceLine({price:p,color:'rgba(0,255,136,0.55)',lineWidth:1,lineStyle:LightweightCharts.LineStyle.Dashed,axisLabelVisible:true,title:'دعم'}));});
-    _lwChart.timeScale().fitContent();
-  }catch(e){console.error('LW Chart error:',e);}
+    var closes = klines.map(function(k){return +k[4];});
+    var e50 = calcEMAArray(closes,50), e200 = calcEMAArray(closes,200);
+    _ema50Series.setData(e50.map(function(v,i){return v?{time:candles[i].time,value:v}:null;}).filter(Boolean));
+    _ema200Series.setData(e200.map(function(v,i){return v?{time:candles[i].time,value:v}:null;}).filter(Boolean));
+    (_srLines||[]).forEach(function(pl){try{_candleSeries.removePriceLine(pl);}catch(e){}});_srLines=[];
+    var recent=klines.slice(-50), curP=+klines[klines.length-1][4];
+    var resistances=[...new Set(recent.map(function(k){return +k[2];}).sort(function(a,b){return b-a;}).filter(function(h){return h>curP*1.005;}))].slice(0,2);
+    var supports=[...new Set(recent.map(function(k){return +k[3];}).sort(function(a,b){return a-b;}).filter(function(l){return l<curP*0.995;}))].slice(0,2);
+    resistances.forEach(function(price){_srLines.push(_candleSeries.createPriceLine({price:price,color:'rgba(255,68,68,0.7)',lineWidth:1,lineStyle:2,axisLabelVisible:true,title:'مقاومة'}));});
+    supports.forEach(function(price){_srLines.push(_candleSeries.createPriceLine({price:price,color:'rgba(0,255,136,0.6)',lineWidth:1,lineStyle:2,axisLabelVisible:true,title:'دعم'}));});
+    _chart.timeScale().fitContent();
+  } catch(e) { console.error('Chart error:', e); }
 }
 
 function setChartTF(tf){
   _currentChartTF=tf;
-  document.querySelectorAll('.chart-tf-btn').forEach(b=>b.classList.toggle('active',b.textContent.trim()===tf.toUpperCase()));
-  loadLWChartData(tf);
+  document.querySelectorAll('.chart-tf-btn').forEach(function(b){b.classList.toggle('active',b.textContent.trim()===tf.toUpperCase());});
+  loadChartData(tf);
 }
 
 function updateChartLivePrice(price){
-  const el=document.getElementById('chart-price-live');
-  if(el){const prev=+(el.dataset.prev||price);el.textContent='$'+Math.round(price).toLocaleString();el.style.color=price>=prev?'#00ff88':'#ff4444';el.dataset.prev=price;}
+  var el=document.getElementById('chart-price-live');
+  if(el){var prev=+(el.dataset.prev||price);el.textContent='$'+Math.round(price).toLocaleString();el.style.color=price>=prev?'#00ff88':'#ff4444';el.dataset.prev=price;}
 }
 
-document.addEventListener('DOMContentLoaded',()=>{setTimeout(()=>{initLWChart();loadLWChartData('1h');},500);});
+// Init chart on page load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function(){ setTimeout(function(){ initChart(); loadChartData('1h'); }, 700); });
+} else {
+  setTimeout(function(){ initChart(); loadChartData('1h'); }, 700);
+}
 
 // ─── MASTER REFRESH ENGINE ───────────────────────────────────────
 window._lastData = {};
