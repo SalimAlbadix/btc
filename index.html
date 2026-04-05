@@ -1185,10 +1185,7 @@
     <div class="ai-conf" id="ai-conf"></div>
     <div class="ai-tf" id="ai-tf"></div>
     <ul class="ai-reasons" id="ai-reasons"></ul>
-    <div class="ai-entry" id="ai-entry" style="display:none;">
-      <div class="ai-entry-label" id="ai-entry-label"></div>
-      <div class="ai-entry-price" id="ai-entry-price"></div>
-    </div>
+    <!-- ai-entry removed — trade-levels-box handles entry/TP/SL display -->
   </div>
 
   <!-- CHART SECTION -->
@@ -2486,7 +2483,7 @@ function buildBullReasons(d, tf) {
   if (d.price < d.ema20) r.push('⬇️ تحت EMA20 — نقطة دخول');
   if (tf==='monthly'&&d.price<(d.ema200||d.ema50)) r.push('🏦 تحت EMA200 — تراكم طويل المدى');
   if (tf==='weekly'&&d.price<(d.ema50||d.ema20)) r.push('📅 تحت EMA50 — صعود أسبوعي متوقع');
-  r.push('🎯 الهدف: '+(d._target||'—')+' | وقف: '+(d._sl||'—')+' | مدة: '+(d._hold||'—'));
+  // (target/SL/hold now shown in trade-levels-box)
   return r.slice(0, 5);
 }
 
@@ -2500,7 +2497,7 @@ function buildBearReasons(d, tf) {
   if (d.rsi > 65) r.push('📊 RSI '+d.rsi?.toFixed(1)+' — تشبع شرائي');
   if (!d.macd?.bullish) r.push('📉 MACD هبوطي');
   if ((d.price||0) > (d.ema20||0) * 1.03) r.push('⬆️ بعيد عن EMA20 — تصحيح متوقع');
-  r.push('🎯 الهدف: '+(d._target||'—')+' | وقف: '+(d._sl||'—')+' | مدة: '+(d._hold||'—'));
+  // (target/SL/hold now shown in trade-levels-box)
   return r.slice(0, 5);
 }
 
@@ -2522,12 +2519,7 @@ function runAutoAI(data) {
   const aiT=$('ai-tf'); if(aiT) aiT.textContent='آخر تحديث: '+new Date().toLocaleTimeString('ar-SA');
   const aiRs=$('ai-reasons'); if(aiRs) aiRs.innerHTML=r.reasons.map(x=>'<li style="margin-bottom:6px">'+x+'</li>').join('');
   const aiP=$('ai-panel'); if(aiP){aiP.style.display='block';aiP.style.opacity='1';}
-  const aiE=$('ai-entry'),aiEL=$('ai-entry-label'),aiEP=$('ai-entry-price');
-  if(aiE&&(r.decision.includes('شراء')||r.decision.includes('بيع'))){
-    if(aiEL) aiEL.textContent=r.decision.includes('شراء')?'نقطة الدخول':'نقطة الخروج';
-    if(aiEP){aiEP.textContent=fmt(data.price);aiEP.style.color=r.color;}
-    aiE.style.display='block';
-  } else if(aiE) aiE.style.display='none';
+  // (ai-entry removed — trade-levels-box handles all entry/TP/SL)
   const btn=$('ai-signal-btn');
   if(btn){btn.innerHTML=r.emoji+' '+r.decision+' — '+r.confidence+'% ثقة';btn.style.cssText+=';background:'+r.color+'22;border-color:'+r.color+';color:'+r.color;}
 
@@ -2886,8 +2878,8 @@ function renderAccuracy() {
   const data = loadAccuracy();
   const correct = data.filter(d => d.outcome === 'correct').length;
   const total   = data.filter(d => d.outcome !== 'pending').length;
-  document.getElementById('acc-text').textContent = `Accuracy: ${correct}/${total}`;
-  document.getElementById('acc-ratio').textContent = total > 0 ? `${Math.round(correct/total*100)}%` : '—';
+  document.getElementById('acc-text').textContent = total > 0 ? `دقة: ${correct}/${total}` : 'دقة التوقعات: جاري التتبع';
+  document.getElementById('acc-ratio').textContent = total > 0 ? `${Math.round(correct/total*100)}%` : '';
 
   const tbody = document.getElementById('accuracy-tbody');
   if (data.length === 0) {
