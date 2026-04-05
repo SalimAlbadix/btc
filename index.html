@@ -965,6 +965,23 @@
   .ai-signal-btn:hover { transform: scale(1.04); box-shadow: 0 6px 32px rgba(247,147,26,0.5); }
   .ai-signal-btn:active { transform: scale(0.97); }
   .ai-signal-btn.loading { opacity: 0.7; pointer-events: none; }
+  .tf-btn {
+    font-family: var(--font);
+    font-size: 15px;
+    font-weight: 700;
+    padding: 8px 24px;
+    border-radius: 100px;
+    border: 1.5px solid rgba(200,169,81,0.3);
+    background: transparent;
+    color: rgba(255,255,255,0.5);
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .tf-btn.tf-active {
+    background: rgba(200,169,81,0.15);
+    border-color: #C8A951;
+    color: #C8A951;
+  }
 
   .ai-panel {
     display: none;
@@ -1106,8 +1123,13 @@
   </div>
 
   <!-- AI SIGNAL BUTTON -->
-  <button class="ai-signal-btn fade-in-up" id="ai-signal-btn" onclick="fetchAISignal()">🔮 ما أفضل قرار الآن؟</button>
+  <button class="ai-signal-btn fade-in-up" id="ai-signal-btn" onclick="runAutoAI(window._lastData)">🔮 ما أفضل قرار الآن؟</button>
   <div class="ai-panel glass fade-in-up" id="ai-panel">
+    <div id="ai-tf-selector" style="display:flex;gap:12px;margin-bottom:16px;justify-content:center;">
+      <button class="tf-btn tf-active" data-tf="daily" onclick="setAITimeframe('daily')">يومي</button>
+      <button class="tf-btn" data-tf="weekly" onclick="setAITimeframe('weekly')">أسبوعي</button>
+      <button class="tf-btn" data-tf="monthly" onclick="setAITimeframe('monthly')">شهري</button>
+    </div>
     <div class="ai-decision" id="ai-decision">—</div>
     <div class="ai-conf" id="ai-conf"></div>
     <div class="ai-tf" id="ai-tf"></div>
@@ -1553,6 +1575,29 @@
         </div>
       </div>
 
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ MACRO PULSE ══ -->
+<section id="macro">
+  <div class="container">
+    <div class="section-header fade-in-up">
+      <div class="section-tag">Macro + News</div>
+      <h2>🌍 النبض الاقتصادي</h2>
+      <p>أحدث البيانات العالمية وتأثيرها على البيتكوين</p>
+    </div>
+
+    <div id="macro-grid" class="fade-in-up" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px">
+    </div>
+
+    <div class="glass fade-in-up" style="padding:20px;border-radius:var(--radius);">
+      <div style="font-size:15px;font-weight:700;color:var(--text-muted);margin-bottom:14px;">📰 أحدث الأخبار المؤثرة</div>
+      <div id="macro-news" style="display:flex;flex-direction:column;gap:10px">
+      </div>
+      <div id="macro-ts" style="font-size:11px;color:var(--text-muted);margin-top:12px;">آخر تحديث: —</div>
     </div>
   </div>
 </section>
@@ -2215,104 +2260,183 @@ async function refreshAllData() {
       const lbs=document.querySelectorAll('.summary-count');if(lbs[0])lbs[0].textContent=bc;if(lbs[1])lbs[1].textContent=blc;if(lbs[2])lbs[2].textContent=nc;
     }
 
-    // ── Auto-run AI Signal ──
-    const aiR = getAIDecision(window._lastData);
-    const aiD=$('ai-decision'); if(aiD){aiD.textContent=aiR.emoji+' '+aiR.decision; aiD.style.color=aiR.color; aiD.className='ai-decision';}
-    const aiC=$('ai-conf'); if(aiC) aiC.textContent='ثقة: '+aiR.confidence+'%';
-    const aiT=$('ai-tf'); if(aiT) aiT.textContent='الإطار الزمني: 4 ساعات | آخر تحديث: '+new Date().toLocaleTimeString('ar-SA');
-    const aiRs=$('ai-reasons'); if(aiRs) aiRs.innerHTML=aiR.reasons.map(r=>'<li>'+r+'</li>').join('');
-    const aiP=$('ai-panel'); if(aiP) aiP.style.display='block';
-    const aiEL=$('ai-entry-label'),aiEP=$('ai-entry-price'),aiE=$('ai-entry');
-    if(aiR.decision.includes('شراء')&&aiEL&&aiEP){aiEL.textContent='نقطة الدخول المقترحة';aiEP.textContent=fmt(price);aiEP.style.color=aiR.color;if(aiE)aiE.style.display='block';}
-    else if(aiE) aiE.style.display='none';
-    const aiBtn=$('ai-signal-btn');
-    if(aiBtn){aiBtn.innerHTML=aiR.emoji+' '+aiR.decision+' — '+aiR.confidence+'% ثقة';aiBtn.style.background=aiR.color+'22';aiBtn.style.borderColor=aiR.color;aiBtn.style.color=aiR.color;}
+    // ── Auto-run AI + Macro ──
+    runAutoAI(window._lastData);
+    updateMacroPulse();
 
   } catch(e) { console.warn('refreshAllData:', e); }
 }
 
-// ── AI DECISION ENGINE (score-based) ──
-function getAIDecision(data) {
-  const { rsi, ema20, price, fngVal, chg24, macd, vol24 } = data;
+// ── AI DECISION ENGINE (timeframe-aware score system) ──
+let _currentTF = 'daily';
+
+function setAITimeframe(tf) {
+  _currentTF = tf;
+  document.querySelectorAll('.tf-btn').forEach(b => b.classList.toggle('tf-active', b.dataset.tf === tf));
+  if (window._lastData && window._lastData.price) runAutoAI(window._lastData);
+}
+
+function getAIDecision(data, tf) {
+  tf = tf || 'daily';
+  const { rsi, ema20, ema50, ema200, price, fngVal, chg24, macd } = data;
   let bull = 0, bear = 0;
-  // RSI
-  if (rsi < 25) bull += 30; else if (rsi < 35) bull += 20; else if (rsi < 45) bull += 10;
-  else if (rsi > 75) bear += 30; else if (rsi > 65) bear += 20; else if (rsi > 55) bear += 10;
-  // Fear & Greed (contrarian)
-  if (fngVal < 15) bull += 25; else if (fngVal < 30) bull += 15;
-  else if (fngVal > 75) bear += 25; else if (fngVal > 60) bear += 15;
-  // MACD
-  if (macd && macd.bullish) bull += 15; else bear += 15;
-  // Price vs EMA20
-  const pctEMA = ((price||0) - (ema20||1)) / (ema20||1) * 100;
-  if (pctEMA < -3) bull += 20; else if (pctEMA < -1) bull += 10;
-  else if (pctEMA > 3) bear += 20; else if (pctEMA > 1) bear += 10;
-  // 24h momentum
-  if (chg24 < -5) bull += 10; else if (chg24 > 5) bear += 10;
+
+  if (tf === 'daily') {
+    if (rsi < 25) bull += 30; else if (rsi < 35) bull += 20; else if (rsi < 45) bull += 10;
+    else if (rsi > 75) bear += 30; else if (rsi > 65) bear += 20; else if (rsi > 55) bear += 5;
+    if (fngVal < 15) bull += 20; else if (fngVal < 30) bull += 12; else if (fngVal > 75) bear += 20; else if (fngVal > 60) bear += 12;
+    if (macd?.bullish) bull += 20; else bear += 20;
+    const d = ((price||0) - (ema20||1)) / (ema20||1) * 100;
+    if (d < -3) bull += 20; else if (d < -1) bull += 10; else if (d > 3) bear += 20; else if (d > 1) bear += 10;
+    if (chg24 < -4) bull += 10; else if (chg24 > 4) bear += 10;
+    data._tfLabel = 'التداول اليومي (4 ساعات)';
+    data._target = fmt(price > ema20 ? ema20 * 1.015 : ema20);
+    data._sl = fmt(price * (price < ema20 ? 0.985 : 0.982));
+    data._hold = '4–24 ساعة';
+  } else if (tf === 'weekly') {
+    if (rsi < 35) bull += 25; else if (rsi < 50) bull += 10; else if (rsi > 70) bear += 25; else if (rsi > 55) bear += 10;
+    if (fngVal < 25) bull += 25; else if (fngVal > 70) bear += 20;
+    if (price > (ema50||ema20)) bull += 20; else bear += 20;
+    if (price > ema20) bull += 10; else bear += 10;
+    if (macd?.bullish) bull += 15; else bear += 15;
+    const d50 = ((price||0) - (ema50||ema20||1)) / (ema50||ema20||1) * 100;
+    if (d50 < -5) bull += 20; else if (d50 < -2) bull += 10; else if (d50 > 5) bear += 15; else if (d50 > 2) bear += 8;
+    data._tfLabel = 'التداول الأسبوعي (يومي)';
+    data._target = fmt((ema50||ema20) > price ? (ema50||ema20) : price * 1.04);
+    data._sl = fmt(price * 0.96);
+    data._hold = '3–7 أيام';
+  } else {
+    if (price > (ema200||ema50||ema20)) bull += 30; else bear += 30;
+    if (rsi < 40) bull += 20; else if (rsi > 65) bear += 15;
+    if (fngVal < 20) bull += 30; else if (fngVal > 75) bear += 20;
+    const d200 = ((price||0) - (ema200||ema50||1)) / (ema200||ema50||1) * 100;
+    if (d200 < -15) bull += 25; else if (d200 < -5) bull += 15; else if (d200 > 20) bear += 20;
+    if (macd?.bullish) bull += 10; else bear += 10;
+    data._tfLabel = 'الاستثمار الشهري (أسبوعي)';
+    data._target = fmt(price > (ema200||ema50) ? price * 1.12 : (ema200||ema50) * 1.05);
+    data._sl = fmt(price * 0.92);
+    data._hold = '2–4 أسابيع';
+  }
 
   const total = bull + bear || 1;
   const bullPct = Math.round(bull / total * 100);
   let decision, confidence, color, emoji, reasons = [];
 
   if (bull >= 55 && bull > bear * 1.8) {
-    decision='شراء قوي'; confidence=bullPct; color='#10b981'; emoji='🟢';
-    reasons=buildBullReasons(data);
-  } else if (bull >= 35 && bull > bear * 1.3) {
-    decision='شراء تدريجي'; confidence=bullPct; color='#34d399'; emoji='🟡';
-    reasons=buildBullReasons(data);
+    decision='شراء قوي'; confidence=bullPct; color='#10b981'; emoji='🟢'; reasons=buildBullReasons(data, tf);
+  } else if (bull >= 35 && bull > bear * 1.2) {
+    decision='شراء تدريجي'; confidence=bullPct; color='#34d399'; emoji='🟡'; reasons=buildBullReasons(data, tf);
   } else if (bear >= 55 && bear > bull * 1.8) {
-    decision='بيع / خروج'; confidence=Math.round(bear/total*100); color='#ef4444'; emoji='🔴';
-    reasons=buildBearReasons(data);
-  } else if (bear >= 35 && bear > bull * 1.3) {
-    decision='تخفيف مراكز'; confidence=Math.round(bear/total*100); color='#f87171'; emoji='🟠';
-    reasons=buildBearReasons(data);
+    decision='بيع / خروج'; confidence=Math.round(bear/total*100); color='#ef4444'; emoji='🔴'; reasons=buildBearReasons(data, tf);
+  } else if (bear >= 35 && bear > bull * 1.2) {
+    decision='تخفيف مراكز'; confidence=Math.round(bear/total*100); color='#f87171'; emoji='🟠'; reasons=buildBearReasons(data, tf);
   } else {
-    decision='انتظار'; confidence=50; color='#f59e0b'; emoji='🟡';
-    reasons=['الإشارات متضاربة — لا يوجد تفوق واضح','RSI عند '+(rsi||0).toFixed(1)+' في المنطقة المحايدة','انتظر كسر مستوى رئيسي'];
+    decision='انتظار إشارة'; confidence=50; color='#f59e0b'; emoji='🟡'; reasons=buildNeutralReasons(data, tf);
   }
-  return { decision, confidence, color, emoji, reasons, bullScore:bull, bearScore:bear };
+  return { decision, confidence, color, emoji, reasons, bullScore:bull, bearScore:bear, tf };
 }
 
-function buildBullReasons(d) {
+function buildBullReasons(d, tf) {
   const r = [];
-  if (d.fngVal < 20) r.push('خوف شديد ('+d.fngVal+'/100) — فرصة تاريخية للتراكم');
-  if (d.rsi < 40) r.push('RSI '+d.rsi?.toFixed(1)+' — تشبع بيعي، استرداد متوقع');
+  if (d.fngVal < 20) r.push('مؤشر الخوف '+d.fngVal+'/100 — ذعر تاريخي = فرصة تراكم');
+  if (d.rsi < 40) r.push('RSI '+d.rsi?.toFixed(1)+' — تشبع بيعي، ارتداد متوقع');
   if (d.macd?.bullish) r.push('MACD تجاوز خط الإشارة صعوداً');
-  if (d.price < d.ema20) r.push('السعر تحت EMA20 بـ'+Math.abs(((d.price||0)/(d.ema20||1)-1)*100).toFixed(1)+'% — فرصة دخول');
-  if (r.length < 2) r.push('مؤشرات متعددة تدعم الاتجاه الصعودي');
-  return r.slice(0, 3);
+  if (d.price < d.ema20) r.push('السعر تحت EMA20 — نقطة دخول ممتازة');
+  if (tf==='monthly'&&d.price<(d.ema200||d.ema50)) r.push('تحت EMA200 — منطقة تراكم طويل المدى');
+  if (tf==='weekly'&&d.price<(d.ema50||d.ema20)) r.push('تحت EMA50 — الأسبوع القادم محتمل صعود');
+  r.push('الهدف: '+(d._target||'—')+' | وقف: '+(d._sl||'—')+' | مدة: '+(d._hold||'—'));
+  return r.slice(0, 4);
 }
 
-function buildBearReasons(d) {
+function buildBearReasons(d, tf) {
   const r = [];
-  if (d.fngVal > 65) r.push('جشع ('+d.fngVal+'/100) — احتمال تصحيح');
+  if (d.fngVal > 70) r.push('مؤشر الجشع '+d.fngVal+'/100 — وقت الحذر');
   if (d.rsi > 65) r.push('RSI '+d.rsi?.toFixed(1)+' — تشبع شرائي');
   if (!d.macd?.bullish) r.push('MACD تحت خط الإشارة — زخم هبوطي');
-  if ((d.price||0) > (d.ema20||0) * 1.03) r.push('السعر بعيد جداً عن EMA20 صعوداً');
-  if (r.length < 2) r.push('مؤشرات متعددة تدعم الاتجاه الهبوطي');
-  return r.slice(0, 3);
+  if ((d.price||0) > (d.ema20||0) * 1.03) r.push('السعر بعيد عن EMA20 صعوداً — توقع تصحيح');
+  r.push('الهدف: '+(d._target||'—')+' | وقف: '+(d._sl||'—')+' | مدة: '+(d._hold||'—'));
+  return r.slice(0, 4);
 }
 
-// ── Button click handler (reuses getAIDecision) ──
-async function fetchAISignal() {
+function buildNeutralReasons(d, tf) {
+  const r = ['الإشارات متعادلة — الثيران '+(d.bullScore||0)+' نقطة، الدببة '+(d.bearScore||0)+' نقطة', 'RSI '+(d.rsi||0).toFixed(1)+' في المنطقة المحايدة'];
+  if (tf==='daily') r.push('انتظر كسر '+fmt((d.ema20||0)*1.005)+' بشمعة 4h إغلاق');
+  if (tf==='weekly') r.push('راقب الإغلاق الأسبوعي فوق EMA50 ('+fmt(d.ema50||0)+')');
+  if (tf==='monthly') r.push('الاتجاه الكبير '+(d.price>(d.ema200||d.ema50)?'صعودي — أي تراجع فرصة':'هبوطي — احذر'));
+  return r;
+}
+
+// ── runAutoAI — renders AI panel from data ──
+function runAutoAI(data) {
+  if (!data || !data.price) return;
+  const r = getAIDecision(data, _currentTF);
+  window._aiResult = r;
+  const aiD=$('ai-decision'); if(aiD){aiD.textContent=r.emoji+' '+r.decision;aiD.style.color=r.color;}
+  const aiC=$('ai-conf'); if(aiC) aiC.textContent='ثقة: '+r.confidence+'% | '+(data._tfLabel||'');
+  const aiT=$('ai-tf'); if(aiT) aiT.textContent='آخر تحديث: '+new Date().toLocaleTimeString('ar-SA');
+  const aiRs=$('ai-reasons'); if(aiRs) aiRs.innerHTML=r.reasons.map(x=>'<li style="margin-bottom:6px">'+x+'</li>').join('');
+  const aiP=$('ai-panel'); if(aiP){aiP.style.display='block';aiP.style.opacity='1';}
+  const aiE=$('ai-entry'),aiEL=$('ai-entry-label'),aiEP=$('ai-entry-price');
+  if(aiE&&(r.decision.includes('شراء')||r.decision.includes('بيع'))){
+    if(aiEL) aiEL.textContent=r.decision.includes('شراء')?'نقطة الدخول':'نقطة الخروج';
+    if(aiEP){aiEP.textContent=fmt(data.price);aiEP.style.color=r.color;}
+    aiE.style.display='block';
+  } else if(aiE) aiE.style.display='none';
   const btn=$('ai-signal-btn');
-  btn.classList.add('loading'); btn.textContent='🔮 جارٍ التحليل...';
-  if(!window._lastData.price) await refreshAllData();
-  else {
-    const r = getAIDecision(window._lastData);
-    const d=$('ai-decision'); if(d){d.textContent=r.emoji+' '+r.decision; d.style.color=r.color;}
-    $('ai-conf').textContent='ثقة: '+r.confidence+'%';
-    $('ai-tf').textContent='الإطار الزمني: 4 ساعات | '+new Date().toLocaleTimeString('ar-SA');
-    $('ai-reasons').innerHTML=r.reasons.map(x=>'<li>'+x+'</li>').join('');
-    const p=$('ai-panel'); if(p) p.classList.add('open');
-    const eL=$('ai-entry-label'),eP=$('ai-entry-price'),eE=$('ai-entry');
-    if(r.decision.includes('شراء')&&eL){eL.textContent='نقطة الدخول';eP.textContent=fmt(window._lastData.price);eP.style.color=r.color;if(eE)eE.style.display='block';}
-    else if(eE) eE.style.display='none';
-  }
-  btn.classList.remove('loading');
-  const r2=getAIDecision(window._lastData);
-  btn.innerHTML=r2.emoji+' '+r2.decision+' — '+r2.confidence+'% ثقة';
-  btn.style.background=r2.color+'22'; btn.style.borderColor=r2.color; btn.style.color=r2.color;
+  if(btn){btn.innerHTML=r.emoji+' '+r.decision+' — '+r.confidence+'% ثقة';btn.style.cssText+=';background:'+r.color+'22;border-color:'+r.color+';color:'+r.color;}
+}
+
+// ── MACRO PULSE ──
+async function updateMacroPulse() {
+  try {
+    const [btcD, ethD] = await Promise.all([
+      fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT').then(r=>r.json()).catch(()=>({})),
+      fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=ETHUSDT').then(r=>r.json()).catch(()=>({}))
+    ]);
+    const btcC=+(btcD.priceChangePercent||0), ethC=+(ethD.priceChangePercent||0);
+    const corr=Math.abs(btcC-ethC)<2?'مترابطان':'منفصلان';
+    const fngV=window._lastData?.fngVal||'—';
+
+    const grid=$('macro-grid');
+    if(grid){
+      const items=[
+        {label:'BTC 24h',value:(btcC>0?'+':'')+btcC.toFixed(2)+'%',bull:btcC>0,icon:'₿'},
+        {label:'ETH 24h',value:(ethC>0?'+':'')+ethC.toFixed(2)+'%',bull:ethC>0,icon:'Ξ'},
+        {label:'BTC/ETH',value:corr,bull:true,icon:'🔗'},
+        {label:'FNG اليوم',value:fngV+'/100',bull:(+fngV||50)<50,icon:'😱'}
+      ];
+      grid.innerHTML=items.map(it=>'<div style="background:rgba(255,255,255,0.03);border:1px solid rgba('+(it.bull?'34,197,94':'239,68,68')+',0.15);border-radius:16px;padding:16px;display:flex;align-items:center;gap:12px"><span style="font-size:24px">'+it.icon+'</span><div><div style="font-size:12px;color:var(--text-muted)">'+it.label+'</div><div style="font-size:20px;font-weight:800;color:'+(it.bull?'#22C55E':'#EF4444')+'">'+it.value+'</div></div></div>').join('');
+    }
+
+    // News
+    const newsItems = await fetchMacroNews();
+    const newsEl=$('macro-news');
+    if(newsEl&&newsItems.length){
+      newsEl.innerHTML=newsItems.slice(0,5).map(n=>'<div style="display:flex;align-items:flex-start;gap:10px;padding:12px;background:rgba(255,255,255,0.02);border-radius:10px;border-right:3px solid '+(n.bull?'#22C55E':'#EF4444')+'"><span style="font-size:16px;flex-shrink:0">'+(n.bull?'🟢':'🔴')+'</span><div><div style="font-size:13px;font-weight:600;color:#D4D4D8;line-height:1.5">'+n.title+'</div><div style="font-size:11px;color:var(--text-muted);margin-top:3px">'+n.impact+' — '+n.time+'</div></div></div>').join('');
+    }
+    const mts=$('macro-ts'); if(mts) mts.textContent='آخر تحديث: '+new Date().toLocaleTimeString('ar-SA');
+  } catch(e) { console.warn('Macro:', e); }
+}
+
+async function fetchMacroNews() {
+  try {
+    const res = await fetch('https://api.coingecko.com/api/v3/news');
+    if (res.ok) {
+      const data = await res.json();
+      return (data.data||[]).slice(0,8).map(n=>{
+        const t=n.title||'';
+        const isBull=/bitcoin|etf|institutional|buy|rally|surge|trump.*crypto|reserve/i.test(t)&&!/ban|crash|sell|fear|drop|fall/i.test(t);
+        return {title:t.substring(0,100),bull:isBull,impact:isBull?'تأثير صعودي محتمل':'تأثير هبوطي محتمل',time:n.updated_at?new Date(n.updated_at*1000).toLocaleTimeString('ar-SA'):'—'};
+      }).filter(n=>n.title.length>20);
+    }
+  } catch(e) {}
+  // Fallback
+  const d=window._lastData||{};
+  const items=[];
+  if(d.fngVal<20) items.push({title:'مؤشر الخوف عند '+d.fngVal+' — المؤسسات تتراكم تاريخياً',bull:true,impact:'تأثير صعودي قوي',time:'الآن'});
+  if(d.macd?.bullish) items.push({title:'MACD تجاوز خط الإشارة صعوداً على 4 ساعات',bull:true,impact:'إشارة تقنية صعودية',time:'الآن'});
+  items.push({title:'تابع تصريحات ترامب والفيدرالي على Twitter/X',bull:true,impact:'بيانات خارجية',time:'مباشر'});
+  return items;
 }
 
 // ── RUN ──
