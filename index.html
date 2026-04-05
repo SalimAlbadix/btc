@@ -739,16 +739,15 @@
   .outcome-wrong   { color: var(--red); font-weight: 600; }
 
   /* ── FOOTER ── */
-  footer {
-    text-align: center;
-    padding: 48px 24px;
-    color: var(--text-muted);
-    font-size: 13px;
-    border-top: 1px solid var(--card-border);
-    position: relative;
-    z-index: 1;
-  }
-  footer a { color: var(--accent); text-decoration: none; }
+  .site-footer { background:#080810;border-top:1px solid rgba(255,255,255,0.06);padding:32px 20px 40px;margin-top:48px;text-align:center;position:relative;z-index:1; }
+  .footer-inner { max-width:600px;margin:0 auto; }
+  .footer-copyright { font-size:14px;font-weight:600;color:rgba(255,255,255,0.7);margin-bottom:16px; }
+  .footer-divider { height:1px;background:rgba(255,255,255,0.06);margin:0 auto 16px;width:80%; }
+  .footer-credits-title { display:block;font-size:10px;color:rgba(255,255,255,0.3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px; }
+  .footer-apis { display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:14px; }
+  .footer-api-badge { display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:4px 10px;font-size:11px;color:rgba(255,255,255,0.5);text-decoration:none;transition:border-color 0.2s; }
+  .footer-api-badge:hover { border-color:rgba(255,255,255,0.25);color:rgba(255,255,255,0.7); }
+  .footer-disclaimer { font-size:10px;color:rgba(255,255,255,0.2);margin-top:4px; }
 
   /* ── RESPONSIVE ── */
   @media (max-width: 900px) {
@@ -1054,6 +1053,15 @@
   @keyframes pulse-border { 0%,100% { border-color: rgba(100,200,255,0.3); } 50% { border-color: rgba(100,200,255,0.7); } }
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
   .ai-auto-note { font-size: 10px; color: rgba(255,255,255,0.3); text-align: center; margin-bottom: 12px; margin-top: -6px; }
+
+  .info-btn { display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.6);font-size:9px;font-weight:700;cursor:pointer;margin-right:6px;vertical-align:middle;flex-shrink:0;transition:background 0.15s;font-style:normal; }
+  .info-btn:hover { background:rgba(255,255,255,0.25); }
+  .info-tooltip { position:fixed;z-index:9999;background:#1a1a2e;border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:14px 16px;max-width:280px;box-shadow:0 8px 32px rgba(0,0,0,0.6);display:none;direction:rtl; }
+  .info-tooltip.visible { display:block; }
+  .info-tooltip-title { font-size:13px;font-weight:700;color:#fff;margin-bottom:6px; }
+  .info-tooltip-body { font-size:12px;color:rgba(255,255,255,0.7);line-height:1.5; }
+  .info-tooltip-impact { margin-top:8px;font-size:11px;color:#ffbb00;font-weight:600; }
+  .info-tooltip-close { position:absolute;top:8px;left:10px;background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;font-size:14px;padding:0; }
 
   /* ── S/R TOOLTIP ── */
   .sr-info {
@@ -2040,12 +2048,21 @@
 <div class="divider"></div>
 
 <!-- ══ FOOTER ══ -->
-<footer>
-  <div style="font-size:20px;margin-bottom:12px;">₿</div>
-  <div style="font-weight:600;margin-bottom:6px;">Bitcoin Intelligence — btc.albadi.io</div>
-  <div style="color:var(--text-muted);font-size:12px;line-height:1.8;">
-    تحديث: 4 أبريل 2026 · البيانات للأغراض التعليمية فقط · لا تُعدّ نصيحة استثمارية<br>
-    <span style="opacity:0.5">Price data: CoinGecko API · Technical analysis: Manual</span>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-copyright">© Salim Albadi 2026 — جميع الحقوق محفوظة</div>
+    <div class="footer-divider"></div>
+    <div class="footer-credits">
+      <span class="footer-credits-title">مصادر البيانات</span>
+      <div class="footer-apis">
+        <a href="https://www.coingecko.com" target="_blank" class="footer-api-badge"><img src="https://www.coingecko.com/favicon.ico" width="14" height="14" style="border-radius:3px"> CoinGecko API</a>
+        <span class="footer-api-badge">📡 Binance WebSocket</span>
+        <span class="footer-api-badge">⛓️ Blockchain.com</span>
+        <span class="footer-api-badge">🕳️ Mempool.space</span>
+        <span class="footer-api-badge">😱 Alternative.me</span>
+      </div>
+      <div class="footer-disclaimer">هذا الموقع للأغراض التعليمية فقط. ليست نصيحة مالية.</div>
+    </div>
   </div>
 </footer>
 
@@ -2145,7 +2162,7 @@ async function refreshAllData() {
     window._srLevels = [...k50h, ...k50l].sort((a,b)=>a-b);
 
     // ── A. Hero meta ──
-    const hd=$('hero-date'); if(hd) hd.textContent=new Date().toLocaleDateString('ar-SA',{day:'numeric',month:'long',year:'numeric'});
+    const hd=$('hero-date'); if(hd) hd.textContent=new Date().toLocaleDateString('en-US',{calendar:'gregory',weekday:'short',day:'numeric',month:'long',year:'numeric'});
     const hr=$('hero-rsi'); if(hr){hr.textContent=rsi.toFixed(1); hr.style.color=rsi<35?'var(--green)':rsi>65?'var(--red)':'var(--yellow)';}
     const hf=$('hero-fng'); if(hf){hf.textContent=fngVal; hf.style.color=fngVal<35?'var(--red)':fngVal>55?'var(--green)':'var(--yellow)';}
 
@@ -2340,7 +2357,7 @@ async function refreshAllData() {
         ws.textContent=sl<wa.transactions.length-sl?'تراكم صافي — إشارة صعودية':'ضغط بيع — إشارة هبوطية';ws.style.color=sl<wa.transactions.length-sl?'#22C55E':'#EF4444';}
     }catch(e){}
     // Timestamp
-    const ts=$('intel-timestamp'); if(ts) ts.textContent='آخر تحديث: '+new Date().toLocaleTimeString('ar-SA');
+    const ts=$('intel-timestamp'); if(ts) ts.textContent='آخر تحديث: '+new Date().toLocaleTimeString('en-US');
 
     // ── Derivatives display cards (with fallback) ──
     // Open Interest
@@ -2519,8 +2536,14 @@ function runAutoAI(data) {
   window._aiResult = r;
   const aiD=$('ai-decision'); if(aiD){aiD.textContent=r.emoji+' '+r.decision;aiD.style.color=r.color;}
   const aiC=$('ai-conf'); if(aiC) aiC.textContent='ثقة: '+r.confidence+'% | '+(data._tfLabel||'');
-  const aiT=$('ai-tf'); if(aiT) aiT.textContent='آخر تحديث: '+new Date().toLocaleTimeString('ar-SA');
-  const aiRs=$('ai-reasons'); if(aiRs) aiRs.innerHTML=r.reasons.map(x=>'<li style="margin-bottom:6px">'+x+'</li>').join('');
+  const aiT=$('ai-tf'); if(aiT) aiT.textContent='آخر تحديث: '+new Date().toLocaleTimeString('en-US');
+  const aiRs=$('ai-reasons'); if(aiRs) aiRs.innerHTML=r.reasons.map(x=>{
+    let ib='';
+    if(/RSI/i.test(x))ib=infoBtn('rsi');else if(/MACD/i.test(x))ib=infoBtn('macd');else if(/EMA/i.test(x))ib=infoBtn('ema');
+    else if(/خوف|جشع|Fear|Greed/i.test(x))ib=infoBtn('fng');else if(/Funding/i.test(x))ib=infoBtn('funding');
+    else if(/Long.*Short|شورت.*لونج|squeeze/i.test(x))ib=infoBtn('ls');else if(/Open Interest/i.test(x))ib=infoBtn('oi');
+    return '<li style="margin-bottom:6px">'+ib+x+'</li>';
+  }).join('');
   const aiP=$('ai-panel'); if(aiP){aiP.style.display='block';aiP.style.opacity='1';}
   // (ai-entry removed — trade-levels-box handles all entry/TP/SL)
   const btn=$('ai-signal-btn');
@@ -2608,6 +2631,42 @@ function runAutoAI(data) {
     + '<div class="tl-disclaimer">⚠️ هذه مستويات مقترحة بناءً على التحليل التقني — ليست نصيحة مالية. استخدم إدارة المخاطر الخاصة بك.</div>';
 }
 
+// ── INFO TOOLTIP SYSTEM ──
+const INFO_DATA = {
+  rsi:{title:'RSI — مؤشر القوة النسبية',body:'يقيس سرعة وحجم تغيرات السعر. فوق 70 = ذروة شراء. تحت 30 = ذروة بيع. الأكثر دقة على 4 ساعات.',impact:'10% من منظومة التحليل'},
+  macd:{title:'MACD — تقاطع المتوسطات',body:'يكشف تغير الزخم. عبور فوق خط الإشارة = نبضة صاعدة. تحت = هبوطية. الهيستوجرام يُظهر قوة الزخم.',impact:'12% من منظومة التحليل'},
+  ema:{title:'EMA — المتوسط المتحرك الأسي',body:'EMA20/50/200 تمثل الاتجاه قصير ومتوسط وطويل الأمد. السعر فوق EMA200 = صاعد. تقاطع EMA20 فوق EMA50 = Golden Cross.',impact:'18% من منظومة التحليل'},
+  fng:{title:'Fear & Greed — الخوف والطمع',body:'يقيس معنويات السوق 0-100. خوف شديد = فرصة شراء لأن الجميع باع. طمع شديد = تحذير.',impact:'15% من منظومة التحليل'},
+  funding:{title:'Funding Rate — معدل التمويل',body:'رسوم العقود الآجلة كل 8 ساعات. موجب = اللونج مفرط. سالب = الشورت مسيطر = فرصة ارتداد.',impact:'8% من منظومة التحليل'},
+  ls:{title:'Long/Short Ratio',body:'نسبة المتداولين اللونج للشورت. أقل من 0.8 = الأغلبية شورت = Short Squeeze محتمل.',impact:'7% من منظومة التحليل'},
+  oi:{title:'Open Interest — الفائدة المفتوحة',body:'إجمالي العقود المفتوحة. ارتفاعه مع السعر = اتجاه قوي. مع ثبات السعر = ضغط رافعة.',impact:'8% من منظومة التحليل'},
+  volume:{title:'الحجم اليومي',body:'حجم التداول يؤكد الاتجاه. ارتفاع السعر + حجم عالٍ = حقيقي. حجم منخفض = ضعيف.',impact:'6% من منظومة التحليل'},
+  hashrate:{title:'Hash Rate — قوة التعدين',body:'قوة شبكة البيتكوين. ارتفاعه = أمان وثقة المعدّنين عالية = إشارة إيجابية طويلة الأمد.',impact:'5% من منظومة التحليل'},
+  etf:{title:'تدفقات ETF',body:'صناديق البيتكوين المتداولة (BlackRock IBIT). تدفقات إيجابية = المؤسسات تشتري. من أقوى المحركات السعرية.',impact:'11% من منظومة التحليل'}
+};
+
+(function(){
+  const tt=document.createElement('div');tt.className='info-tooltip';
+  tt.innerHTML='<button class="info-tooltip-close" onclick="hideInfoTooltip()">✕</button><div class="info-tooltip-title" id="tt-title"></div><div class="info-tooltip-body" id="tt-body"></div><div class="info-tooltip-impact" id="tt-impact"></div>';
+  document.body.appendChild(tt);
+  window._infoTT=tt;
+})();
+
+function showInfoTooltip(btn,title,body,impact){
+  $('tt-title').textContent=title;$('tt-body').textContent=body;$('tt-impact').textContent='📊 تأثير: '+impact;
+  const r=btn.getBoundingClientRect();
+  window._infoTT.style.top=(r.bottom+8)+'px';window._infoTT.style.right=Math.max(8,window.innerWidth-r.right-20)+'px';window._infoTT.style.left='auto';
+  window._infoTT.classList.add('visible');
+  setTimeout(()=>document.addEventListener('click',_hideOnOutside),10);
+}
+function hideInfoTooltip(){window._infoTT.classList.remove('visible');document.removeEventListener('click',_hideOnOutside);}
+function _hideOnOutside(e){if(!window._infoTT.contains(e.target)&&!e.target.classList.contains('info-btn'))hideInfoTooltip();}
+
+function infoBtn(key){
+  const d=INFO_DATA[key];if(!d)return'';
+  return '<i class="info-btn" onclick="event.stopPropagation();showInfoTooltip(this,\''+d.title.replace(/'/g,"\\'")+'\',\''+d.body.replace(/'/g,"\\'")+'\',\''+d.impact.replace(/'/g,"\\'")+'\')">i</i>';
+}
+
 // ── ANALYZE NOW BUTTON ──
 async function triggerAIAnalysis() {
   const btn = $('ai-analyze-btn');
@@ -2663,7 +2722,7 @@ async function updateMacroPulse() {
     if(newsEl&&newsItems.length){
       newsEl.innerHTML=newsItems.slice(0,5).map(n=>'<div style="display:flex;align-items:flex-start;gap:10px;padding:12px;background:rgba(255,255,255,0.02);border-radius:10px;border-right:3px solid '+(n.bull?'#22C55E':'#EF4444')+'"><span style="font-size:16px;flex-shrink:0">'+(n.bull?'🟢':'🔴')+'</span><div><div style="font-size:13px;font-weight:600;color:#D4D4D8;line-height:1.5">'+n.title+'</div><div style="font-size:11px;color:var(--text-muted);margin-top:3px">'+n.impact+' — '+n.time+'</div></div></div>').join('');
     }
-    const mts=$('macro-ts'); if(mts) mts.textContent='آخر تحديث: '+new Date().toLocaleTimeString('ar-SA');
+    const mts=$('macro-ts'); if(mts) mts.textContent='آخر تحديث: '+new Date().toLocaleTimeString('en-US');
   } catch(e) { console.warn('Macro:', e); }
 }
 
@@ -2675,7 +2734,7 @@ async function fetchMacroNews() {
       return (data.data||[]).slice(0,8).map(n=>{
         const t=n.title||'';
         const isBull=/bitcoin|etf|institutional|buy|rally|surge|trump.*crypto|reserve/i.test(t)&&!/ban|crash|sell|fear|drop|fall/i.test(t);
-        return {title:t.substring(0,100),bull:isBull,impact:isBull?'تأثير صعودي محتمل':'تأثير هبوطي محتمل',time:n.updated_at?new Date(n.updated_at*1000).toLocaleTimeString('ar-SA'):'—'};
+        return {title:t.substring(0,100),bull:isBull,impact:isBull?'تأثير صعودي محتمل':'تأثير هبوطي محتمل',time:n.updated_at?new Date(n.updated_at*1000).toLocaleTimeString('en-US'):'—'};
       }).filter(n=>n.title.length>20);
     }
   } catch(e) {}
@@ -2704,9 +2763,9 @@ setInterval(refreshAllData, 60000);
 
   function formatLabel(ts, tf) {
     const d = new Date(ts);
-    if (tf === '24h') return d.toLocaleTimeString('ar-SA', {hour:'2-digit', minute:'2-digit', hour12:false});
-    if (tf === 'week') return d.toLocaleDateString('ar-SA', {weekday:'short', hour:'2-digit', minute:'2-digit', hour12:false});
-    return d.toLocaleDateString('ar-SA', {month:'short', day:'numeric'});
+    if (tf === '24h') return d.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit', hour12:false});
+    if (tf === 'week') return d.toLocaleDateString('en-US', {weekday:'short', hour:'2-digit', minute:'2-digit', hour12:false});
+    return d.toLocaleDateString('en-US', {month:'short', day:'numeric'});
   }
 
   function fetchChart(tf) {
