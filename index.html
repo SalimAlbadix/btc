@@ -2396,6 +2396,9 @@ setInterval(refreshAllData, 600000);
         document.getElementById('dc-buy-sub').textContent = cd.buySub;
         document.getElementById('dc-sell').textContent = cd.sell;
         document.getElementById('dc-sell-sub').textContent = cd.sellSub;
+
+        // Export chart reference for WebSocket live updates
+        window.btcChartRef = btcChart;
       })
       .catch(() => {});
   }
@@ -2511,6 +2514,16 @@ renderAccuracy();
       const sign = pctChange >= 0 ? '+' : '';
       changeEl.textContent = `${sign}${pctChange.toFixed(2)}%`;
       changeEl.className = 'price-change ' + (pctChange >= 0 ? 'up' : 'down');
+    }
+
+    // Update chart's last data point with live price
+    if (window.btcChartRef && window.btcChartRef.data && window.btcChartRef.data.datasets[0]) {
+      const ds = window.btcChartRef.data.datasets[0].data;
+      // Find last non-null value (real data ends before projected nulls)
+      for (let i = ds.length - 1; i >= 0; i--) {
+        if (ds[i] !== null) { ds[i] = price; break; }
+      }
+      window.btcChartRef.update('none');
     }
   }
 
