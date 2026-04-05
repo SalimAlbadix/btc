@@ -1026,6 +1026,7 @@
   .tl-rr { display: flex; justify-content: space-between; align-items: center; }
   .tl-rr-label { font-size: 12px; color: rgba(255,255,255,0.5); }
   .tl-rr-value { font-size: 16px; font-weight: 800; }
+  .tl-disclaimer { font-size: 10px; color: rgba(255,255,255,0.3); text-align: center; margin-top: 10px; line-height: 1.4; }
 
   /* ── S/R TOOLTIP ── */
   .sr-info {
@@ -2418,20 +2419,26 @@ function getAIDecision(data, tf) {
   }
 
   const total = bull + bear || 1;
-  const bullPct = Math.round(bull / total * 100);
+  const dominance = total > 0 ? Math.abs(bull - bear) / total : 0;
   let decision, confidence, color, emoji, reasons = [];
 
   if (bull >= 55 && bull > bear * 1.8) {
-    decision='شراء قوي'; confidence=bullPct; color='#10b981'; emoji='🟢'; reasons=buildBullReasons(data, tf);
+    decision='شراء قوي'; color='#10b981'; emoji='🟢'; reasons=buildBullReasons(data, tf);
+    confidence = Math.round(73 + dominance * 14); // 73-87%
   } else if (bull >= 35 && bull > bear * 1.2) {
-    decision='شراء تدريجي'; confidence=bullPct; color='#34d399'; emoji='🟡'; reasons=buildBullReasons(data, tf);
+    decision='شراء تدريجي'; color='#34d399'; emoji='🟡'; reasons=buildBullReasons(data, tf);
+    confidence = Math.round(58 + dominance * 15); // 58-73%
   } else if (bear >= 55 && bear > bull * 1.8) {
-    decision='بيع / خروج'; confidence=Math.round(bear/total*100); color='#ef4444'; emoji='🔴'; reasons=buildBearReasons(data, tf);
+    decision='بيع / خروج'; color='#ef4444'; emoji='🔴'; reasons=buildBearReasons(data, tf);
+    confidence = Math.round(73 + dominance * 14);
   } else if (bear >= 35 && bear > bull * 1.2) {
-    decision='تخفيف مراكز'; confidence=Math.round(bear/total*100); color='#f87171'; emoji='🟠'; reasons=buildBearReasons(data, tf);
+    decision='تخفيف مراكز'; color='#f87171'; emoji='🟠'; reasons=buildBearReasons(data, tf);
+    confidence = Math.round(58 + dominance * 15);
   } else {
-    decision='انتظار إشارة'; confidence=50; color='#f59e0b'; emoji='🟡'; reasons=buildNeutralReasons(data, tf);
+    decision='انتظار إشارة'; color='#f59e0b'; emoji='🟡'; reasons=buildNeutralReasons(data, tf);
+    confidence = Math.round(45 + dominance * 13); // 45-58%
   }
+  confidence = Math.min(confidence, 88); // Hard cap
   return { decision, confidence, color, emoji, reasons, bullScore:bull, bearScore:bear, tf };
 }
 
@@ -2501,31 +2508,58 @@ function runAutoAI(data) {
   const resistances = srLevels.filter(rv => rv > price);
   const isBull = dec.includes('شراء') || !dec.includes('بيع');
 
+  const MIN_TP1 = 0.02, MIN_TP2 = 0.04, MIN_SL = 0.015;
   let entry = Math.round(price), tp1, tp2, sl;
-  if (dec.includes('شراء')) {
-    const slBuf = atr * 1.2;
-    sl = Math.round(supports.length ? Math.min(supports[supports.length-1], price - slBuf) : price - slBuf);
-    tp1 = resistances.length ? Math.round(resistances[0]) : Math.round(price + (price - sl) * 2);
-    tp2 = resistances.length > 1 ? Math.round(resistances[1]) : Math.round(price + (price - sl) * 3);
-  } else if (dec.includes('بيع')) {
-    const slBuf = atr * 1.2;
-    sl = Math.round(resistances.length ? Math.max(resistances[0], price + slBuf) : price + slBuf);
-    tp1 = supports.length ? Math.round(supports[supports.length-1]) : Math.round(price - (sl - price) * 2);
-    tp2 = supports.length > 1 ? Math.round(supports[supports.length-2]) : Math.round(price - (sl - price) * 3);
-  } else {
-    sl = Math.round(price - atr * 2);
-    tp1 = Math.round(price + atr * 2);
-    tp2 = Math.round(price + atr * 3.5);
-  }
 
-  const slPct = (Math.abs(price - sl) / price * 100).toFixed(1);
-  const tp1Pct = dec.includes('بيع') ? ((price - tp1) / price * 100).toFixed(1) : ((tp1 - price) / price * 100).toFixed(1);
-  const tp2Pct = dec.includes('بيع') ? ((price - tp2) / price * 100).toFixed(1) : ((tp2 - price) / price * 100).toFixed(1);
-  const rrRatio = (Math.abs((isBull ? tp1 : tp1) - price) / Math.max(1, Math.abs(price - sl))).toFixed(1);
+  if (dec.includes('شراء')) {
+    // TP1: first resistance >= 2% above
+    const vR1 = srLevels.filter(rv => rv > price && (rv-price)/price >= MIN_TP1);
+    tp1 = vR1.length ? Math.round(vR1[0]) : Math.round(price * (1 + MIN_TP1));
+    // TP2: first resistance >= 4% above
+    const vR2 = srLevels.filter(rv => rv > price && (rv-price)/price >= MIN_TP2);
+    tp2 = vR2.length ? Math.round(vR2[0]) : Math.round(price * (1 + MIN_TP2));
+    // SL: ATR-based, min 1.5%, max 5%
+    const rawSL = Math.round(price - atr * 1.5);
+    sl = Math.min(Math.round(price * (1 - MIN_SL)), rawSL);
+    sl = Math.max(sl, Math.round(price * 0.95));
+  } else if (dec.includes('بيع')) {
+    // TP1: first support >= 2% below
+    const vS1 = srLevels.filter(s => s < price && (price-s)/price >= MIN_TP1);
+    tp1 = vS1.length ? Math.round(vS1[vS1.length-1]) : Math.round(price * (1 - MIN_TP1));
+    // TP2: first support >= 4% below
+    const vS2 = srLevels.filter(s => s < price && (price-s)/price >= MIN_TP2);
+    tp2 = vS2.length ? Math.round(vS2[vS2.length-1]) : Math.round(price * (1 - MIN_TP2));
+    // SL: ATR-based, min 1.5% above
+    const rawSL = Math.round(price + atr * 1.5);
+    sl = Math.max(Math.round(price * (1 + MIN_SL)), rawSL);
+  } else {
+    // Wait: use ATR-based levels
+    sl = Math.round(price - Math.max(atr * 2, price * MIN_SL));
+    tp1 = Math.round(price + Math.max(atr * 2, price * MIN_TP1));
+    tp2 = Math.round(price + Math.max(atr * 3.5, price * MIN_TP2));
+  }
+  // Ensure TP2 further than TP1
+  if (isBull && tp2 <= tp1) tp2 = Math.round(tp1 * 1.025);
+  if (!isBull && dec.includes('بيع') && tp2 >= tp1) tp2 = Math.round(tp1 * 0.975);
+
+  // Percentage calculations
+  let tp1Pct, tp2Pct, slPct, tpSign;
+  if (dec.includes('بيع')) {
+    tp1Pct = ((price - tp1) / price * 100).toFixed(1);
+    tp2Pct = ((price - tp2) / price * 100).toFixed(1);
+    slPct  = ((sl - price) / price * 100).toFixed(1);
+    tpSign = '-';
+  } else {
+    tp1Pct = ((tp1 - price) / price * 100).toFixed(1);
+    tp2Pct = ((tp2 - price) / price * 100).toFixed(1);
+    slPct  = ((price - sl) / price * 100).toFixed(1);
+    tpSign = '+';
+  }
+  const rrRatio = (Math.abs(tp1 - price) / Math.max(1, Math.abs(price - sl))).toFixed(1);
   const rrColor = +rrRatio >= 2 ? '#00ff88' : +rrRatio >= 1.5 ? '#ffbb00' : '#ff6666';
   const rrIcon = +rrRatio >= 2 ? '✅' : +rrRatio >= 1.5 ? '⚠️' : '❌';
-  const tpSign = dec.includes('بيع') ? '-' : '+';
   const entryLbl = isBull ? '🟢 نقطة الدخول' : '🔴 نقطة البيع';
+  const slSign = dec.includes('بيع') ? '+' : '-';
   const waitNote = dec.includes('انتظار') ? '<div style="text-align:center;font-size:12px;color:#f59e0b;margin-top:8px">⚠️ السوق في منطقة حيادية — تأكد من الاتجاه قبل الدخول</div>' : '';
 
   let lb = $('trade-levels-box');
@@ -2540,10 +2574,11 @@ function runAutoAI(data) {
     + '<div class="tl-row"><span class="tl-label">'+entryLbl+'</span><span class="tl-value" style="color:#fff">$'+entry.toLocaleString()+'</span></div>'
     + '<div class="tl-row"><span class="tl-label">🎯 الهدف الأول</span><span class="tl-value" style="color:#00ff88">$'+tp1.toLocaleString()+' <span class="tl-pct">'+tpSign+tp1Pct+'%</span></span></div>'
     + '<div class="tl-row"><span class="tl-label">🏆 الهدف الثاني</span><span class="tl-value" style="color:#00ff88">$'+tp2.toLocaleString()+' <span class="tl-pct">'+tpSign+tp2Pct+'%</span></span></div>'
-    + '<div class="tl-row tl-sl-row"><span class="tl-label">🛑 وقف الخسارة</span><span class="tl-value" style="color:#ff4444">$'+sl.toLocaleString()+' <span class="tl-pct">-'+slPct+'%</span></span></div>'
+    + '<div class="tl-row tl-sl-row"><span class="tl-label">🛑 وقف الخسارة</span><span class="tl-value" style="color:#ff4444">$'+sl.toLocaleString()+' <span class="tl-pct">'+slSign+slPct+'%</span></span></div>'
     + '<div class="tl-divider"></div>'
     + '<div class="tl-rr"><span class="tl-rr-label">نسبة مكسب/خسارة (RR):</span><span class="tl-rr-value" style="color:'+rrColor+'">1 : '+rrRatio+' '+rrIcon+'</span></div>'
-    + waitNote;
+    + waitNote
+    + '<div class="tl-disclaimer">⚠️ هذه مستويات مقترحة بناءً على التحليل التقني — ليست نصيحة مالية. استخدم إدارة المخاطر الخاصة بك.</div>';
 }
 
 // ── MACRO PULSE ──
