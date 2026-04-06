@@ -2557,8 +2557,8 @@ async function refreshAllData() {
       const lbs=document.querySelectorAll('.summary-count');if(lbs[0])lbs[0].textContent=bc;if(lbs[1])lbs[1].textContent=blc;if(lbs[2])lbs[2].textContent=nc;
     }
 
-    // ── Auto-run AI + Macro ──
-    runAutoAI(window._lastData);
+    // ── Auto-run AI + Macro (always uses correct timeframe) ──
+    setAITimeframe(_currentTF);
     updateMacroPulse();
 
   } catch(e) { console.warn('refreshAllData:', e); }
@@ -2567,10 +2567,82 @@ async function refreshAllData() {
 // ── AI DECISION ENGINE (timeframe-aware score system) ──
 let _currentTF = 'daily';
 
-function setAITimeframe(tf) {
+async function setAITimeframe(tf) {
   _currentTF = tf;
   document.querySelectorAll('.tf-btn').forEach(b => b.classList.toggle('tf-active', b.dataset.tf === tf));
-  if (window._lastData && window._lastData.price) runAutoAI(window._lastData);
+  if (!window._lastData || !window._lastData.price) return;
+
+  // Fast path for daily — reuse already-fetched 4h klines (no extra API call)
+  if (tf === 'daily' && window._lastKlines4h && window._lastKlines4h.length > 0) {
+    window._lastKlinesTF = window._lastKlines4h;
+    window._srLevelsTF   = window._srLevels;
+    runAutoAI(window._lastData);
+    return;
+  }
+
+  // Show loading immediately for weekly/monthly
+  const aiD = $('ai-decision');
+  const aiC = $('ai-conf');
+  if (aiD) { aiD.textContent = '⏳'; aiD.style.color = '#f59e0b'; }
+  if (aiC) aiC.textContent = 'جاري تحليل الإطار الزمني...';
+
+  // Fetch TF-specific klines from Binance
+  const TF_MAP = {
+    'daily':   { interval: '4h',  limit: 120 },
+    'weekly':  { interval: '1d',  limit: 90  },
+    'monthly': { interval: '1w',  limit: 60  },
+  };
+  const cfg = TF_MAP[tf] || TF_MAP['daily'];
+
+  try {
+    const klines = await fetch(
+      'https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=' + cfg.interval + '&limit=' + cfg.limit
+    ).then(r => r.json());
+
+    const closes = klines.map(k => +k[4]);
+
+    // EMA helper
+    function calcEMATF(arr, period) {
+      const k = 2 / (period + 1);
+      let e = arr[0];
+      for (let i = 1; i < arr.length; i++) e = arr[i] * k + e * (1 - k);
+      return e;
+    }
+
+    // RSI 14
+    let g = 0, lo = 0;
+    const rs = Math.max(1, closes.length - 14);
+    for (let i = rs; i < closes.length; i++) {
+      const d = closes[i] - closes[i - 1];
+      if (d > 0) g += d; else lo -= d;
+    }
+    const tfRsi = 100 - (100 / (1 + (g / 14) / (lo / 14 || 0.001)));
+
+    const tfEma20  = calcEMATF(closes, 20);
+    const tfEma50  = calcEMATF(closes, Math.min(50, closes.length));
+    const tfEma200 = calcEMATF(closes, Math.min(200, closes.length));
+
+    // S/R from last 40 candles of this TF
+    const recent = klines.slice(-40);
+    const curP   = +klines[klines.length - 1][4];
+    const tfRes  = [...new Set(recent.map(k => +k[2]).sort((a, b) => b - a).filter(h => h > curP * 1.003))].slice(0, 5);
+    const tfSup  = [...new Set(recent.map(k => +k[3]).sort((a, b) => a - b).filter(l => l < curP * 0.997))].slice(0, 5);
+    window._srLevelsTF = [...tfRes, ...tfSup];
+    window._lastKlinesTF = klines;
+
+    // Merge live price/funding/FNG with TF-specific indicators
+    const tfData = Object.assign({}, window._lastData, {
+      rsi:    tfRsi,
+      ema20:  tfEma20,
+      ema50:  tfEma50,
+      ema200: tfEma200,
+    });
+
+    runAutoAI(tfData);
+  } catch (e) {
+    // Fallback to existing data
+    runAutoAI(window._lastData);
+  }
 }
 
 function getAIDecision(data, tf) {
@@ -2715,15 +2787,19 @@ function runAutoAI(data) {
   if(btn){btn.innerHTML=r.emoji+' '+r.decision+' — '+r.confidence+'% ثقة';btn.style.cssText+=';background:'+r.color+'22;border-color:'+r.color+';color:'+r.color;}
 
   // ── Trade Levels ──
-  const atr = calcATR(window._lastKlines4h || [], 14);
+  // Use TF-specific klines/SR when available (set by setAITimeframe)
+  const atr = calcATR(window._lastKlinesTF || window._lastKlines4h || [], 14);
   const price = data.price;
   const dec = r.decision;
-  const srLevels = (window._srLevels || []).sort((a,b)=>a-b);
+  const srLevels = (window._srLevelsTF || window._srLevels || []).sort((a,b)=>a-b);
   const supports = srLevels.filter(s => s < price);
   const resistances = srLevels.filter(rv => rv > price);
   const isBull = dec.includes('شراء') || !dec.includes('بيع');
 
-  const MIN_TP1 = 0.02, MIN_TP2 = 0.04, MIN_SL = 0.015;
+  // Scale TP/SL targets per timeframe
+  const MIN_TP1 = _currentTF === 'monthly' ? 0.07  : _currentTF === 'weekly' ? 0.035 : 0.018;
+  const MIN_TP2 = _currentTF === 'monthly' ? 0.14  : _currentTF === 'weekly' ? 0.07  : 0.035;
+  const MIN_SL  = _currentTF === 'monthly' ? 0.05  : _currentTF === 'weekly' ? 0.025 : 0.013;
   let entry = Math.round(price), tp1, tp2, sl;
 
   if (dec.includes('شراء')) {
