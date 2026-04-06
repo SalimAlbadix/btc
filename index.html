@@ -2903,21 +2903,42 @@ async function fetchTop5News() {
     const raw = await res.json();
     const articles = raw.data || (Array.isArray(raw) ? raw : []);
     if (!articles.length) throw new Error('empty');
-    const highBull=['etf','blackrock','institutional','fed cut','halving','ath','approve','adoption','sec approve','legal tender'];
-    const highBear=['ban','hack','lawsuit','crash','fraud','regulation','restrict','seized','criminal','collapse'];
-    const medBull=['buy','rally','surge','jump','soar','bullish','breakout','accumulate','pump'];
-    const medBear=['sell','drop','fall','dump','bearish','breakdown','liquidat','fear','panic'];
+    // Tier 1 — critical: only truly market-moving events jump to 88-95
+    const critical  = ['etf approved','etf approval','sec approves','sec approval','legal tender','exchange hacked','exchange hack','exchange collapse','nation buy bitcoin','government ban bitcoin','strategic bitcoin reserve','us ban bitcoin','china ban','bitcoin etf launch','halving confirmed','new all-time high','ath hit'];
+    // Tier 2 — high signal (add 15 each, max 2 can score)
+    const highBull  = ['blackrock','fidelity','vanguard','etf','halving','bitcoin reserve','sovereign fund','major bank buy','fed cut','rate cut','sec approve','institutional buy','legal tender','nation bitcoin'];
+    const highBear  = ['ban','hack','lawsuit','fraud','criminal charges','collapse','ponzi','seized','exchange shut','regulatory ban','government restrict'];
+    // Tier 3 — medium signal (add 6 each, max 2 can score)
+    const medBull   = ['rally','bullish','breakout','accumulate','surge above','adoption','institutional'];
+    const medBear   = ['drop','dump','bearish','breakdown','liquidat','panic','regulatory'];
+    // Tier 4 — generic crypto noise: cap at 52 if matched
+    const noiseKeys = ['what happens','when that changes','discover','trading quiet','gone quiet','every function','jpmorgan','opinion','analysis','guide','how to','explains','asset managers','wall street','ethereum trading','crypto in 2026','trad','larp'];
     const scored = articles.slice(0, 20).map(a => {
       const title = (a.title || '').toLowerCase();
-      const desc = (a.description || '').toLowerCase();
-      const text = title + ' ' + desc;
-      let impact = 45, direction = 'neutral';
-      highBull.forEach(k=>{if(text.includes(k)){impact+=18;direction='bull';}});
-      highBear.forEach(k=>{if(text.includes(k)){impact+=18;direction='bear';}});
-      medBull.forEach(k=>{if(text.includes(k)){impact+=7;if(direction==='neutral')direction='bull';}});
-      medBear.forEach(k=>{if(text.includes(k)){impact+=7;if(direction==='neutral')direction='bear';}});
-      impact = Math.min(impact, 97);
-      const impactLabel = impact>=80?'عالي جداً':impact>=65?'عالي':impact>=50?'متوسط':'منخفض';
+      const desc  = (a.description || '').toLowerCase();
+      const text  = title + ' ' + desc;
+      let impact = 30, direction = 'neutral';
+
+      // Critical → jump to 88-95 immediately
+      const isCritical = critical.some(k => text.includes(k));
+      if (isCritical) {
+        impact = 88 + Math.floor(Math.random() * 7); // 88-94
+        direction = highBull.some(k => text.includes(k)) ? 'bull' : highBear.some(k => text.includes(k)) ? 'bear' : 'bull';
+      } else {
+        // High tier — max 2 keywords score
+        let hc = 0;
+        highBull.forEach(k => { if (text.includes(k) && hc < 2) { impact += 15; direction = 'bull'; hc++; } });
+        highBear.forEach(k => { if (text.includes(k) && hc < 2) { impact += 15; direction = 'bear'; hc++; } });
+        // Medium tier — max 2 keywords score
+        let mc = 0;
+        medBull.forEach(k => { if (text.includes(k) && mc < 2) { impact += 6; if (direction === 'neutral') direction = 'bull'; mc++; } });
+        medBear.forEach(k => { if (text.includes(k) && mc < 2) { impact += 6; if (direction === 'neutral') direction = 'bear'; mc++; } });
+        // Generic noise ceiling
+        if (noiseKeys.some(k => text.includes(k))) impact = Math.min(impact, 52);
+      }
+
+      impact = Math.min(impact, 95);
+      const impactLabel = impact >= 85 ? 'عالي جداً' : impact >= 68 ? 'عالي' : impact >= 50 ? 'متوسط' : 'منخفض';
       return {
         title: a.title||'خبر',
         description: a.description||'',
@@ -2946,7 +2967,7 @@ async function renderTop5News() {
   const articles = await fetchTop5News();
   if(!articles.length){newsEl.innerHTML='<div style="color:rgba(255,255,255,0.3);font-size:12px;padding:12px;text-align:center">لا توجد أخبار متاحة حالياً</div>';return;}
   newsEl.innerHTML=articles.map((a,i)=>{
-    const ic=a.impact>=80?'#ff4444':a.impact>=65?'#ffbb00':'#00ff88';
+    const ic=a.impact>=85?'#ff4444':a.impact>=68?'#ffbb00':'#00ff88';
     const di=a.direction==='bull'?'🟢':a.direction==='bear'?'🔴':'⚪';
     const dt=a.direction==='bull'?'صاعد':a.direction==='bear'?'هابط':'محايد';
     const ta=a.publishedAt?getTimeAgo(a.publishedAt):'';
