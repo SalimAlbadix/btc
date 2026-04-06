@@ -2283,18 +2283,32 @@ async function refreshAllData() {
       const askVol = depthData.asks.reduce((s,[p,q])=>s+parseFloat(p)*parseFloat(q),0);
       obRatio = askVol > 0 ? bidVol / askVol : null;
     }
-    // BTC dominance % (higher = BTC absorbing market = bullish for BTC)
+    // BTC dominance (kept for reference but NOT used in daily AI score)
     const btcDominance = globalData?.data?.market_cap_percentage?.btc || null;
+
+    // ── Bollinger Band %B (20-period, 2σ) — where is price in the band?
+    // 0 = at lower band (oversold), 0.5 = middle, 1 = upper band (overbought)
+    const bollSlice = closes.slice(-20);
+    const bollMean  = bollSlice.reduce((a,b)=>a+b,0)/20;
+    const bollStd   = Math.sqrt(bollSlice.reduce((s,c)=>s+(c-bollMean)**2,0)/20);
+    const bollPos   = bollStd>0 ? Math.max(0,Math.min(1,(price-bollMean+2*bollStd)/(4*bollStd))) : 0.5;
+
+    // ── Taker Buy Pressure — actual completed trades (buy vs sell)
+    // klines[9] = takerBuyBaseAssetVolume, klines[5] = totalVolume
+    // Avg over last 5 candles: >0.55 = buyers aggressive, <0.45 = sellers aggressive
+    const tbpCandles = klines4h.slice(-5);
+    const takerBuyPressure = tbpCandles.reduce((s,k)=>s+(+k[9])/(+k[5]||1),0)/tbpCandles.length;
+
     // Volume anomaly: last candle vs 20-candle average
     const vols = klines4h.map(k=>+k[5]);
-    const avgVol20 = vols.slice(-21,-1).reduce((a,b)=>a+b,0)/20;
-    const lastVol  = vols[vols.length-1];
-    const lastClose= +klines4h[klines4h.length-1][4];
-    const prevClose= +klines4h[klines4h.length-2][4];
-    const volRatio = avgVol20 > 0 ? lastVol / avgVol20 : 1;
-    const volPriceUp = lastClose > prevClose;
+    const avgVol20  = vols.slice(-21,-1).reduce((a,b)=>a+b,0)/20;
+    const lastVol   = vols[vols.length-1];
+    const lastClose = +klines4h[klines4h.length-1][4];
+    const prevClose = +klines4h[klines4h.length-2][4];
+    const volRatio  = avgVol20 > 0 ? lastVol / avgVol20 : 1;
+    const volPriceUp= lastClose > prevClose;
 
-    window._lastData = { price, ema20, ema50, ema200, rsi, macd, fngVal, fngLbl, chg24, vol24, highs, lows, fundingRate, lsRatio, openInterest, oiUSD, hashrateTH, mempoolFee, obRatio, btcDominance, volRatio, volPriceUp };
+    window._lastData = { price, ema20, ema50, ema200, rsi, macd, fngVal, fngLbl, chg24, vol24, highs, lows, fundingRate, lsRatio, openInterest, oiUSD, hashrateTH, mempoolFee, obRatio, btcDominance, volRatio, volPriceUp, bollPos, takerBuyPressure };
     // Store for ATR + SR calculations in runAutoAI
     window._lastKlines4h = klines4h;
     const k50h = highs.slice(-50).sort((a,b)=>b-a).slice(0,3);
@@ -2649,12 +2663,33 @@ async function setAITimeframe(tf) {
     window._srLevelsTF = [...tfRes, ...tfSup];
     window._lastKlinesTF = klines;
 
-    // Merge live price/funding/FNG with TF-specific indicators
+    // Bollinger %B from TF klines
+    const tfBollSlice = closes.slice(-20);
+    const tfBollMean  = tfBollSlice.reduce((a,b)=>a+b,0)/tfBollSlice.length;
+    const tfBollStd   = Math.sqrt(tfBollSlice.reduce((s,c)=>s+(c-tfBollMean)**2,0)/tfBollSlice.length);
+    const tfBollPos   = tfBollStd>0 ? Math.max(0,Math.min(1,(curP-tfBollMean+2*tfBollStd)/(4*tfBollStd))) : 0.5;
+
+    // Taker buy pressure from TF klines
+    const tfTBP = klines.slice(-5).reduce((s,k)=>s+(+k[9])/(+k[5]||1),0)/Math.min(5,klines.length);
+
+    // Volume anomaly from TF klines
+    const tfVols    = klines.map(k=>+k[5]);
+    const tfAvgVol  = tfVols.slice(-21,-1).reduce((a,b)=>a+b,0)/Math.min(20,tfVols.length-1||1);
+    const tfVolRatio= tfAvgVol>0 ? tfVols[tfVols.length-1]/tfAvgVol : 1;
+    const tfLastC   = +klines[klines.length-1][4];
+    const tfPrevC   = +klines[klines.length-2]?.[4]||tfLastC;
+    const tfVolUp   = tfLastC > tfPrevC;
+
+    // Merge live price/funding/FNG with ALL TF-specific indicators
     const tfData = Object.assign({}, window._lastData, {
-      rsi:    tfRsi,
-      ema20:  tfEma20,
-      ema50:  tfEma50,
-      ema200: tfEma200,
+      rsi:              tfRsi,
+      ema20:            tfEma20,
+      ema50:            tfEma50,
+      ema200:           tfEma200,
+      bollPos:          tfBollPos,
+      takerBuyPressure: tfTBP,
+      volRatio:         tfVolRatio,
+      volPriceUp:       tfVolUp,
     });
 
     runAutoAI(tfData);
@@ -2666,149 +2701,168 @@ async function setAITimeframe(tf) {
 
 function getAIDecision(data, tf) {
   tf = tf || 'daily';
-  const { rsi, ema20, ema50, ema200, price, fngVal, chg24, macd, fundingRate, lsRatio, oiUSD, obRatio, btcDominance, volRatio, volPriceUp } = data;
+  const { rsi, ema20, ema50, ema200, price, fngVal, chg24, macd,
+          fundingRate, lsRatio, openInterest, bollPos, takerBuyPressure } = data;
 
-  // ── 12-Signal Scoring Engine ──
-  // Each signal returns -1.0 (max bearish) to +1.0 (max bullish)
-  // Weighted sum maps to 0–100 confidence scale
+  // ══════════════════════════════════════════════════════════════
+  // 10-Signal Day-Trading Engine — each signal: -1.0 to +1.0
+  // Signals 1-5 computed from klines (NEVER null → always active)
+  // Signals 6-10 from external APIs (null-safe → return 0 if unavailable)
+  // Net -100 → +100 maps to 0 → 100% confidence
+  // ══════════════════════════════════════════════════════════════
 
-  // Signal 1 — RSI (weight 12)
-  const sRSI = rsi<25?1.0:rsi<35?0.7:rsi<45?0.3:rsi<55?0:rsi<65?-0.4:rsi<75?-0.7:-1.0;
+  // ── Signal 1: RSI 14  (weight 15) ──────────────────────────
+  // < 30 oversold → strong buy opportunity; > 70 overbought → caution
+  const sRSI = rsi<20?1.0 : rsi<30?0.8 : rsi<40?0.45 : rsi<50?0.1
+             : rsi<60?-0.1 : rsi<70?-0.45 : rsi<80?-0.8 : -1.0;
 
-  // Signal 2 — EMA Stack trend (weight 12)
+  // ── Signal 2: EMA Stack alignment  (weight 15) ─────────────
+  // Perfect bull: price>EMA20>EMA50>EMA200. Perfect bear: reverse.
   let sEMA = 0;
-  if      (price>ema20 && ema20>ema50 && ema50>(ema200||ema50)) sEMA =  1.0; // perfect bull
-  else if (price>ema20 && ema20>ema50)                           sEMA =  0.6;
-  else if (price>ema20)                                          sEMA =  0.2;
-  else if (price<ema20 && price>(ema50||ema20))                  sEMA = -0.3;
-  else if (price<ema20 && price<(ema50||ema20) && price>(ema200||0)) sEMA = -0.7;
-  else                                                            sEMA = -1.0;
+  const e20=ema20||price, e50=ema50||price, e200=ema200||e50;
+  if      (price>e20 && e20>e50 && e50>e200)  sEMA =  1.0;
+  else if (price>e20 && e20>e50)               sEMA =  0.65;
+  else if (price>e20)                          sEMA =  0.2;
+  else if (price<e20 && price>e50)             sEMA = -0.25;
+  else if (price<e20 && price<e50 && price>e200) sEMA = -0.65;
+  else                                         sEMA = -1.0;
 
-  // Signal 3 — MACD momentum (weight 8)
+  // ── Signal 3: MACD momentum  (weight 11) ───────────────────
+  // Bullish+expanding histogram = strong momentum; bearish+contracting = reversal forming
   let sMACD = 0;
   if (macd) {
     const hist = macd.histogram || [];
-    const lastH = hist[hist.length-1]||0, prevH = hist[hist.length-2]||0;
-    const expand = Math.abs(lastH)>Math.abs(prevH);
-    sMACD = macd.bullish ? (expand?1.0:0.4) : (expand?-1.0:-0.3);
+    const h0 = hist[hist.length-1]||0, h1 = hist[hist.length-2]||0;
+    const expanding = Math.abs(h0) > Math.abs(h1);
+    if      (macd.bullish && expanding)  sMACD =  1.0;
+    else if (macd.bullish)               sMACD =  0.4;
+    else if (!macd.bullish && !expanding) sMACD = -0.35; // histogram shrinking = potential reversal
+    else                                 sMACD = -1.0;
   }
 
-  // Signal 4 — Volume anomaly / whale activity proxy (weight 7)
-  let sVol = 0;
-  if (volRatio) {
-    if      (volRatio>2.0 && volPriceUp)   sVol =  1.0;
-    else if (volRatio>1.5 && volPriceUp)   sVol =  0.5;
-    else if (volRatio>2.0 && !volPriceUp)  sVol = -1.0;
-    else if (volRatio>1.5 && !volPriceUp)  sVol = -0.6;
-    else if (volRatio<0.5)                 sVol = -0.2; // low participation
-  }
+  // ── Signal 4: Bollinger Band %B  (weight 10) ───────────────
+  // 0=at lower band(oversold), 0.5=middle, 1=upper band(overbought)
+  // bollPos is always computed from klines — never null
+  const bp = typeof bollPos === 'number' ? bollPos : 0.5;
+  const sBoll = bp<0.05?1.0 : bp<0.2?0.7 : bp<0.35?0.3 : bp<0.65?0
+              : bp<0.8?-0.3 : bp<0.95?-0.7 : -1.0;
 
-  // Signal 5 — Fear & Greed (weight 10)
-  const sFNG = fngVal<10?1.0:fngVal<25?0.7:fngVal<40?0.3:fngVal<60?0:fngVal<75?-0.4:fngVal<90?-0.7:-1.0;
+  // ── Signal 5: Taker Buy Pressure  (weight 12) ──────────────
+  // Ratio of aggressive market-buy volume to total volume (5-candle avg)
+  // 0.55+ = buyers in control; 0.45- = sellers in control
+  const tbp = typeof takerBuyPressure === 'number' ? takerBuyPressure : 0.5;
+  const sTBP = tbp>0.65?1.0 : tbp>0.58?0.6 : tbp>0.52?0.25 : tbp>0.48?0
+             : tbp>0.42?-0.25 : tbp>0.35?-0.6 : -1.0;
 
-  // Signal 6 — Funding Rate (weight 10)
+  // ── Signal 6: Fear & Greed Index  (weight 10) ──────────────
+  const sFNG = fngVal<10?1.0 : fngVal<25?0.7 : fngVal<40?0.3 : fngVal<60?0
+             : fngVal<75?-0.4 : fngVal<90?-0.7 : -1.0;
+
+  // ── Signal 7: Funding Rate  (weight 12) ────────────────────
+  // Negative = shorts paying longs = bullish squeeze pressure
   let sFunding = 0;
-  if (fundingRate!==null && fundingRate!==undefined) {
-    sFunding = fundingRate<-0.05?1.0:fundingRate<-0.02?0.6:fundingRate<0?0.2:fundingRate<0.02?-0.1:fundingRate<0.05?-0.5:-1.0;
+  if (fundingRate !== null && fundingRate !== undefined) {
+    sFunding = fundingRate<-0.06?1.0 : fundingRate<-0.02?0.65 : fundingRate<0?0.2
+             : fundingRate<0.015?-0.1 : fundingRate<0.04?-0.55 : -1.0;
   }
 
-  // Signal 7 — Long/Short ratio (weight 8)
+  // ── Signal 8: Long/Short Ratio  (weight 8) ─────────────────
+  // <0.8 = more shorts than longs → squeeze potential
   let sLS = 0;
-  if (data.lsRatio!==null && data.lsRatio!==undefined) {
-    const ls = data.lsRatio;
-    sLS = ls<0.7?1.0:ls<0.9?0.5:ls<1.1?0:ls<1.5?-0.5:-1.0;
+  if (lsRatio !== null && lsRatio !== undefined) {
+    sLS = lsRatio<0.7?1.0 : lsRatio<0.9?0.5 : lsRatio<1.1?0 : lsRatio<1.5?-0.5 : -1.0;
   }
 
-  // Signal 8 — Open Interest (weight 7) — oiUSD in billions
+  // ── Signal 9: Open Interest in BTC  (weight 5) ─────────────
+  // Uses raw BTC amount (Binance returns ~50K-150K BTC typically)
+  // High OI = overleveraged market → higher crash/squeeze risk
   let sOI = 0;
-  if (oiUSD!==null && oiUSD!==undefined) {
-    sOI = oiUSD<15?1.0:oiUSD<25?0.5:oiUSD<35?0:oiUSD<50?-0.4:-1.0;
+  if (openInterest !== null && openInterest !== undefined && openInterest > 0) {
+    sOI = openInterest<40000?0.8 : openInterest<70000?0.3 : openInterest<100000?0
+        : openInterest<140000?-0.4 : -0.8;
   }
 
-  // Signal 9 — Order Book bid/ask pressure (weight 9) — REAL-TIME
-  let sOB = 0;
-  if (obRatio!==null && obRatio!==undefined) {
-    sOB = obRatio>1.3?1.0:obRatio>1.1?0.5:obRatio>0.9?0:obRatio>0.7?-0.5:-1.0;
-  }
+  // ── Signal 10: 24h Price Momentum  (weight 2) ──────────────
+  // Mean-reversion aware: big drops = bounce setup; big pumps = exhaustion risk
+  const sMom = chg24<-10?0.9 : chg24<-5?0.5 : chg24<-2?0.15 : chg24<2?0
+             : chg24<5?-0.15 : chg24<10?-0.5 : -0.9;
 
-  // Signal 10 — News sentiment (weight 8) — from cached global
-  const sNews = typeof window._newsSignalScore === 'number' ? Math.max(-1,Math.min(1,window._newsSignalScore)) : 0;
+  // ── Weighted net score ───────────────────────────────────────
+  // Signals 1-5 (klines-based, always active): total weight 63
+  // Signals 6-10 (API-based, null-safe):       total weight 37
+  const W = { rsi:15, ema:15, macd:11, boll:10, tbp:12, fng:10, funding:12, ls:8, oi:5, mom:2 };
+  const net = sRSI*W.rsi + sEMA*W.ema + sMACD*W.macd + sBoll*W.boll + sTBP*W.tbp
+            + sFNG*W.fng + sFunding*W.funding + sLS*W.ls + sOI*W.oi + sMom*W.mom;
 
-  // Signal 11 — 24h momentum (weight 5) — mean reversion for day trading
-  const sMom = chg24<-8?0.8:chg24<-4?0.4:chg24<-2?0.2:chg24<2?0:chg24<4?-0.2:chg24<8?-0.4:-0.8;
-
-  // Signal 12 — BTC Dominance (weight 4)
-  let sDom = 0;
-  if (btcDominance) {
-    sDom = btcDominance>55?1.0:btcDominance>50?0.5:btcDominance>45?0:-0.5;
-  }
-
-  // ── Weighted net score ──
-  const W = { rsi:12, ema:12, macd:8, vol:7, fng:10, funding:10, ls:8, oi:7, ob:9, news:8, mom:5, dom:4 };
-  const net = sRSI*W.rsi + sEMA*W.ema + sMACD*W.macd + sVol*W.vol + sFNG*W.fng
-            + sFunding*W.funding + sLS*W.ls + sOI*W.oi + sOB*W.ob + sNews*W.news
-            + sMom*W.mom + sDom*W.dom;
-  // net range: -100 to +100 → map to 0-100%
+  // Map net (-100 to +100) → confidence (0 to 100%)
   const rawConf = 50 + net / 2;
   const confidence = Math.max(8, Math.min(92, Math.round(rawConf)));
 
-  // ── Decision thresholds ──
+  // ── Decision thresholds ─────────────────────────────────────
   let decision, color, emoji;
-  if      (confidence >= 72) { decision='شراء قوي';       color='#10b981'; emoji='🟢'; }
-  else if (confidence >= 60) { decision='شراء تدريجي';    color='#34d399'; emoji='🟡'; }
-  else if (confidence >= 52) { decision='انتظار إشارة';   color='#f59e0b'; emoji='🟡'; }
-  else if (confidence >= 40) { decision='انتظار إشارة';   color='#f59e0b'; emoji='🟡'; }
-  else if (confidence >= 28) { decision='تخفيف مراكز';    color='#f87171'; emoji='🟠'; }
-  else                       { decision='بيع / خروج';     color='#ef4444'; emoji='🔴'; }
+  if      (confidence >= 73) { decision='شراء قوي';      color='#10b981'; emoji='🟢'; }
+  else if (confidence >= 61) { decision='شراء تدريجي';   color='#34d399'; emoji='🟢'; }
+  else if (confidence >= 53) { decision='انتظار إشارة';  color='#f59e0b'; emoji='🟡'; }
+  else if (confidence >= 47) { decision='انتظار إشارة';  color='#f59e0b'; emoji='🟡'; }
+  else if (confidence >= 39) { decision='تخفيف مراكز';   color='#f87171'; emoji='🔴'; }
+  else                       { decision='بيع / خروج';    color='#ef4444'; emoji='🔴'; }
 
-  // ── Build signal breakdown for display ──
+  // ── Signal dots for display ─────────────────────────────────
   const signals = [
-    { name:'RSI',        v:sRSI,    en:'RSI '+rsi.toFixed(1) },
-    { name:'EMA',        v:sEMA,    en:'EMA Stack' },
-    { name:'MACD',       v:sMACD,   en:'MACD' },
-    { name:'حجم',        v:sVol,    en:'Volume' },
-    { name:'FNG',        v:sFNG,    en:'Fear&Greed '+fngVal },
-    { name:'Funding',    v:sFunding,en:'Funding '+(fundingRate!==null?(fundingRate.toFixed(4)+'%'):'—') },
-    { name:'L/S',        v:sLS,     en:'Long/Short '+(data.lsRatio?.toFixed(2)||'—') },
-    { name:'OI',         v:sOI,     en:'Open Interest' },
-    { name:'Order Book', v:sOB,     en:'OB Ratio '+(obRatio?.toFixed(2)||'—') },
-    { name:'أخبار',      v:sNews,   en:'News' },
-    { name:'زخم',        v:sMom,    en:'Momentum '+chg24.toFixed(1)+'%' },
-    { name:'هيمنة',      v:sDom,    en:'BTC Dom '+(btcDominance?.toFixed(1)||'—')+'%' },
+    { name:'RSI',      v:sRSI,    en:'RSI '+rsi.toFixed(1) },
+    { name:'EMA',      v:sEMA,    en:'EMA Stack' },
+    { name:'MACD',     v:sMACD,   en:'MACD' },
+    { name:'BB%',      v:sBoll,   en:'Bollinger '+((bp)*100).toFixed(0)+'%' },
+    { name:'Taker',    v:sTBP,    en:'Buy Pressure '+(tbp*100).toFixed(0)+'%' },
+    { name:'FNG',      v:sFNG,    en:'Fear&Greed '+fngVal },
+    { name:'Funding',  v:sFunding,en:'Funding '+(fundingRate!=null?fundingRate.toFixed(4)+'%':'—') },
+    { name:'L/S',      v:sLS,     en:'L/S Ratio '+(lsRatio?.toFixed(2)||'—') },
+    { name:'OI',       v:sOI,     en:'OI '+(openInterest?(Math.round(openInterest/1000)+'K BTC'):'—') },
+    { name:'زخم',      v:sMom,    en:'Momentum '+chg24.toFixed(1)+'%' },
   ];
 
-  // ── Reasons list ──
-  const reasons = buildSignalReasons(data, signals, tf);
+  const reasons = buildSignalReasons(data, { sRSI,sEMA,sMACD,sBoll,sTBP,sFunding,sLS }, tf);
 
-  // TF label
-  data._tfLabel = tf==='daily'?'التداول اليومي (4 ساعات)':tf==='weekly'?'التداول الأسبوعي (يومي)':'الاستثمار الشهري (أسبوعي)';
+  data._tfLabel = tf==='daily'?'التداول اليومي (4h)':tf==='weekly'?'الأسبوعي (1D)':'الشهري (1W)';
   data._bullScore = Math.round(Math.max(0, net));
   data._bearScore = Math.round(Math.max(0, -net));
 
   return { decision, confidence, color, emoji, reasons, signals, net, tf };
 }
 
-function buildSignalReasons(d, signals, tf) {
+function buildSignalReasons(d, s, tf) {
+  const { rsi, ema20, ema50, ema200, price, fngVal, macd, fundingRate, lsRatio, bollPos, takerBuyPressure, chg24 } = d;
   const r = [];
-  const { rsi, ema20, ema50, ema200, price, fngVal, macd, fundingRate, obRatio, chg24 } = d;
-  if (rsi < 35)  r.push('📊 RSI ' + rsi.toFixed(1) + ' — تشبع بيعي، فرصة دخول محتملة');
-  else if (rsi > 65) r.push('📊 RSI ' + rsi.toFixed(1) + ' — تشبع شرائي، حذر من تصحيح');
-  if (price > ema20 && ema20 > ema50) r.push('📈 EMA: السعر فوق EMA20 و EMA50 — اتجاه صعودي');
-  else if (price < ema20) r.push('📉 EMA: السعر تحت EMA20 — ضغط بيعي');
-  if (macd?.bullish) r.push('⬆️ MACD صعودي — زخم إيجابي');
-  else r.push('⬇️ MACD هبوطي — زخم سلبي');
-  if (fngVal < 30) r.push('😨 خوف ' + fngVal + '/100 — تراكم تاريخياً عند هذه المستويات');
-  else if (fngVal > 70) r.push('🤑 جشع ' + fngVal + '/100 — قمم تاريخية عادةً هنا');
-  if (fundingRate !== null) {
-    if (fundingRate < -0.02) r.push('💹 Funding سلبي (' + fundingRate.toFixed(4) + '%) — ضغط على الشورت، squeeze محتمل');
-    else if (fundingRate > 0.04) r.push('💹 Funding مرتفع (' + fundingRate.toFixed(4) + '%) — لونجات متراكمة، خطر تصفية');
+  // RSI
+  if (rsi < 30)      r.push('📊 RSI ' + rsi.toFixed(1) + ' — تشبع بيعي شديد، إشارة دخول قوية');
+  else if (rsi < 40) r.push('📊 RSI ' + rsi.toFixed(1) + ' — منطقة بيع مفرط، انتبه للارتداد');
+  else if (rsi > 75) r.push('📊 RSI ' + rsi.toFixed(1) + ' — تشبع شرائي، خطر تصحيح قريب');
+  else if (rsi > 65) r.push('📊 RSI ' + rsi.toFixed(1) + ' — أعلى من المعدل، حذر من الدخول الجديد');
+  // EMA
+  if (price > ema20 && ema20 > ema50) r.push('📈 EMA: سعر↑EMA20↑EMA50 — اتجاه صعودي مؤكد');
+  else if (price < ema20 && price < ema50) r.push('📉 EMA: سعر تحت EMA20 و EMA50 — اتجاه هبوطي');
+  else if (price < ema20) r.push('📉 EMA: السعر كسر EMA20 — ضغط بيعي، انتظر تأكيداً');
+  // MACD
+  if (macd?.bullish) r.push('⬆️ MACD صعودي' + (s.sMACD>=1?' مع زخم متسارع — إشارة دخول':' — انتظر تأكيد'));
+  else r.push('⬇️ MACD هبوطي' + (s.sMACD<=-1?' مع زخم متسارع — تجنب الشراء':' — مراقبة'));
+  // Bollinger
+  if (bollPos < 0.15) r.push('📐 Bollinger: السعر عند الحد الأدنى — منطقة تشبع بيعي');
+  else if (bollPos > 0.85) r.push('📐 Bollinger: السعر عند الحد الأعلى — منطقة تشبع شرائي');
+  // Taker Buy Pressure
+  const tbpPct = typeof takerBuyPressure === 'number' ? (takerBuyPressure*100).toFixed(0) : null;
+  if (tbpPct && takerBuyPressure > 0.58) r.push('🔥 ضغط شراء ' + tbpPct + '% — المشترون يهيمنون على السوق');
+  else if (tbpPct && takerBuyPressure < 0.42) r.push('❄️ ضغط بيع ' + tbpPct + '% — البائعون يضغطون بقوة');
+  // Funding
+  if (fundingRate !== null && fundingRate !== undefined) {
+    if (fundingRate < -0.02) r.push('💹 Funding سلبي (' + fundingRate.toFixed(4) + '%) — الشورت يدفع، squeeze محتمل');
+    else if (fundingRate > 0.04) r.push('💹 Funding مرتفع (' + fundingRate.toFixed(4) + '%) — لونجات مفرطة، خطر تصفية');
   }
-  if (obRatio !== null) {
-    if (obRatio > 1.2) r.push('📒 Order Book: طلبات شراء تتفوق بنسبة ' + ((obRatio-1)*100).toFixed(0) + '% — ضغط صعودي');
-    else if (obRatio < 0.8) r.push('📒 Order Book: طلبات بيع تتفوق — ضغط هبوطي');
-  }
-  if (tf === 'weekly') r.push('📅 إطار أسبوعي: راقب EMA50 (' + fmt(ema50||0) + ') كمستوى حاسم');
-  if (tf === 'monthly') r.push('🏦 إطار شهري: الاتجاه الكبير ' + (price>(ema200||ema50)?'صعودي':'هبوطي'));
+  // L/S
+  if (lsRatio !== null && lsRatio < 0.8) r.push('📉 أغلبية المتداولين شورت (L/S ' + lsRatio?.toFixed(2) + ') — squeeze قريب');
+  else if (lsRatio !== null && lsRatio > 1.6) r.push('📈 أغلبية لونج (L/S ' + lsRatio?.toFixed(2) + ') — احذر التصفية');
+  // TF note
+  if (tf === 'weekly')  r.push('📅 أسبوعي: EMA50 (' + fmt(ema50||0) + ') هو المستوى الحاسم');
+  if (tf === 'monthly') r.push('🏦 شهري: الاتجاه الكبير ' + (price>(ema200||ema50)?'صعودي — أي تراجع فرصة':'هبوطي — تجنب الرافعة'));
   return r.slice(0, 6);
 }
 
