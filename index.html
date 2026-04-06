@@ -3108,8 +3108,64 @@ setInterval(refreshAllData, 60000);
           }
         });
 
-        // Update data cards
-        // dc-* cards managed by refreshAllData() — not overwritten here
+        // Update data cards based on fetched timeframe data
+        (function() {
+          // EMA20 & EMA50 from this timeframe's closes
+          var k20 = 2/21, k50 = 2/51;
+          var tfEma20 = closes[0], tfEma50 = closes[0];
+          for (var i = 1; i < closes.length; i++) {
+            tfEma20 = closes[i]*k20 + tfEma20*(1-k20);
+            tfEma50 = closes[i]*k50 + tfEma50*(1-k50);
+          }
+          // RSI 14
+          var g = 0, lo = 0, rsiStart = Math.max(1, closes.length - 14);
+          for (var j = rsiStart; j < closes.length; j++) {
+            var d = closes[j] - closes[j-1];
+            if (d > 0) g += d; else lo -= d;
+          }
+          var tfRsi = 100 - (100 / (1 + (g/14) / (lo/14 || 0.001)));
+
+          // Direction & expected price
+          var tfDec, tfExp;
+          if (lastPrice > tfEma20 && tfRsi < 70) {
+            tfDec = 'شراء';
+            var cUp = [tfEma50, lastPrice*1.025, lastPrice*1.04].filter(function(v){return v > lastPrice;});
+            tfExp = cUp.length ? Math.min.apply(null, cUp) : lastPrice*1.03;
+            if (tfExp < lastPrice*1.015) tfExp = lastPrice*1.025;
+          } else if (lastPrice < tfEma20 && tfRsi > 30) {
+            tfDec = 'بيع';
+            var cDn = [tfEma20, lastPrice*0.975, lastPrice*0.96].filter(function(v){return v < lastPrice;});
+            tfExp = cDn.length ? Math.max.apply(null, cDn) : lastPrice*0.97;
+            if (tfExp > lastPrice*0.985) tfExp = lastPrice*0.975;
+          } else {
+            tfDec = 'انتظار';
+            tfExp = lastPrice;
+          }
+          tfExp = Math.round(tfExp);
+
+          var tfBuyLow  = Math.round(Math.min(tfEma20*0.978, lastPrice*0.978));
+          var tfBuyHigh = Math.round(Math.min(tfEma20*0.985, lastPrice*0.985));
+          var tfSellLow  = Math.round(Math.max(tfEma20*1.025, lastPrice*1.015));
+          var tfSellHigh = Math.round(Math.max(tfEma20*1.035, lastPrice*1.03));
+
+          var expPct  = (tfExp - lastPrice) / lastPrice * 100;
+          var expSign = expPct >= 0 ? '+' : '';
+          var tfHorizon = tf === '24h' ? 'خلال 4-24 ساعة' : tf === 'week' ? 'خلال 1-7 أيام' : 'خلال 1-4 أسابيع';
+          var expLbl = tfDec === 'شراء'
+            ? expSign + expPct.toFixed(1) + '% — هدف مقترح ' + tfHorizon
+            : tfDec === 'بيع'
+              ? expSign + expPct.toFixed(1) + '% — هدف هبوطي مقترح'
+              : 'انتظار إشارة واضحة';
+
+          var fmtP = function(v){ return '$' + Math.round(v).toLocaleString(); };
+          var dc   = function(id){ return document.getElementById(id); };
+          if (dc('dc-expected'))     dc('dc-expected').textContent     = fmtP(tfExp);
+          if (dc('dc-expected-sub')) dc('dc-expected-sub').textContent = expLbl;
+          if (dc('dc-buy'))          dc('dc-buy').textContent          = fmtP(tfBuyLow) + ' – ' + fmtP(tfBuyHigh);
+          if (dc('dc-buy-sub'))      dc('dc-buy-sub').textContent      = 'RSI ' + Math.round(tfRsi) + ' — ' + (tfRsi < 35 ? 'منطقة تشبع بيعي' : 'منطقة دعم');
+          if (dc('dc-sell'))         dc('dc-sell').textContent         = fmtP(tfSellLow) + ' – ' + fmtP(tfSellHigh);
+          if (dc('dc-sell-sub'))     dc('dc-sell-sub').textContent     = 'منطقة مقاومة ' + (lastPrice > tfEma50 ? 'EMA200' : 'EMA50');
+        })();
 
         // Export chart reference for WebSocket live updates
         window.btcChartRef = btcChart;
