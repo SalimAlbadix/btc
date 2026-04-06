@@ -1210,7 +1210,7 @@
   </div>
 
   <!-- AI SIGNAL BUTTON -->
-  <button class="ai-signal-btn fade-in-up" id="ai-signal-btn" onclick="runAutoAI(window._lastData)">🔮 ما أفضل قرار الآن؟</button>
+  <button class="ai-signal-btn fade-in-up" id="ai-signal-btn" onclick="openSignalModal()">🔮 ما أفضل قرار الآن؟</button>
   <div class="ai-panel glass fade-in-up" id="ai-panel">
     <button id="ai-analyze-btn" onclick="triggerAIAnalysis()" class="ai-analyze-btn">
       <span id="ai-btn-icon">🔍</span>
@@ -2794,8 +2794,11 @@ function getAIDecision(data, tf) {
   const net = sRSI*W.rsi + sEMA*W.ema + sMACD*W.macd + sBoll*W.boll + sTBP*W.tbp
             + sFNG*W.fng + sFunding*W.funding + sLS*W.ls + sOI*W.oi + sMom*W.mom;
 
-  // Map net (-100 to +100) → confidence (0 to 100%)
-  const rawConf = 50 + net / 2;
+  // ── Geo/Macro bonus (max ±8 pts) ────────────────────────────
+  const geoBonus = (window._geoSignal && typeof window._geoSignal.netBonus === 'number') ? window._geoSignal.netBonus : 0;
+
+  // Map net (-100 to +100) → confidence (0 to 100%), with geo adjustment
+  const rawConf = 50 + net / 2 + geoBonus;
   const confidence = Math.max(8, Math.min(92, Math.round(rawConf)));
 
   // ── Decision thresholds ─────────────────────────────────────
@@ -2864,6 +2867,123 @@ function buildSignalReasons(d, s, tf) {
   if (tf === 'weekly')  r.push('📅 أسبوعي: EMA50 (' + fmt(ema50||0) + ') هو المستوى الحاسم');
   if (tf === 'monthly') r.push('🏦 شهري: الاتجاه الكبير ' + (price>(ema200||ema50)?'صعودي — أي تراجع فرصة':'هبوطي — تجنب الرافعة'));
   return r.slice(0, 6);
+}
+
+// ── Signal Explanation Modal ─────────────────────────────────────
+function openSignalModal() {
+  const r = window._aiResult;
+  if (!r || !r.signals) { setAITimeframe(_currentTF); return; }
+
+  const WM = {'RSI':15,'EMA':15,'MACD':11,'BB%':10,'Taker':12,'FNG':10,'Funding':12,'L/S':8,'OI':5,'زخم':2};
+  const INFO = {
+    'RSI':     { icon:'🌡️', name:'RSI — مؤشر القوة النسبية',
+      ex:'ميزان حرارة السوق. فوق 70 = الكل اشترى كثيراً ومحتمل يصحح. تحت 30 = الكل باع كثيراً وممكن يرتد. أفضل فرص الشراء عادةً بين 35-50.' },
+    'EMA':     { icon:'📏', name:'EMA — خطوط الاتجاه الثلاث',
+      ex:'ثلاثة خطوط تتبع متوسط السعر. لما يكون السعر فوق الثلاثة كلهم → اتجاه صعودي قوي. تحتهم → رحلة هبوطية. مثل الريح — اسبح معها لا ضدها.' },
+    'MACD':    { icon:'🚗', name:'MACD — مؤشر الزخم والسرعة',
+      ex:'يقيس هل قوة الحركة تزيد أو تقل. صعودي ومتسارع (أعمدة تكبر) = الموجة تتسارع، اركب. هبوطي ومتسارع = فرامل، انزل.' },
+    'BB%':     { icon:'🖼️', name:'بولينجر — موقع السعر في النطاق',
+      ex:'إطار يحدد هل السعر غالٍ أو رخيص مقارنة بمتوسطه. 0-20% = رخيص جداً (فرصة). 80-100% = غالٍ جداً (خطر). 50% = سعر عادل.' },
+    'Taker':   { icon:'💪', name:'ضغط الشراء الفعلي (Taker Buy)',
+      ex:'نسبة الصفقات المنفذة فعلاً للشراء. فوق 55% = المشترون يهجمون بقوة (صاعد). تحت 45% = البائعون يسيطرون. أدق من دفتر الأوامر.' },
+    'FNG':     { icon:'🧠', name:'مؤشر الخوف والجشع',
+      ex:'"ابتع حين الجميع خائف، بع حين الجميع جشع." 0-25 = خوف شديد = تاريخياً أفضل وقت للشراء. 75-100 = جشع = قمم قريبة.' },
+    'Funding': { icon:'💸', name:'تكلفة الرافعة (Funding Rate)',
+      ex:'الفائدة كل 8 ساعات على العقود الآجلة. موجب عالي (0.05%+) = المضاربون يراهنون على الصعود بكثرة = خطر تصفية جماعية. سالب = squeeze صاعد محتمل.' },
+    'L/S':     { icon:'🎲', name:'نسبة اللونج / الشورت',
+      ex:'عدد المراهنين على الصعود مقابل الهبوط. أكثر من 1.5 = الأغلبية تراهن على الصعود = السوق سيصطادهم. أقل من 0.8 = الأغلبية شورت = squeeze قريب.' },
+    'OI':      { icon:'📦', name:'إجمالي المراكز المفتوحة',
+      ex:'حجم الرهانات الكلي بالسوق الآجل (بالبيتكوين). كبير جداً = السوق محمل برافعة = أي صدمة ستصفي الجميع. صغير = سوق صحي.' },
+    'زخم':     { icon:'📅', name:'زخم آخر 24 ساعة',
+      ex:'كم تغير السعر اليوم. هبوط -8%+ في يوم = فرصة ارتداد للتداول اليومي. صعود +8%+ = إرهاق محتمل. البيتكوين يتذبذب عادةً 2-5% يومياً.' },
+  };
+
+  const sorted = [...(r.signals||[])].sort((a,b)=>(WM[b.name]||0)-(WM[a.name]||0));
+  const conf  = r.confidence;
+  const bc    = conf>=70?'#10b981':conf>=53?'#f59e0b':'#ef4444';
+  const dlbl  = conf>=73?'شراء قوي 🟢':conf>=61?'شراء تدريجي 🟢':conf>=47?'انتظار إشارة 🟡':conf>=39?'تخفيف مراكز 🔴':'بيع 🔴';
+
+  const rows = sorted.map(sig => {
+    const w   = WM[sig.name]||2;
+    const raw = sig.v * w;
+    const c   = (raw>=0?'+':'')+raw.toFixed(1);
+    const inf = INFO[sig.name]||{icon:'📊',name:sig.name,ex:sig.en};
+    const dc  = sig.v>0.15?'#10b981':sig.v<-0.15?'#ef4444':'#6b7280';
+    const dt  = sig.v>0.15?'↑ صاعد':sig.v<-0.15?'↓ هابط':'→ محايد';
+    const bw  = Math.round(Math.abs(sig.v)*100);
+    const cc  = raw>0?'#10b981':raw<0?'#ef4444':'#6b7280';
+    return `<div style="border:1px solid rgba(255,255,255,0.07);border-radius:15px;padding:13px 15px;margin-bottom:8px;background:rgba(255,255,255,0.02)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <div style="font-size:14px;font-weight:700;color:#F5F5F7">${inf.icon} ${inf.name}</div>
+        <span style="background:${dc}22;border:1px solid ${dc}55;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;color:${dc}">${dt}</span>
+      </div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.6;margin-bottom:9px">${inf.ex}</div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:5px;height:4px;margin-bottom:8px;overflow:hidden">
+        <div style="width:${bw}%;height:100%;background:${dc};border-radius:5px"></div>
+      </div>
+      <div style="display:flex;gap:14px;font-size:11px;color:rgba(255,255,255,0.3);flex-wrap:wrap">
+        <span>القيمة: <b style="color:rgba(255,255,255,0.7)">${sig.en}</b></span>
+        <span>الوزن: <b style="color:#f59e0b">${w} نقطة</b></span>
+        <span>التأثير: <b style="color:${cc}">${c} نقطة</b></span>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Geopolitical section
+  const geo = window._geoSignal;
+  const geoRow = geo && geo.events && geo.events.length ? `
+    <div style="border:1px solid rgba(255,200,0,0.25);border-radius:15px;padding:13px 15px;margin-bottom:8px;background:rgba(255,200,0,0.04)">
+      <div style="font-size:14px;font-weight:700;color:#F5F5F7;margin-bottom:5px">🌍 الماكرو والجيوسياسة</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.6);line-height:1.6;margin-bottom:8px">${geo.summary}</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.3)">التأثير على النسبة: <b style="color:${geo.netBonus>=0?'#10b981':'#ef4444'}">${geo.netBonus>=0?'+':''}${geo.netBonus.toFixed(1)} نقطة</b></div>
+    </div>` : '';
+
+  const html = `<div style="background:#0d1117;border:1px solid rgba(255,255,255,0.09);border-radius:22px;padding:20px;font-family:system-ui,-apple-system,sans-serif;direction:rtl">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div>
+        <div style="font-size:16px;font-weight:800;color:#F5F5F7">📋 لماذا هذا الرقم؟</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:2px">شرح كل إشارة بالترتيب من الأهم للأقل</div>
+      </div>
+      <button onclick="closeSignalModal()" style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.55);border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:14px;padding:0">✕</button>
+    </div>
+    <div style="background:${bc}12;border:1px solid ${bc}35;border-radius:16px;padding:16px;margin-bottom:14px;text-align:center">
+      <div style="font-size:54px;font-weight:900;color:${bc};line-height:1;letter-spacing:-2px">${conf}%</div>
+      <div style="font-size:14px;font-weight:700;color:#F5F5F7;margin:5px 0 10px">${dlbl}</div>
+      <div style="background:rgba(255,255,255,0.07);border-radius:20px;height:9px;overflow:hidden;margin-bottom:5px">
+        <div style="width:${conf}%;height:100%;background:linear-gradient(90deg,${bc}55,${bc});border-radius:20px"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:rgba(255,255,255,0.2)"><span>0% بيع</span><span>50% محايد</span><span>100% شراء</span></div>
+    </div>
+    <div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:9px 13px;margin-bottom:12px;font-size:11px;color:rgba(255,255,255,0.35);line-height:1.6">
+      ⚙️ كل إشارة لها وزن من 2 إلى 15. الصاعدة تُضاف، الهابطة تُطرح. المجموع يتحول لنسبة — 50% محايد، أكثر = شراء، أقل = بيع.
+    </div>
+    <div style="font-size:9px;font-weight:700;color:rgba(255,255,255,0.25);letter-spacing:1.5px;margin-bottom:9px">الإشارات — من الأهم (15 نقطة) إلى الأقل (2 نقطة)</div>
+    ${geoRow}${rows}
+    <div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:11px;margin-top:6px;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:11px;color:rgba(255,255,255,0.3)">المجموع الصافي</span>
+      <span style="font-size:19px;font-weight:900;color:${(r.net||0)>=0?'#10b981':'#ef4444'}">${(r.net||0)>=0?'+':''}${Math.round(r.net||0)} نقطة</span>
+    </div>
+    <div style="font-size:10px;color:rgba(255,255,255,0.18);text-align:center;margin-top:6px">${conf}% = 50 + (${Math.round(r.net||0)} ÷ 2) &nbsp;|&nbsp; ⚠️ ليس نصيحة مالية</div>
+  </div>`;
+
+  let ov = document.getElementById('signal-modal-overlay');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'signal-modal-overlay';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.87);z-index:99999;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 0 60px';
+    ov.addEventListener('click', e => { if(e.target===ov) closeSignalModal(); });
+    document.addEventListener('keydown', e => { if(e.key==='Escape') closeSignalModal(); });
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML = '<div style="max-width:540px;margin:0 auto;padding:10px 12px">' + html + '</div>';
+  ov.style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSignalModal() {
+  const ov = document.getElementById('signal-modal-overlay');
+  if (ov) ov.style.display = 'none';
+  document.body.style.overflow = '';
 }
 
 function buildBullReasons(d, tf) {
@@ -3185,6 +3305,46 @@ async function fetchTop5News() {
     const bearNews = top5.filter(a=>a.direction==='bear').length;
     const avgImpact = top5.reduce((s,a)=>s+a.impact,0) / (top5.length||1);
     window._newsSignalScore = ((bullNews - bearNews) / (top5.length||1)) * (avgImpact / 100);
+
+    // ── Geopolitical / Macro event detection ──────────────────
+    // Scans news for geo/macro keywords that affect BTC liquidity globally
+    const GEO_EVENTS = [
+      { keys:['iran','hormuz','strait of hormuz'],             score:-0.8, label:'⚠️ توترات إيران/هرمز',     ar:'التوترات الإيرانية وتهديد إغلاق هرمز يرفعان نفور المخاطر' },
+      { keys:['military strike','airstrike','bomb iran'],      score:-0.65, label:'⚠️ ضربة عسكرية',          ar:'عمل عسكري وشيك يرفع قلق الأسواق بشكل حاد' },
+      { keys:['war','warfare','armed conflict','invasion'],    score:-0.5, label:'⚠️ نزاع مسلح',              ar:'الحرب ترفع نفور المخاطر وتضغط على الأصول المضاربة' },
+      { keys:['bank of japan','boj rate hike','yen carry'],   score:-0.55, label:'⚠️ رفع فائدة BOJ',         ar:'رفع الفائدة الياباني يسحب السيولة العالمية ويضر بالبيتكوين' },
+      { keys:['tariff','trade war','trade tariff'],            score:-0.45, label:'⚠️ حرب تجارية/رسوم',      ar:'رسوم ترامب الجمركية تضغط على السيولة العالمية' },
+      { keys:['sanction','embargo'],                           score:-0.4, label:'⚠️ عقوبات اقتصادية',        ar:'العقوبات تضيّق التدفقات المالية الدولية' },
+      { keys:['taiwan strait','china invade','china invasion'],score:-0.6, label:'⚠️ توترات تايوان',          ar:'توترات المضيق تضرب الأسواق الآسيوية وتعصف بالمخاطر' },
+      { keys:['recession','economic contraction','gdp shrink'],score:-0.4, label:'⚠️ ركود اقتصادي',          ar:'الركود يقلص شهية المضاربة ويضغط على البيتكوين' },
+      { keys:['rate cut','fed cut','fed pivot','rate pause'],  score:+0.7, label:'✅ خفض فائدة',              ar:'خفض الفائدة يضخ سيولة ضخمة للأسواق — إيجابي قوي للبيتكوين' },
+      { keys:['stimulus','quantitative easing','qe infinity'],score:+0.6, label:'✅ تحفيز نقدي',             ar:'التحفيز الكمي يرفع الأصول المضاربة بشكل تاريخي' },
+      { keys:['ceasefire','peace deal','de-escalation'],       score:+0.45, label:'✅ هدنة/تهدئة',            ar:'التهدئة الجيوسياسية تعيد شهية المخاطر للأسواق' },
+      { keys:['rate hold','pause rate','fed hold'],            score:+0.2, label:'✅ تثبيت الفائدة',          ar:'تثبيت الفائدة يدعم استقرار السيولة' },
+    ];
+    const allText = articles.slice(0,20).map(a=>(a.title||'')+' '+(a.description||'')).join(' ').toLowerCase();
+    const detectedGeo = [];
+    GEO_EVENTS.forEach(ev => {
+      if (ev.keys.some(k => allText.includes(k))) detectedGeo.push({ label:ev.label, ar:ev.ar, score:ev.score });
+    });
+    // Always inject current known geo events (hardcoded ground truth for today's situation)
+    const CURRENT_GEO = [
+      { label:'⚠️ توترات ترامب-إيران', ar:'ترامب هدد بضرب إيران وإيران ردت بتهديد إغلاق هرمز — ضغط سلبي مباشر', score:-0.65 },
+      { label:'⚠️ حرب التعريفات 2025', ar:'رسوم ترامب الشاملة على الصين وأوروبا تضغط على السيولة العالمية', score:-0.4 },
+    ];
+    CURRENT_GEO.forEach(ev => {
+      if (!detectedGeo.find(d => d.label === ev.label)) detectedGeo.push(ev);
+    });
+    const geoAvgScore = detectedGeo.reduce((s,e)=>s+e.score,0) / (detectedGeo.length||1);
+    // Max ±8 points influence on confidence
+    const geoNetBonus = Math.max(-8, Math.min(8, geoAvgScore * 10));
+    window._geoSignal = {
+      score: geoAvgScore,
+      netBonus: geoNetBonus,
+      summary: detectedGeo.map(e=>e.ar).join(' | '),
+      events: detectedGeo
+    };
+
     return top5;
   } catch(e) {
     // Fallback — indicator-based news
