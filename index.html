@@ -2405,13 +2405,38 @@ async function refreshAllData() {
       if(vd) vd.textContent = curBucket&&curBucket.pct>60?'السعر في منطقة حجم عالي (HVN) — دعم قوي':'السعر في منطقة حجم منخفض — حركة سريعة متوقعة';
     }
 
-    // ── G. Daily Canvas Cards ──
-    if($('dc-expected')) $('dc-expected').textContent = fmt(ema20 * 1.018);
-    if($('dc-expected-sub')) $('dc-expected-sub').textContent = '+1.8% — هدف EMA20 خلال 24 ساعة';
-    if($('dc-buy')) $('dc-buy').textContent = fmt(ema20*0.978)+' – '+fmt(ema20*0.985);
+    // ── G. Daily Canvas Cards (smart expected price) ──
+    var aiDec = window._aiResult ? window._aiResult.decision : '';
+    var expected;
+    if (aiDec.includes('شراء')) {
+      var cands = [ema50, ema200, price*1.025, price*1.04].filter(function(v){return v>price;});
+      expected = cands.length ? Math.min.apply(null, cands) : price*1.03;
+      if (expected < price*1.015) expected = price*1.025;
+    } else if (aiDec.includes('بيع')) {
+      var cands2 = [ema20, ema50, price*0.975, price*0.96].filter(function(v){return v<price;});
+      expected = cands2.length ? Math.max.apply(null, cands2) : price*0.97;
+      if (expected > price*0.985) expected = price*0.975;
+    } else {
+      expected = price; // wait — show current
+    }
+    expected = Math.round(expected);
+    var expPct = ((expected - price) / price * 100);
+    var expSign = expPct >= 0 ? '+' : '';
+    var expLabel = aiDec.includes('شراء') ? expSign+expPct.toFixed(1)+'% — هدف مقترح خلال 4-24 ساعة'
+      : aiDec.includes('بيع') ? expSign+expPct.toFixed(1)+'% — هدف هبوطي مقترح'
+      : 'انتظار إشارة واضحة';
+    if($('dc-expected')) $('dc-expected').textContent = fmt(expected);
+    if($('dc-expected-sub')) $('dc-expected-sub').textContent = expLabel;
+    // Buy zone: below current price
+    var buyLow = Math.round(Math.min(ema20*0.978, price*0.978));
+    var buyHigh = Math.round(Math.min(ema20*0.985, price*0.985));
+    if($('dc-buy')) $('dc-buy').textContent = fmt(buyLow)+' – '+fmt(buyHigh);
     if($('dc-buy-sub')) $('dc-buy-sub').textContent = 'RSI '+Math.round(rsi)+' — '+(rsi<35?'منطقة تشبع بيعي':'منطقة دعم');
-    if($('dc-sell')) $('dc-sell').textContent = fmt(ema20*1.025)+' – '+fmt(ema20*1.035);
-    if($('dc-sell-sub')) $('dc-sell-sub').textContent = 'منطقة مقاومة EMA50';
+    // Sell zone: above current price
+    var sellLow = Math.round(Math.max(ema20*1.025, price*1.015));
+    var sellHigh = Math.round(Math.max(ema20*1.035, price*1.03));
+    if($('dc-sell')) $('dc-sell').textContent = fmt(sellLow)+' – '+fmt(sellHigh);
+    if($('dc-sell-sub')) $('dc-sell-sub').textContent = 'منطقة مقاومة '+(price>ema50?'EMA200':'EMA50');
 
     // ── H. Trading Scenarios ──
     const probs = document.querySelectorAll('.scenario-prob');
@@ -2713,6 +2738,16 @@ function runAutoAI(data) {
   // Ensure TP2 further than TP1
   if (isBull && tp2 <= tp1) tp2 = Math.round(tp1 * 1.025);
   if (!isBull && dec.includes('بيع') && tp2 >= tp1) tp2 = Math.round(tp1 * 0.975);
+
+  // Enforce minimum RR 1.5:1
+  var slDist = Math.abs(price - sl);
+  if (isBull && slDist > 0) {
+    if ((tp1 - price) < slDist * 1.5) { tp1 = Math.round(price + slDist * 1.5); }
+    if ((tp2 - price) < slDist * 2.5) { tp2 = Math.round(price + slDist * 2.5); }
+  } else if (dec.includes('بيع') && slDist > 0) {
+    if ((price - tp1) < slDist * 1.5) { tp1 = Math.round(price - slDist * 1.5); }
+    if ((price - tp2) < slDist * 2.5) { tp2 = Math.round(price - slDist * 2.5); }
+  }
 
   // Percentage calculations
   let tp1Pct, tp2Pct, slPct, tpSign;
